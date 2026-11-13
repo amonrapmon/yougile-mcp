@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=75,<81"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "yougile-mcp"
+version = "0.0.1"
+description = "Open-source self-hosted YouGile MCP server (foundation only)"
+readme = "README.md"
+requires-python = ">=3.11"
+license = "AGPL-3.0-only"
+authors = [{ name = "YouGile MCP contributors" }]
+keywords = ["yougile", "mcp", "self-hosted", "agent"]
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["ruff>=0.17,<1", "pytest>=9,<10"]
+
+[project.scripts]
+yougile-mcp = "yougile_mcp.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["yougile_mcp*"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+extend-exclude = ["catalog"]
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

@@ -1,0 +1,56 @@
+# Secrets and credentials
+.env
+.env.*
+!.env.example
+!.env.*.example
+secrets/
+*.pem
+*.pfx
+*.p12
+*.key
+.yougile.json
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+.pytest_cache/
+.mypy_cache/
+.pyright/
+.ruff_cache/
+.tox/
+.nox/
+.coverage
+.coverage.*
+htmlcov/
+*.egg-info/
+build/
+dist/
+
+# Runtime / local databases / data exports
+data/
+storage/
+uploads/
+logs/
+runtime/
+*.sqlite
+*.sqlite3
+*.db
+*.log
+*.pid
+*.sock
+*.tmp
+*.bak
+.cache/
+
+# IDE / operating system
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+Desktop.ini

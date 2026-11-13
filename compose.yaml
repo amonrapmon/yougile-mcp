@@ -1,0 +1,21 @@
+# Scaffold verification only; no published ports.
+# docker compose --profile verify run --rm config-check
+services:
+  config-check:
+    profiles: ["verify"]
+    build:
+      context: .
+    command: ["yougile-mcp", "doctor"]
+    read_only: true
+    tmpfs:
+      - /tmp:noexec,nosuid,size=16m
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    environment:
+      YOUGILE_BASE_URL: "https://ru.yougile.com"
+      MCP_TRANSPORT: "stdio"
+      MCP_HOST: "127.0.0.1"
+      MCP_PORT: "8000"
+      MCP_AUTH_MODE: "required"
