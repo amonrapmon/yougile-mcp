@@ -1,0 +1,307 @@
+{
+  "source": "https://github.com/justrussian/yougile-mcp/pull/5",
+  "source_commit": "6a1c79c3917320a23654681333741d0580c29ba1",
+  "note": "Factual tool names only; no upstream implementation copied",
+  "tools": [
+    {
+      "name": "get_companies",
+      "implementation_status": "inventory_only"
+    },
+    {
+      "name": "create_api_key",
+      "implementation_status": "inventory_only"
+    },
+    {
+      "name": "list_api_keys",
+      "implementation_status": "inventory_only"
+    },
+    {
+      "name": "delete_api_key",
+      "implementation_status": "inventory_only"
+    },
+    {
+      "name": "get_user_context",
+      "implementation_status": "inventory_only"
+    },
+    {
+      "name": "get_company_details",
+      "implementation_status": "inventory_only"
+    },
+    {
+      "name": "update_company",
+      "implementation_status": "inventory_only"
+    },
+    {
+      "name": "list_users",
+      "implementation_status": "inventory_only"
+    },
+    {
+      "name": "invite_user",
+      "implementation_status": "inventory_only"
+    },
+    {
+      "name": "get_user",
+      "implementation_status": "inventory_only"
+    },
+    {
+      "name": "update_user",
+      "implementation_status": "inventory_only"
+    },
+    {
+      "name": "remove_user",
+      "implementation_status": "inventory_only"
+    },
+    {
+      "name": "list_departments",
+      "implementation_status": "inventory_only"
+    },
+    {
+      "name": "create_department",
+      "implementation_status": "inventory_only"
+    },
+    {
+      "name": "get_department",
+      "implementation_status": "inventory_only"
+    },
+    {
+      "name": "update_department",
+      "implementation_status": "inventory_only"
+    },
+    {
+      "name": "list_projects",
+      "implementation_status": "inventory_only"
+    },
+    {
+      "name": "create_project",
+      "implementation_status": "inventory_only"
+    },
+    {
+      "name": "get_project",
+      "implementation_status": "inventory_only"
+    },
+    {
+      "name": "update_project",
+      "implementation_status": "inventory_only"
+    },
+    {
+      "name": "list_project_roles",
+      "implementation_status": "inventory_only"
+    },
+    {
+      "name": "create_project_role",
+      "implementation_status": "inventory_only"
+    },
+    {
+      "name": "get_project_role",
+      "implementation_status": "inventory_only"
+    },
+    {
+      "name": "update_project_role",
+      "implementation_status": "inventory_only"
+    },
+    {
+      "name": "delete_project_role",
+      "implementation_status": "inventory_only"
+    },
+    {
+      "name": "list_boards",
+      "implementation_status": "inventory_only"
+    },
+    {
+      "name": "create_board",
+      "implementation_status": "inventory_only"
+    },
+    {
+      "name": "get_board",
+      "implementation_status": "inventory_only"
+    },
+    {
+      "name": "update_board",
+      "implementation_status": "inventory_only"
+    },
+    {
+      "name": "list_columns",
+      "implementation_status": "inventory_only"
+    },
+    {
+      "name": "create_column",
+      "implementation_status": "inventory_only"
+    },
+    {
+      "name": "get_column",
+      "implementation_status": "inventory_only"
+    },
+    {
+      "name": "update_column",
+      "implementation_status": "inventory_only"
+    },
+    {
+      "name": "list_task_summaries",
+      "implementation_status": "inventory_only"
+    },
+    {
+      "name": "list_tasks",
+      "implementation_status": "inventory_only"
+    },
+    {
+      "name": "create_task",
+      "implementation_status": "inventory_only"
+    },
+    {
+      "name": "get_task",
+      "implementation_status": "inventory_only"
+    },
+    {
+      "name": "get_tasks_by_date",
+      "implementation_status": "inventory_only"
+    },
+    {
+      "name": "update_task",
+      "implementation_status": "inventory_only"
+    },
+    {
+      "name": "delete_task",
+      "implementation_status": "inventory_only"
+    },
+    {
+      "name": "set_task_deadline",
+      "implementation_status": "inventory_only"
+    },
+    {
+      "name": "set_task_time_tracking",
+      "implementation_status": "inventory_only"
+    },
+    {
+      "name": "set_task_custom_stickers",
+      "implementation_status": "inventory_only"
+    },
+    {
+      "name": "remove_task_sticker",
+      "implementation_status": "inventory_only"
+    },
+    {
+      "name": "get_task_chat_subscribers",
+      "implementation_status": "inventory_only"
+    },
+    {
+      "name": "update_task_chat_subscribers",
+      "implementation_status": "inventory_only"
+    },
+    {
+      "name": "list_string_stickers",
+      "implementation_status": "inventory_only"
+    },
+    {
+      "name": "create_string_sticker",
+      "implementation_status": "inventory_only"
+    },
+    {
+      "name": "get_string_sticker",
+      "implementation_status": "inventory_only"
+    },
+    {
+      "name": "update_string_sticker",
+      "implementation_status": "inventory_only"
+    },
+    {
+      "name": "get_string_sticker_state",
+      "implementation_status": "inventory_only"
+    },
+    {
+      "name": "create_string_sticker_state",
+      "implementation_status": "inventory_only"
+    },
+    {
+      "name": "update_string_sticker_state",
+      "implementation_status": "inventory_only"
+    },
+    {
+      "name": "list_sprint_stickers",
+      "implementation_status": "inventory_only"
+    },
+    {
+      "name": "create_sprint_sticker",
+      "implementation_status": "inventory_only"
+    },
+    {
+      "name": "get_sprint_sticker",
+      "implementation_status": "inventory_only"
+    },
+    {
+      "name": "update_sprint_sticker",
+      "implementation_status": "inventory_only"
+    },
+    {
+      "name": "get_sprint_sticker_state",
+      "implementation_status": "inventory_only"
+    },
+    {
+      "name": "create_sprint_sticker_state",
+      "implementation_status": "inventory_only"
+    },
+    {
+      "name": "update_sprint_sticker_state",
+      "implementation_status": "inventory_only"
+    },
+    {
+      "name": "decode_task_stickers",
+      "implementation_status": "inventory_only"
+    },
+    {
+      "name": "list_group_chats",
+      "implementation_status": "inventory_only"
+    },
+    {
+      "name": "create_group_chat",
+      "implementation_status": "inventory_only"
+    },
+    {
+      "name": "get_group_chat",
+      "implementation_status": "inventory_only"
+    },
+    {
+      "name": "update_group_chat",
+      "implementation_status": "inventory_only"
+    },
+    {
+      "name": "get_chat_messages",
+      "implementation_status": "inventory_only"
+    },
+    {
+      "name": "send_chat_message",
+      "implementation_status": "inventory_only"
+    },
+    {
+      "name": "get_chat_message",
+      "implementation_status": "inventory_only"
+    },
+    {
+      "name": "update_chat_message",
+      "implementation_status": "inventory_only"
+    },
+    {
+      "name": "get_task_comments",
+      "implementation_status": "inventory_only"
+    },
+    {
+      "name": "add_task_comment",
+      "implementation_status": "inventory_only"
+    },
+    {
+      "name": "upload_file",
+      "implementation_status": "inventory_only"
+    },
+    {
+      "name": "list_webhooks",
+      "implementation_status": "inventory_only"
+    },
+    {
+      "name": "create_webhook",
+      "implementation_status": "inventory_only"
+    },
+    {
+      "name": "update_webhook",
+      "implementation_status": "inventory_only"
+    }
+  ]
+}

@@ -1,0 +1,76 @@
+"""Fail-closed environment configuration for future MCP transports.
+
+SPDX-License-Identifier: AGPL-3.0-only
+"""
+
+from __future__ import annotations
+
+import os
+from dataclasses import dataclass
+from typing import Mapping
+from urllib.parse import urlparse
+
+
+class ConfigError(ValueError):
+    """Configuration is invalid or unsafe."""
+
+
+@dataclass(frozen=True)
+class Settings:
+    yougile_base_url: str
+    has_api_key: bool
+    company_id_set: bool
+    transport: str
+    host: str
+    port: int
+    auth_mode: str
+    public_url: str | None
+
+    @classmethod
+    def from_env(cls, env: Mapping[str, str] | None = None) -> Settings:
+        values = os.environ if env is None else env
+        base_url = values.get("YOUGILE_BASE_URL", "https://ru.yougile.com").strip()
+        parsed_base = urlparse(base_url)
+        if parsed_base.scheme != "https" or not parsed_base.hostname:
+            raise ConfigError("YOUGILE_BASE_URL must be an HTTPS URL")
+
+        transport = values.get("MCP_TRANSPORT", "stdio").strip().lower()
+        if transport not in {"stdio", "http"}:
+            raise ConfigError("MCP_TRANSPORT must be stdio or http")
+
+        host = values.get("MCP_HOST", "127.0.0.1").strip()
+        if not host:
+            raise ConfigError("MCP_HOST cannot be empty")
+
+        raw_port = values.get("MCP_PORT", "8000")
+        try:
+            port = int(raw_port)
+        except ValueError as exc:
+            raise ConfigError("MCP_PORT must be an integer") from exc
+        if not 1 <= port <= 65535:
+            raise ConfigError("MCP_PORT must be between 1 and 65535")
+
+        auth_mode = values.get("MCP_AUTH_MODE", "required").strip().lower()
+        if auth_mode != "required":
+            raise ConfigError("MCP_AUTH_MODE must be required (no anonymous mode)")
+
+        public_url = values.get("MCP_PUBLIC_URL", "").strip() or None
+        if public_url:
+            parsed_public = urlparse(public_url)
+            if parsed_public.scheme != "https" or not parsed_public.hostname:
+                raise ConfigError("MCP_PUBLIC_URL must be an HTTPS URL")
+
+        if transport == "http" and host not in {"localhost", "127.0.0.1", "::1"}:
+            if not public_url:
+                raise ConfigError("Public HTTP bind requires MCP_PUBLIC_URL with HTTPS")
+
+        return cls(
+            yougile_base_url=base_url,
+            has_api_key=bool(values.get("YOUGILE_API_KEY", "").strip()),
+            company_id_set=bool(values.get("YOUGILE_COMPANY_ID", "").strip()),
+            transport=transport,
+            host=host,
+            port=port,
+            auth_mode=auth_mode,
+            public_url=public_url,
+        )

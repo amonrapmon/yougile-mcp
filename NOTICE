@@ -1,0 +1,12 @@
+YouGile MCP is an independently maintained AGPL-3.0-only project.
+
+Architecture references reviewed, none of their source code copied into this
+foundation commit:
+- indalo-tech/yougile-mcp (MIT)
+- cvtmysxul/yougile-mcp (MIT)
+- indalo-tech/yougile-mcp-cloud (AGPL-3.0)
+- justrussian/yougile-mcp PR #4 and PR #5 (licensing not established)
+
+The factual inventories in catalog/ list tool names and public API operations,
+not implementations. When importing third-party code, update this NOTICE and
+docs/PROVENANCE.md with attribution and license requirements.
