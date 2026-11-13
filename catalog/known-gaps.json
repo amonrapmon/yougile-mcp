@@ -1,0 +1,10 @@
+{
+  "source": "Initial comparison of PR #5 and the 70-operation OpenAPI snapshot",
+  "operation_ids": [
+    "ChatMessageController_typing",
+    "CrmContactPersonsController_create",
+    "CrmExternalIdController_findContactByExternalId",
+    "TaskController_getLog",
+    "UserController_getMe"
+  ]
+}

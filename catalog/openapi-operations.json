@@ -1,0 +1,357 @@
+{
+  "source": "https://github.com/indalo-tech/yougile-mcp/blob/main/src/yougile_mcp/data/openapi.json",
+  "specification": "YouGile REST API v2",
+  "note": "Pinned snapshot only, not a live API probe",
+  "operations": [
+    {
+      "operationId": "getCompanies",
+      "method": "POST",
+      "path": "/api-v2/auth/companies"
+    },
+    {
+      "operationId": "AuthKeyController_create",
+      "method": "POST",
+      "path": "/api-v2/auth/keys"
+    },
+    {
+      "operationId": "AuthKeyController_delete",
+      "method": "DELETE",
+      "path": "/api-v2/auth/keys/{key}"
+    },
+    {
+      "operationId": "AuthKeyController_search",
+      "method": "POST",
+      "path": "/api-v2/auth/keys/get"
+    },
+    {
+      "operationId": "BoardController_search",
+      "method": "GET",
+      "path": "/api-v2/boards"
+    },
+    {
+      "operationId": "BoardController_create",
+      "method": "POST",
+      "path": "/api-v2/boards"
+    },
+    {
+      "operationId": "BoardController_get",
+      "method": "GET",
+      "path": "/api-v2/boards/{id}"
+    },
+    {
+      "operationId": "BoardController_update",
+      "method": "PUT",
+      "path": "/api-v2/boards/{id}"
+    },
+    {
+      "operationId": "ChatMessageController_search",
+      "method": "GET",
+      "path": "/api-v2/chats/{chatId}/messages"
+    },
+    {
+      "operationId": "ChatMessageController_sendMessage",
+      "method": "POST",
+      "path": "/api-v2/chats/{chatId}/messages"
+    },
+    {
+      "operationId": "ChatMessageController_get",
+      "method": "GET",
+      "path": "/api-v2/chats/{chatId}/messages/{id}"
+    },
+    {
+      "operationId": "ChatMessageController_update",
+      "method": "PUT",
+      "path": "/api-v2/chats/{chatId}/messages/{id}"
+    },
+    {
+      "operationId": "ChatMessageController_typing",
+      "method": "POST",
+      "path": "/api-v2/chats/{chatId}/typing"
+    },
+    {
+      "operationId": "ColumnController_search",
+      "method": "GET",
+      "path": "/api-v2/columns"
+    },
+    {
+      "operationId": "ColumnController_create",
+      "method": "POST",
+      "path": "/api-v2/columns"
+    },
+    {
+      "operationId": "ColumnController_get",
+      "method": "GET",
+      "path": "/api-v2/columns/{id}"
+    },
+    {
+      "operationId": "ColumnController_update",
+      "method": "PUT",
+      "path": "/api-v2/columns/{id}"
+    },
+    {
+      "operationId": "CompanyController_get",
+      "method": "GET",
+      "path": "/api-v2/companies{*companyId}"
+    },
+    {
+      "operationId": "CompanyController_update",
+      "method": "PUT",
+      "path": "/api-v2/companies{*companyId}"
+    },
+    {
+      "operationId": "CrmContactPersonsController_create",
+      "method": "POST",
+      "path": "/api-v2/crm/contact-persons"
+    },
+    {
+      "operationId": "CrmExternalIdController_findContactByExternalId",
+      "method": "GET",
+      "path": "/api-v2/crm/contacts/by-external-id"
+    },
+    {
+      "operationId": "DepartmentController_search",
+      "method": "GET",
+      "path": "/api-v2/departments"
+    },
+    {
+      "operationId": "DepartmentController_create",
+      "method": "POST",
+      "path": "/api-v2/departments"
+    },
+    {
+      "operationId": "DepartmentController_get",
+      "method": "GET",
+      "path": "/api-v2/departments/{id}"
+    },
+    {
+      "operationId": "DepartmentController_update",
+      "method": "PUT",
+      "path": "/api-v2/departments/{id}"
+    },
+    {
+      "operationId": "GroupChatController_search",
+      "method": "GET",
+      "path": "/api-v2/group-chats"
+    },
+    {
+      "operationId": "GroupChatController_create",
+      "method": "POST",
+      "path": "/api-v2/group-chats"
+    },
+    {
+      "operationId": "GroupChatController_get",
+      "method": "GET",
+      "path": "/api-v2/group-chats/{id}"
+    },
+    {
+      "operationId": "GroupChatController_update",
+      "method": "PUT",
+      "path": "/api-v2/group-chats/{id}"
+    },
+    {
+      "operationId": "ProjectController_search",
+      "method": "GET",
+      "path": "/api-v2/projects"
+    },
+    {
+      "operationId": "ProjectController_create",
+      "method": "POST",
+      "path": "/api-v2/projects"
+    },
+    {
+      "operationId": "ProjectController_get",
+      "method": "GET",
+      "path": "/api-v2/projects/{id}"
+    },
+    {
+      "operationId": "ProjectController_update",
+      "method": "PUT",
+      "path": "/api-v2/projects/{id}"
+    },
+    {
+      "operationId": "ProjectRolesController_search",
+      "method": "GET",
+      "path": "/api-v2/projects/{projectId}/roles"
+    },
+    {
+      "operationId": "ProjectRolesController_create",
+      "method": "POST",
+      "path": "/api-v2/projects/{projectId}/roles"
+    },
+    {
+      "operationId": "ProjectRolesController_delete",
+      "method": "DELETE",
+      "path": "/api-v2/projects/{projectId}/roles/{id}"
+    },
+    {
+      "operationId": "ProjectRolesController_get",
+      "method": "GET",
+      "path": "/api-v2/projects/{projectId}/roles/{id}"
+    },
+    {
+      "operationId": "ProjectRolesController_update",
+      "method": "PUT",
+      "path": "/api-v2/projects/{projectId}/roles/{id}"
+    },
+    {
+      "operationId": "SprintStickerController_search",
+      "method": "GET",
+      "path": "/api-v2/sprint-stickers"
+    },
+    {
+      "operationId": "SprintStickerController_create",
+      "method": "POST",
+      "path": "/api-v2/sprint-stickers"
+    },
+    {
+      "operationId": "SprintStickerController_getSticker",
+      "method": "GET",
+      "path": "/api-v2/sprint-stickers/{id}"
+    },
+    {
+      "operationId": "SprintStickerController_update",
+      "method": "PUT",
+      "path": "/api-v2/sprint-stickers/{id}"
+    },
+    {
+      "operationId": "SprintStickerStateController_create",
+      "method": "POST",
+      "path": "/api-v2/sprint-stickers/{stickerId}/states"
+    },
+    {
+      "operationId": "SprintStickerStateController_get",
+      "method": "GET",
+      "path": "/api-v2/sprint-stickers/{stickerId}/states/{stickerStateId}"
+    },
+    {
+      "operationId": "SprintStickerStateController_update",
+      "method": "PUT",
+      "path": "/api-v2/sprint-stickers/{stickerId}/states/{stickerStateId}"
+    },
+    {
+      "operationId": "StringStickerController_search",
+      "method": "GET",
+      "path": "/api-v2/string-stickers"
+    },
+    {
+      "operationId": "StringStickerController_create",
+      "method": "POST",
+      "path": "/api-v2/string-stickers"
+    },
+    {
+      "operationId": "StringStickerController_get",
+      "method": "GET",
+      "path": "/api-v2/string-stickers/{id}"
+    },
+    {
+      "operationId": "StringStickerController_update",
+      "method": "PUT",
+      "path": "/api-v2/string-stickers/{id}"
+    },
+    {
+      "operationId": "StringStickerStateController_create",
+      "method": "POST",
+      "path": "/api-v2/string-stickers/{stickerId}/states"
+    },
+    {
+      "operationId": "StringStickerStateController_get",
+      "method": "GET",
+      "path": "/api-v2/string-stickers/{stickerId}/states/{stickerStateId}"
+    },
+    {
+      "operationId": "StringStickerStateController_update",
+      "method": "PUT",
+      "path": "/api-v2/string-stickers/{stickerId}/states/{stickerStateId}"
+    },
+    {
+      "operationId": "TaskController_search",
+      "method": "GET",
+      "path": "/api-v2/task-list"
+    },
+    {
+      "operationId": "TaskController_searchReversed",
+      "method": "GET",
+      "path": "/api-v2/tasks"
+    },
+    {
+      "operationId": "TaskController_create",
+      "method": "POST",
+      "path": "/api-v2/tasks"
+    },
+    {
+      "operationId": "TaskController_get",
+      "method": "GET",
+      "path": "/api-v2/tasks/{id}"
+    },
+    {
+      "operationId": "TaskController_update",
+      "method": "PUT",
+      "path": "/api-v2/tasks/{id}"
+    },
+    {
+      "operationId": "TaskController_getChatSubscribers",
+      "method": "GET",
+      "path": "/api-v2/tasks/{id}/chat-subscribers"
+    },
+    {
+      "operationId": "TaskController_updateChatSubscribers",
+      "method": "PUT",
+      "path": "/api-v2/tasks/{id}/chat-subscribers"
+    },
+    {
+      "operationId": "TaskController_getLog",
+      "method": "GET",
+      "path": "/api-v2/tasks/{id}/log"
+    },
+    {
+      "operationId": "FileController_uploadFile",
+      "method": "POST",
+      "path": "/api-v2/upload-file"
+    },
+    {
+      "operationId": "UserController_search",
+      "method": "GET",
+      "path": "/api-v2/users"
+    },
+    {
+      "operationId": "UserController_create",
+      "method": "POST",
+      "path": "/api-v2/users"
+    },
+    {
+      "operationId": "UserController_delete",
+      "method": "DELETE",
+      "path": "/api-v2/users/{id}"
+    },
+    {
+      "operationId": "UserController_get",
+      "method": "GET",
+      "path": "/api-v2/users/{id}"
+    },
+    {
+      "operationId": "UserController_update",
+      "method": "PUT",
+      "path": "/api-v2/users/{id}"
+    },
+    {
+      "operationId": "UserController_getMe",
+      "method": "GET",
+      "path": "/api-v2/users/me"
+    },
+    {
+      "operationId": "WebhookController_search",
+      "method": "GET",
+      "path": "/api-v2/webhooks"
+    },
+    {
+      "operationId": "WebhookController_create",
+      "method": "POST",
+      "path": "/api-v2/webhooks"
+    },
+    {
+      "operationId": "WebhookController_put",
+      "method": "PUT",
+      "path": "/api-v2/webhooks/{id}"
+    }
+  ]
+}
