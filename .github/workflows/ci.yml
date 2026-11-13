@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: ["main", "chore/**", "feat/**", "fix/**"]
+    branches: ["main", "chore/**", "feat/**", "fix/**", "gpolukarov/**"]
   pull_request:
 
 permissions:
@@ -25,24 +25,24 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Install package and quality tools
-        run: python -m pip install --upgrade pip && python -m pip install -e ".[dev]"
+      - name: Install uv and locked package dependencies
+        run: python -m pip install uv==0.13.8 && uv sync --locked --all-extras
       - name: Lint
-        run: ruff check .
+        run: uv run --locked ruff check .
       - name: Compile
-        run: python -m compileall -q src scripts tests
+        run: uv run --locked python -m compileall -q src scripts tests
       - name: Unit tests
-        run: python -m unittest discover -s tests -v
+        run: uv run --locked python -m unittest discover -s tests -v
       - name: Agent contracts and path-routing check
         run: |
-          python scripts/agent_contracts.py check
-          python scripts/agent_contracts.py for src/yougile_mcp/config.py
+          uv run --locked python scripts/agent_contracts.py check
+          uv run --locked python scripts/agent_contracts.py for src/yougile_mcp/config.py
       - name: Architecture guard
-        run: python scripts/architecture_guard.py
+        run: uv run --locked python scripts/architecture_guard.py
       - name: Catalog invariant check
-        run: python scripts/check_catalog.py
+        run: uv run --locked python scripts/check_catalog.py
       - name: Config diagnostic
-        run: python -m yougile_mcp doctor
+        run: uv run --locked python -m yougile_mcp doctor
 
   docker:
     name: Docker build (no public port)

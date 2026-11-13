@@ -12,7 +12,7 @@ Axes that must never be conflated:
 - **MCP**: protocol revision 2026-07-28 (wire-level requests, auth and tools).
 - **OpenAPI**: format standard OAS 3.2.1, published September 10, 2026.
 - **YouGile**: public vendor REST API **v2**, independent of OAS syntax.
-  The pinned *third-party* operation inventory uses \`openapi: 3.0.0\`.
+  The official pinned contract uses \`openapi: 3.0.0\`.
 - **Python SDK**: a maintained v2 release that supports the new and legacy
   protocol eras; its version is not the MCP specification revision.
 
@@ -23,6 +23,21 @@ successful DTO decoding or complete production behavior.
 Standards should be periodically reverified and their snapshot provenance
 updated by a focused review PR. A version change is a contract review, not
 routine housekeeping.
+
+## YouGile REST API v2 source
+
+The official OpenAPI document is published at
+<https://ru.yougile.com/api-json> and is pinned in
+\`src/yougile_mcp/api/openapi-v2.json\`. It identifies YouGile API v2.0 and
+OpenAPI 3.0.0; the latter is a document format version, not an API version.
+The SHA-256, retrieval date, author attribution and license status are in
+\`src/yougile_mcp/api/openapi-source.json\`. The source document does not
+declare a license. The official contract currently has 72 operations; the
+coverage matrix in \`catalog/openapi-operations.json\` is generated from this
+snapshot and distinguishes discovered operations from mock-tested ones.
+
+Do not generate DTOs from the operation matrix alone; use the pinned source
+schema and review any drift before updating it.
 
 The \`catalog/openapi-operations.json\` file is only an operation inventory,
 not the full vendor OpenAPI schema. Do not generate DTOs from it.

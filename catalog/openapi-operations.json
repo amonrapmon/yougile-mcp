@@ -1,357 +1,3018 @@
 {
-  "source": "https://github.com/indalo-tech/yougile-mcp/blob/main/src/yougile_mcp/data/openapi.json",
-  "specification": "YouGile REST API v2",
-  "note": "Pinned snapshot only, not a live API probe",
+  "source": {
+    "source": "https://ru.yougile.com/api-json",
+    "retrieved_at": "2026-11-14",
+    "api_specification": "YouGile REST API v2.0",
+    "api_version": "2.0",
+    "openapi_version": "3.0.0",
+    "sha256": "9452cba3571607848de77fc12e68104cb454e403c35c7a6b97521ea6e0d1d406",
+    "author": "YouGile LLC (official documentation site copyright)",
+    "license": null,
+    "license_status": "not specified by the OpenAPI document",
+    "spec_file": "src/yougile_mcp/api/openapi-v2.json"
+  },
   "operations": [
-    {
-      "operationId": "getCompanies",
-      "method": "POST",
-      "path": "/api-v2/auth/companies"
-    },
     {
       "operationId": "AuthKeyController_create",
       "method": "POST",
-      "path": "/api-v2/auth/keys"
+      "path": "/api-v2/auth/keys",
+      "category": "Авторизация",
+      "parameters": [],
+      "request_schemas": {
+        "application/json": [
+          "#/components/schemas/CredentialsWithCompanyDto"
+        ]
+      },
+      "response_schemas": {
+        "201": {
+          "application/json": [
+            "#/components/schemas/AuthKeyDto"
+          ]
+        },
+        "400": {},
+        "401": {},
+        "403": {},
+        "429": {}
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": []
+      },
+      "effect": "write",
+      "status": "discovered",
+      "test_paths": [],
+      "notes": "Not included in the first implemented slice."
     },
     {
       "operationId": "AuthKeyController_delete",
       "method": "DELETE",
-      "path": "/api-v2/auth/keys/{key}"
+      "path": "/api-v2/auth/keys/{key}",
+      "category": "Авторизация",
+      "parameters": [
+        {
+          "name": "key",
+          "in": "path",
+          "required": true,
+          "type": "string",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {},
+      "response_schemas": {
+        "200": {},
+        "429": {}
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": []
+      },
+      "effect": "destructive",
+      "status": "discovered",
+      "test_paths": [],
+      "notes": "Not included in the first implemented slice."
     },
     {
       "operationId": "AuthKeyController_search",
       "method": "POST",
-      "path": "/api-v2/auth/keys/get"
-    },
-    {
-      "operationId": "BoardController_search",
-      "method": "GET",
-      "path": "/api-v2/boards"
+      "path": "/api-v2/auth/keys/get",
+      "category": "Авторизация",
+      "parameters": [],
+      "request_schemas": {
+        "application/json": [
+          "#/components/schemas/CredentialsWithCompanyOptionalDto"
+        ]
+      },
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/AuthKeyWithDetailsDto"
+          ]
+        },
+        "400": {},
+        "401": {},
+        "403": {},
+        "429": {}
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": []
+      },
+      "effect": "read",
+      "status": "discovered",
+      "test_paths": [],
+      "notes": "Not included in the first implemented slice."
     },
     {
       "operationId": "BoardController_create",
       "method": "POST",
-      "path": "/api-v2/boards"
+      "path": "/api-v2/boards",
+      "category": "Доски",
+      "parameters": [],
+      "request_schemas": {
+        "application/json": [
+          "#/components/schemas/CreateBoardDto"
+        ]
+      },
+      "response_schemas": {
+        "201": {
+          "application/json": [
+            "#/components/schemas/WithIdDto"
+          ]
+        }
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "write",
+      "status": "discovered",
+      "test_paths": [],
+      "notes": "Not included in the first implemented slice."
     },
     {
       "operationId": "BoardController_get",
       "method": "GET",
-      "path": "/api-v2/boards/{id}"
+      "path": "/api-v2/boards/{id}",
+      "category": "Доски",
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "type": "string",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {},
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/BoardDto"
+          ]
+        },
+        "404": {}
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "read",
+      "status": "mock_tested",
+      "test_paths": [
+        "tests/test_api_client.py"
+      ],
+      "notes": null
+    },
+    {
+      "operationId": "BoardController_search",
+      "method": "GET",
+      "path": "/api-v2/boards",
+      "category": "Доски",
+      "parameters": [
+        {
+          "name": "includeDeleted",
+          "in": "query",
+          "required": false,
+          "type": "boolean",
+          "schema_sources": []
+        },
+        {
+          "name": "limit",
+          "in": "query",
+          "required": false,
+          "type": "number",
+          "schema_sources": []
+        },
+        {
+          "name": "offset",
+          "in": "query",
+          "required": false,
+          "type": "number",
+          "schema_sources": []
+        },
+        {
+          "name": "title",
+          "in": "query",
+          "required": false,
+          "type": "string",
+          "schema_sources": []
+        },
+        {
+          "name": "projectId",
+          "in": "query",
+          "required": false,
+          "type": "string",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {},
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/BoardListDto"
+          ]
+        },
+        "404": {}
+      },
+      "pagination": {
+        "kind": "offset",
+        "parameters": [
+          "limit",
+          "offset"
+        ]
+      },
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "read",
+      "status": "mock_tested",
+      "test_paths": [
+        "tests/test_api_client.py"
+      ],
+      "notes": null
     },
     {
       "operationId": "BoardController_update",
       "method": "PUT",
-      "path": "/api-v2/boards/{id}"
-    },
-    {
-      "operationId": "ChatMessageController_search",
-      "method": "GET",
-      "path": "/api-v2/chats/{chatId}/messages"
-    },
-    {
-      "operationId": "ChatMessageController_sendMessage",
-      "method": "POST",
-      "path": "/api-v2/chats/{chatId}/messages"
+      "path": "/api-v2/boards/{id}",
+      "category": "Доски",
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "type": "string",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {
+        "application/json": [
+          "#/components/schemas/UpdateBoardDto"
+        ]
+      },
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/WithIdDto"
+          ]
+        },
+        "404": {}
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "write",
+      "status": "discovered",
+      "test_paths": [],
+      "notes": "Not included in the first implemented slice."
     },
     {
       "operationId": "ChatMessageController_get",
       "method": "GET",
-      "path": "/api-v2/chats/{chatId}/messages/{id}"
+      "path": "/api-v2/chats/{chatId}/messages/{id}",
+      "category": "Сообщения чатов",
+      "parameters": [
+        {
+          "name": "chatId",
+          "in": "path",
+          "required": true,
+          "type": "string",
+          "schema_sources": []
+        },
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "type": "number",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {},
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/ChatMessageDto"
+          ]
+        },
+        "404": {}
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "read",
+      "status": "discovered",
+      "test_paths": [],
+      "notes": "Not included in the first implemented slice."
     },
     {
-      "operationId": "ChatMessageController_update",
-      "method": "PUT",
-      "path": "/api-v2/chats/{chatId}/messages/{id}"
+      "operationId": "ChatMessageController_search",
+      "method": "GET",
+      "path": "/api-v2/chats/{chatId}/messages",
+      "category": "Сообщения чатов",
+      "parameters": [
+        {
+          "name": "chatId",
+          "in": "path",
+          "required": true,
+          "type": "string",
+          "schema_sources": []
+        },
+        {
+          "name": "includeDeleted",
+          "in": "query",
+          "required": false,
+          "type": "boolean",
+          "schema_sources": []
+        },
+        {
+          "name": "limit",
+          "in": "query",
+          "required": false,
+          "type": "number",
+          "schema_sources": []
+        },
+        {
+          "name": "offset",
+          "in": "query",
+          "required": false,
+          "type": "number",
+          "schema_sources": []
+        },
+        {
+          "name": "fromUserId",
+          "in": "query",
+          "required": false,
+          "type": "string",
+          "schema_sources": []
+        },
+        {
+          "name": "text",
+          "in": "query",
+          "required": false,
+          "type": "string",
+          "schema_sources": []
+        },
+        {
+          "name": "label",
+          "in": "query",
+          "required": false,
+          "type": "string",
+          "schema_sources": []
+        },
+        {
+          "name": "since",
+          "in": "query",
+          "required": false,
+          "type": "number",
+          "schema_sources": []
+        },
+        {
+          "name": "includeSystem",
+          "in": "query",
+          "required": false,
+          "type": "boolean",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {},
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/ChatMessageListDto"
+          ]
+        },
+        "404": {}
+      },
+      "pagination": {
+        "kind": "offset",
+        "parameters": [
+          "limit",
+          "offset"
+        ]
+      },
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "read",
+      "status": "discovered",
+      "test_paths": [],
+      "notes": "Not included in the first implemented slice."
+    },
+    {
+      "operationId": "ChatMessageController_sendMessage",
+      "method": "POST",
+      "path": "/api-v2/chats/{chatId}/messages",
+      "category": "Сообщения чатов",
+      "parameters": [
+        {
+          "name": "chatId",
+          "in": "path",
+          "required": true,
+          "type": "string",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {
+        "application/json": [
+          "#/components/schemas/CreateChatMessageDto"
+        ]
+      },
+      "response_schemas": {
+        "201": {
+          "application/json": [
+            "#/components/schemas/ChatIdDto"
+          ]
+        }
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "write",
+      "status": "discovered",
+      "test_paths": [],
+      "notes": "Not included in the first implemented slice."
     },
     {
       "operationId": "ChatMessageController_typing",
       "method": "POST",
-      "path": "/api-v2/chats/{chatId}/typing"
+      "path": "/api-v2/chats/{chatId}/typing",
+      "category": "Сообщения чатов",
+      "parameters": [
+        {
+          "name": "chatId",
+          "in": "path",
+          "required": true,
+          "type": "string",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {},
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/ChatTypingDto"
+          ]
+        }
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "write",
+      "status": "discovered",
+      "test_paths": [],
+      "notes": "Not included in the first implemented slice."
     },
     {
-      "operationId": "ColumnController_search",
-      "method": "GET",
-      "path": "/api-v2/columns"
+      "operationId": "ChatMessageController_update",
+      "method": "PUT",
+      "path": "/api-v2/chats/{chatId}/messages/{id}",
+      "category": "Сообщения чатов",
+      "parameters": [
+        {
+          "name": "chatId",
+          "in": "path",
+          "required": true,
+          "type": "string",
+          "schema_sources": []
+        },
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "type": "number",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {
+        "application/json": [
+          "#/components/schemas/UpdateChatMessageDto"
+        ]
+      },
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/ChatIdDto"
+          ]
+        },
+        "404": {}
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "write",
+      "status": "discovered",
+      "test_paths": [],
+      "notes": "Not included in the first implemented slice."
     },
     {
       "operationId": "ColumnController_create",
       "method": "POST",
-      "path": "/api-v2/columns"
+      "path": "/api-v2/columns",
+      "category": "Колонки",
+      "parameters": [],
+      "request_schemas": {
+        "application/json": [
+          "#/components/schemas/CreateColumnDto"
+        ]
+      },
+      "response_schemas": {
+        "201": {
+          "application/json": [
+            "#/components/schemas/WithIdDto"
+          ]
+        }
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "write",
+      "status": "mock_tested",
+      "test_paths": [
+        "tests/test_api_client.py"
+      ],
+      "notes": null
     },
     {
       "operationId": "ColumnController_get",
       "method": "GET",
-      "path": "/api-v2/columns/{id}"
+      "path": "/api-v2/columns/{id}",
+      "category": "Колонки",
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "type": "string",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {},
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/ColumnDto"
+          ]
+        },
+        "404": {}
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "read",
+      "status": "discovered",
+      "test_paths": [],
+      "notes": "Not included in the first implemented slice."
+    },
+    {
+      "operationId": "ColumnController_search",
+      "method": "GET",
+      "path": "/api-v2/columns",
+      "category": "Колонки",
+      "parameters": [
+        {
+          "name": "includeDeleted",
+          "in": "query",
+          "required": false,
+          "type": "boolean",
+          "schema_sources": []
+        },
+        {
+          "name": "limit",
+          "in": "query",
+          "required": false,
+          "type": "number",
+          "schema_sources": []
+        },
+        {
+          "name": "offset",
+          "in": "query",
+          "required": false,
+          "type": "number",
+          "schema_sources": []
+        },
+        {
+          "name": "title",
+          "in": "query",
+          "required": false,
+          "type": "string",
+          "schema_sources": []
+        },
+        {
+          "name": "boardId",
+          "in": "query",
+          "required": false,
+          "type": "string",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {},
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/ColumnListDto"
+          ]
+        },
+        "404": {}
+      },
+      "pagination": {
+        "kind": "offset",
+        "parameters": [
+          "limit",
+          "offset"
+        ]
+      },
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "read",
+      "status": "mock_tested",
+      "test_paths": [
+        "tests/test_api_client.py"
+      ],
+      "notes": null
     },
     {
       "operationId": "ColumnController_update",
       "method": "PUT",
-      "path": "/api-v2/columns/{id}"
+      "path": "/api-v2/columns/{id}",
+      "category": "Колонки",
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "type": "string",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {
+        "application/json": [
+          "#/components/schemas/UpdateColumnDto"
+        ]
+      },
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/WithIdDto"
+          ]
+        },
+        "404": {}
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "write",
+      "status": "discovered",
+      "test_paths": [],
+      "notes": "Not included in the first implemented slice."
     },
     {
       "operationId": "CompanyController_get",
       "method": "GET",
-      "path": "/api-v2/companies{*companyId}"
+      "path": "/api-v2/companies{*companyId}",
+      "category": "Компания",
+      "parameters": [],
+      "request_schemas": {},
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/CompanyDto"
+          ]
+        },
+        "404": {}
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "read",
+      "status": "discovered",
+      "test_paths": [],
+      "notes": "The vendor path contains a non-standard wildcard with no declared parameter schema."
     },
     {
       "operationId": "CompanyController_update",
       "method": "PUT",
-      "path": "/api-v2/companies{*companyId}"
+      "path": "/api-v2/companies{*companyId}",
+      "category": "Компания",
+      "parameters": [],
+      "request_schemas": {
+        "application/json": [
+          "#/components/schemas/UpdateCompanyDto"
+        ]
+      },
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/WithIdDto"
+          ]
+        },
+        "404": {}
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "write",
+      "status": "discovered",
+      "test_paths": [],
+      "notes": "The vendor path contains a non-standard wildcard with no declared parameter schema."
     },
     {
       "operationId": "CrmContactPersonsController_create",
       "method": "POST",
-      "path": "/api-v2/crm/contact-persons"
+      "path": "/api-v2/crm/contact-persons",
+      "category": "CRM справочники",
+      "parameters": [],
+      "request_schemas": {
+        "application/json": [
+          "#/components/schemas/CreateContactPersonDto"
+        ]
+      },
+      "response_schemas": {
+        "201": {
+          "application/json": [
+            "#/components/schemas/ContactPersonEntryDto"
+          ]
+        }
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "write",
+      "status": "discovered",
+      "test_paths": [],
+      "notes": "Not included in the first implemented slice."
     },
     {
       "operationId": "CrmExternalIdController_findContactByExternalId",
       "method": "GET",
-      "path": "/api-v2/crm/contacts/by-external-id"
-    },
-    {
-      "operationId": "DepartmentController_search",
-      "method": "GET",
-      "path": "/api-v2/departments"
+      "path": "/api-v2/crm/contacts/by-external-id",
+      "category": "CRM внешние идентификаторы",
+      "parameters": [
+        {
+          "name": "provider",
+          "in": "query",
+          "required": true,
+          "type": "string",
+          "schema_sources": []
+        },
+        {
+          "name": "chatId",
+          "in": "query",
+          "required": true,
+          "type": "string",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {},
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/CrmDirectoryEntryDto"
+          ]
+        }
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "read",
+      "status": "discovered",
+      "test_paths": [],
+      "notes": "Not included in the first implemented slice."
     },
     {
       "operationId": "DepartmentController_create",
       "method": "POST",
-      "path": "/api-v2/departments"
+      "path": "/api-v2/departments",
+      "category": "Отделы",
+      "parameters": [],
+      "request_schemas": {
+        "application/json": [
+          "#/components/schemas/CreateDepartmentDto"
+        ]
+      },
+      "response_schemas": {
+        "201": {
+          "application/json": [
+            "#/components/schemas/WithIdDto"
+          ]
+        }
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "write",
+      "status": "discovered",
+      "test_paths": [],
+      "notes": "Not included in the first implemented slice."
     },
     {
       "operationId": "DepartmentController_get",
       "method": "GET",
-      "path": "/api-v2/departments/{id}"
+      "path": "/api-v2/departments/{id}",
+      "category": "Отделы",
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "type": "string",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {},
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/DepartmentDto"
+          ]
+        },
+        "404": {}
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "read",
+      "status": "discovered",
+      "test_paths": [],
+      "notes": "Not included in the first implemented slice."
+    },
+    {
+      "operationId": "DepartmentController_search",
+      "method": "GET",
+      "path": "/api-v2/departments",
+      "category": "Отделы",
+      "parameters": [
+        {
+          "name": "includeDeleted",
+          "in": "query",
+          "required": false,
+          "type": "boolean",
+          "schema_sources": []
+        },
+        {
+          "name": "limit",
+          "in": "query",
+          "required": false,
+          "type": "number",
+          "schema_sources": []
+        },
+        {
+          "name": "offset",
+          "in": "query",
+          "required": false,
+          "type": "number",
+          "schema_sources": []
+        },
+        {
+          "name": "title",
+          "in": "query",
+          "required": false,
+          "type": "string",
+          "schema_sources": []
+        },
+        {
+          "name": "parentId",
+          "in": "query",
+          "required": false,
+          "type": "string",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {},
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/DepartmentListDto"
+          ]
+        },
+        "404": {}
+      },
+      "pagination": {
+        "kind": "offset",
+        "parameters": [
+          "limit",
+          "offset"
+        ]
+      },
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "read",
+      "status": "discovered",
+      "test_paths": [],
+      "notes": "Not included in the first implemented slice."
     },
     {
       "operationId": "DepartmentController_update",
       "method": "PUT",
-      "path": "/api-v2/departments/{id}"
-    },
-    {
-      "operationId": "GroupChatController_search",
-      "method": "GET",
-      "path": "/api-v2/group-chats"
-    },
-    {
-      "operationId": "GroupChatController_create",
-      "method": "POST",
-      "path": "/api-v2/group-chats"
-    },
-    {
-      "operationId": "GroupChatController_get",
-      "method": "GET",
-      "path": "/api-v2/group-chats/{id}"
-    },
-    {
-      "operationId": "GroupChatController_update",
-      "method": "PUT",
-      "path": "/api-v2/group-chats/{id}"
-    },
-    {
-      "operationId": "ProjectController_search",
-      "method": "GET",
-      "path": "/api-v2/projects"
-    },
-    {
-      "operationId": "ProjectController_create",
-      "method": "POST",
-      "path": "/api-v2/projects"
-    },
-    {
-      "operationId": "ProjectController_get",
-      "method": "GET",
-      "path": "/api-v2/projects/{id}"
-    },
-    {
-      "operationId": "ProjectController_update",
-      "method": "PUT",
-      "path": "/api-v2/projects/{id}"
-    },
-    {
-      "operationId": "ProjectRolesController_search",
-      "method": "GET",
-      "path": "/api-v2/projects/{projectId}/roles"
-    },
-    {
-      "operationId": "ProjectRolesController_create",
-      "method": "POST",
-      "path": "/api-v2/projects/{projectId}/roles"
-    },
-    {
-      "operationId": "ProjectRolesController_delete",
-      "method": "DELETE",
-      "path": "/api-v2/projects/{projectId}/roles/{id}"
-    },
-    {
-      "operationId": "ProjectRolesController_get",
-      "method": "GET",
-      "path": "/api-v2/projects/{projectId}/roles/{id}"
-    },
-    {
-      "operationId": "ProjectRolesController_update",
-      "method": "PUT",
-      "path": "/api-v2/projects/{projectId}/roles/{id}"
-    },
-    {
-      "operationId": "SprintStickerController_search",
-      "method": "GET",
-      "path": "/api-v2/sprint-stickers"
-    },
-    {
-      "operationId": "SprintStickerController_create",
-      "method": "POST",
-      "path": "/api-v2/sprint-stickers"
-    },
-    {
-      "operationId": "SprintStickerController_getSticker",
-      "method": "GET",
-      "path": "/api-v2/sprint-stickers/{id}"
-    },
-    {
-      "operationId": "SprintStickerController_update",
-      "method": "PUT",
-      "path": "/api-v2/sprint-stickers/{id}"
-    },
-    {
-      "operationId": "SprintStickerStateController_create",
-      "method": "POST",
-      "path": "/api-v2/sprint-stickers/{stickerId}/states"
-    },
-    {
-      "operationId": "SprintStickerStateController_get",
-      "method": "GET",
-      "path": "/api-v2/sprint-stickers/{stickerId}/states/{stickerStateId}"
-    },
-    {
-      "operationId": "SprintStickerStateController_update",
-      "method": "PUT",
-      "path": "/api-v2/sprint-stickers/{stickerId}/states/{stickerStateId}"
-    },
-    {
-      "operationId": "StringStickerController_search",
-      "method": "GET",
-      "path": "/api-v2/string-stickers"
-    },
-    {
-      "operationId": "StringStickerController_create",
-      "method": "POST",
-      "path": "/api-v2/string-stickers"
-    },
-    {
-      "operationId": "StringStickerController_get",
-      "method": "GET",
-      "path": "/api-v2/string-stickers/{id}"
-    },
-    {
-      "operationId": "StringStickerController_update",
-      "method": "PUT",
-      "path": "/api-v2/string-stickers/{id}"
-    },
-    {
-      "operationId": "StringStickerStateController_create",
-      "method": "POST",
-      "path": "/api-v2/string-stickers/{stickerId}/states"
-    },
-    {
-      "operationId": "StringStickerStateController_get",
-      "method": "GET",
-      "path": "/api-v2/string-stickers/{stickerId}/states/{stickerStateId}"
-    },
-    {
-      "operationId": "StringStickerStateController_update",
-      "method": "PUT",
-      "path": "/api-v2/string-stickers/{stickerId}/states/{stickerStateId}"
-    },
-    {
-      "operationId": "TaskController_search",
-      "method": "GET",
-      "path": "/api-v2/task-list"
-    },
-    {
-      "operationId": "TaskController_searchReversed",
-      "method": "GET",
-      "path": "/api-v2/tasks"
-    },
-    {
-      "operationId": "TaskController_create",
-      "method": "POST",
-      "path": "/api-v2/tasks"
-    },
-    {
-      "operationId": "TaskController_get",
-      "method": "GET",
-      "path": "/api-v2/tasks/{id}"
-    },
-    {
-      "operationId": "TaskController_update",
-      "method": "PUT",
-      "path": "/api-v2/tasks/{id}"
-    },
-    {
-      "operationId": "TaskController_getChatSubscribers",
-      "method": "GET",
-      "path": "/api-v2/tasks/{id}/chat-subscribers"
-    },
-    {
-      "operationId": "TaskController_updateChatSubscribers",
-      "method": "PUT",
-      "path": "/api-v2/tasks/{id}/chat-subscribers"
-    },
-    {
-      "operationId": "TaskController_getLog",
-      "method": "GET",
-      "path": "/api-v2/tasks/{id}/log"
+      "path": "/api-v2/departments/{id}",
+      "category": "Отделы",
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "type": "string",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {
+        "application/json": [
+          "#/components/schemas/UpdateDepartmentDto"
+        ]
+      },
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/WithIdDto"
+          ]
+        },
+        "404": {}
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "write",
+      "status": "discovered",
+      "test_paths": [],
+      "notes": "Not included in the first implemented slice."
     },
     {
       "operationId": "FileController_uploadFile",
       "method": "POST",
-      "path": "/api-v2/upload-file"
+      "path": "/api-v2/upload-file",
+      "category": "Файлы",
+      "parameters": [],
+      "request_schemas": {
+        "multipart/form-data": [
+          "#/components/schemas/"
+        ]
+      },
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/FileUploadDto"
+          ]
+        },
+        "400": {},
+        "404": {}
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "write",
+      "status": "discovered",
+      "test_paths": [],
+      "notes": "Upload limits and allowed MIME types need an approved client policy."
     },
     {
-      "operationId": "UserController_search",
+      "operationId": "GroupChatController_create",
+      "method": "POST",
+      "path": "/api-v2/group-chats",
+      "category": "Групповые чаты",
+      "parameters": [],
+      "request_schemas": {
+        "application/json": [
+          "#/components/schemas/CreateGroupChatDto"
+        ]
+      },
+      "response_schemas": {
+        "201": {
+          "application/json": [
+            "#/components/schemas/WithIdDto"
+          ]
+        }
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "write",
+      "status": "discovered",
+      "test_paths": [],
+      "notes": "Not included in the first implemented slice."
+    },
+    {
+      "operationId": "GroupChatController_get",
       "method": "GET",
-      "path": "/api-v2/users"
+      "path": "/api-v2/group-chats/{id}",
+      "category": "Групповые чаты",
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "type": "string",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {},
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/GroupChatDto"
+          ]
+        },
+        "404": {}
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "read",
+      "status": "discovered",
+      "test_paths": [],
+      "notes": "Not included in the first implemented slice."
+    },
+    {
+      "operationId": "GroupChatController_search",
+      "method": "GET",
+      "path": "/api-v2/group-chats",
+      "category": "Групповые чаты",
+      "parameters": [
+        {
+          "name": "includeDeleted",
+          "in": "query",
+          "required": false,
+          "type": "boolean",
+          "schema_sources": []
+        },
+        {
+          "name": "limit",
+          "in": "query",
+          "required": false,
+          "type": "number",
+          "schema_sources": []
+        },
+        {
+          "name": "offset",
+          "in": "query",
+          "required": false,
+          "type": "number",
+          "schema_sources": []
+        },
+        {
+          "name": "title",
+          "in": "query",
+          "required": false,
+          "type": "string",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {},
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/GroupChatListDto"
+          ]
+        },
+        "404": {}
+      },
+      "pagination": {
+        "kind": "offset",
+        "parameters": [
+          "limit",
+          "offset"
+        ]
+      },
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "read",
+      "status": "discovered",
+      "test_paths": [],
+      "notes": "Not included in the first implemented slice."
+    },
+    {
+      "operationId": "GroupChatController_update",
+      "method": "PUT",
+      "path": "/api-v2/group-chats/{id}",
+      "category": "Групповые чаты",
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "type": "string",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {
+        "application/json": [
+          "#/components/schemas/UpdateGroupChatDto"
+        ]
+      },
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/WithIdDto"
+          ]
+        },
+        "404": {}
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "write",
+      "status": "discovered",
+      "test_paths": [],
+      "notes": "Not included in the first implemented slice."
+    },
+    {
+      "operationId": "ProjectController_create",
+      "method": "POST",
+      "path": "/api-v2/projects",
+      "category": "Проекты",
+      "parameters": [],
+      "request_schemas": {
+        "application/json": [
+          "#/components/schemas/CreateProjectDto"
+        ]
+      },
+      "response_schemas": {
+        "201": {
+          "application/json": [
+            "#/components/schemas/WithIdDto"
+          ]
+        }
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "write",
+      "status": "discovered",
+      "test_paths": [],
+      "notes": "Not included in the first implemented slice."
+    },
+    {
+      "operationId": "ProjectController_get",
+      "method": "GET",
+      "path": "/api-v2/projects/{id}",
+      "category": "Проекты",
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "type": "string",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {},
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/ProjectDto"
+          ]
+        },
+        "404": {}
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "read",
+      "status": "discovered",
+      "test_paths": [],
+      "notes": "Not included in the first implemented slice."
+    },
+    {
+      "operationId": "ProjectController_search",
+      "method": "GET",
+      "path": "/api-v2/projects",
+      "category": "Проекты",
+      "parameters": [
+        {
+          "name": "includeDeleted",
+          "in": "query",
+          "required": false,
+          "type": "boolean",
+          "schema_sources": []
+        },
+        {
+          "name": "limit",
+          "in": "query",
+          "required": false,
+          "type": "number",
+          "schema_sources": []
+        },
+        {
+          "name": "offset",
+          "in": "query",
+          "required": false,
+          "type": "number",
+          "schema_sources": []
+        },
+        {
+          "name": "title",
+          "in": "query",
+          "required": false,
+          "type": "string",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {},
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/ProjectListDto"
+          ]
+        },
+        "404": {}
+      },
+      "pagination": {
+        "kind": "offset",
+        "parameters": [
+          "limit",
+          "offset"
+        ]
+      },
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "read",
+      "status": "discovered",
+      "test_paths": [],
+      "notes": "Not included in the first implemented slice."
+    },
+    {
+      "operationId": "ProjectController_update",
+      "method": "PUT",
+      "path": "/api-v2/projects/{id}",
+      "category": "Проекты",
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "type": "string",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {
+        "application/json": [
+          "#/components/schemas/UpdateProjectDto"
+        ]
+      },
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/WithIdDto"
+          ]
+        },
+        "404": {}
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "write",
+      "status": "discovered",
+      "test_paths": [],
+      "notes": "Not included in the first implemented slice."
+    },
+    {
+      "operationId": "ProjectRolesController_create",
+      "method": "POST",
+      "path": "/api-v2/projects/{projectId}/roles",
+      "category": "Роли проекта",
+      "parameters": [
+        {
+          "name": "projectId",
+          "in": "path",
+          "required": true,
+          "type": "string",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {
+        "application/json": [
+          "#/components/schemas/CreateProjectRoleDto"
+        ]
+      },
+      "response_schemas": {
+        "201": {
+          "application/json": [
+            "#/components/schemas/WithIdDto"
+          ]
+        }
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "write",
+      "status": "discovered",
+      "test_paths": [],
+      "notes": "Not included in the first implemented slice."
+    },
+    {
+      "operationId": "ProjectRolesController_delete",
+      "method": "DELETE",
+      "path": "/api-v2/projects/{projectId}/roles/{id}",
+      "category": "Роли проекта",
+      "parameters": [
+        {
+          "name": "projectId",
+          "in": "path",
+          "required": true,
+          "type": "string",
+          "schema_sources": []
+        },
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "type": "string",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {},
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/ProjectRoleDto"
+          ]
+        },
+        "404": {}
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "destructive",
+      "status": "discovered",
+      "test_paths": [],
+      "notes": "Not included in the first implemented slice."
+    },
+    {
+      "operationId": "ProjectRolesController_get",
+      "method": "GET",
+      "path": "/api-v2/projects/{projectId}/roles/{id}",
+      "category": "Роли проекта",
+      "parameters": [
+        {
+          "name": "projectId",
+          "in": "path",
+          "required": true,
+          "type": "string",
+          "schema_sources": []
+        },
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "type": "string",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {},
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/ProjectRoleDto"
+          ]
+        },
+        "404": {}
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "read",
+      "status": "discovered",
+      "test_paths": [],
+      "notes": "Not included in the first implemented slice."
+    },
+    {
+      "operationId": "ProjectRolesController_search",
+      "method": "GET",
+      "path": "/api-v2/projects/{projectId}/roles",
+      "category": "Роли проекта",
+      "parameters": [
+        {
+          "name": "projectId",
+          "in": "path",
+          "required": true,
+          "type": "string",
+          "schema_sources": []
+        },
+        {
+          "name": "limit",
+          "in": "query",
+          "required": false,
+          "type": "number",
+          "schema_sources": []
+        },
+        {
+          "name": "offset",
+          "in": "query",
+          "required": false,
+          "type": "number",
+          "schema_sources": []
+        },
+        {
+          "name": "name",
+          "in": "query",
+          "required": false,
+          "type": "string",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {},
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/ProjectRoleListDto"
+          ]
+        },
+        "404": {}
+      },
+      "pagination": {
+        "kind": "offset",
+        "parameters": [
+          "limit",
+          "offset"
+        ]
+      },
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "read",
+      "status": "discovered",
+      "test_paths": [],
+      "notes": "Not included in the first implemented slice."
+    },
+    {
+      "operationId": "ProjectRolesController_update",
+      "method": "PUT",
+      "path": "/api-v2/projects/{projectId}/roles/{id}",
+      "category": "Роли проекта",
+      "parameters": [
+        {
+          "name": "projectId",
+          "in": "path",
+          "required": true,
+          "type": "string",
+          "schema_sources": []
+        },
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "type": "string",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {
+        "application/json": [
+          "#/components/schemas/UpdateProjectRoleDto"
+        ]
+      },
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/WithIdDto"
+          ]
+        },
+        "404": {}
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "write",
+      "status": "discovered",
+      "test_paths": [],
+      "notes": "Not included in the first implemented slice."
+    },
+    {
+      "operationId": "SprintStickerController_create",
+      "method": "POST",
+      "path": "/api-v2/sprint-stickers",
+      "category": "Стикер спринта",
+      "parameters": [],
+      "request_schemas": {
+        "application/json": [
+          "#/components/schemas/CreateSprintStickerDto"
+        ]
+      },
+      "response_schemas": {
+        "201": {
+          "application/json": [
+            "#/components/schemas/WithIdDto"
+          ]
+        }
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "write",
+      "status": "discovered",
+      "test_paths": [],
+      "notes": "Not included in the first implemented slice."
+    },
+    {
+      "operationId": "SprintStickerController_getSticker",
+      "method": "GET",
+      "path": "/api-v2/sprint-stickers/{id}",
+      "category": "Стикер спринта",
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "type": "string",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {},
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/SprintStickerWithStatesDto"
+          ]
+        },
+        "404": {}
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "read",
+      "status": "discovered",
+      "test_paths": [],
+      "notes": "Not included in the first implemented slice."
+    },
+    {
+      "operationId": "SprintStickerController_search",
+      "method": "GET",
+      "path": "/api-v2/sprint-stickers",
+      "category": "Стикер спринта",
+      "parameters": [
+        {
+          "name": "includeDeleted",
+          "in": "query",
+          "required": false,
+          "type": "boolean",
+          "schema_sources": []
+        },
+        {
+          "name": "limit",
+          "in": "query",
+          "required": false,
+          "type": "number",
+          "schema_sources": []
+        },
+        {
+          "name": "offset",
+          "in": "query",
+          "required": false,
+          "type": "number",
+          "schema_sources": []
+        },
+        {
+          "name": "name",
+          "in": "query",
+          "required": false,
+          "type": "string",
+          "schema_sources": []
+        },
+        {
+          "name": "boardId",
+          "in": "query",
+          "required": false,
+          "type": "string",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {},
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/SprintStickerWithStatesListDto"
+          ]
+        },
+        "404": {}
+      },
+      "pagination": {
+        "kind": "offset",
+        "parameters": [
+          "limit",
+          "offset"
+        ]
+      },
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "read",
+      "status": "discovered",
+      "test_paths": [],
+      "notes": "Not included in the first implemented slice."
+    },
+    {
+      "operationId": "SprintStickerController_update",
+      "method": "PUT",
+      "path": "/api-v2/sprint-stickers/{id}",
+      "category": "Стикер спринта",
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "type": "string",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {
+        "application/json": [
+          "#/components/schemas/UpdateSprintStickerDto"
+        ]
+      },
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/WithIdDto"
+          ]
+        },
+        "404": {}
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "write",
+      "status": "discovered",
+      "test_paths": [],
+      "notes": "Not included in the first implemented slice."
+    },
+    {
+      "operationId": "SprintStickerStateController_create",
+      "method": "POST",
+      "path": "/api-v2/sprint-stickers/{stickerId}/states",
+      "category": "Состояния стикера спринта",
+      "parameters": [
+        {
+          "name": "stickerId",
+          "in": "path",
+          "required": true,
+          "type": "string",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {
+        "application/json": [
+          "#/components/schemas/CreateSprintStickerStateDto"
+        ]
+      },
+      "response_schemas": {
+        "201": {
+          "application/json": [
+            "#/components/schemas/WithStickerStateIdDto"
+          ]
+        },
+        "404": {}
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "write",
+      "status": "discovered",
+      "test_paths": [],
+      "notes": "Not included in the first implemented slice."
+    },
+    {
+      "operationId": "SprintStickerStateController_get",
+      "method": "GET",
+      "path": "/api-v2/sprint-stickers/{stickerId}/states/{stickerStateId}",
+      "category": "Состояния стикера спринта",
+      "parameters": [
+        {
+          "name": "stickerId",
+          "in": "path",
+          "required": true,
+          "type": "string",
+          "schema_sources": []
+        },
+        {
+          "name": "stickerStateId",
+          "in": "path",
+          "required": true,
+          "type": "string",
+          "schema_sources": []
+        },
+        {
+          "name": "includeDeleted",
+          "in": "query",
+          "required": false,
+          "type": "boolean",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {},
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/SprintStickerStateDto"
+          ]
+        },
+        "404": {}
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "read",
+      "status": "discovered",
+      "test_paths": [],
+      "notes": "Not included in the first implemented slice."
+    },
+    {
+      "operationId": "SprintStickerStateController_update",
+      "method": "PUT",
+      "path": "/api-v2/sprint-stickers/{stickerId}/states/{stickerStateId}",
+      "category": "Состояния стикера спринта",
+      "parameters": [
+        {
+          "name": "stickerId",
+          "in": "path",
+          "required": true,
+          "type": "string",
+          "schema_sources": []
+        },
+        {
+          "name": "stickerStateId",
+          "in": "path",
+          "required": true,
+          "type": "string",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {
+        "application/json": [
+          "#/components/schemas/UpdateSprintStickerStateDto"
+        ]
+      },
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/WithStickerStateIdDto"
+          ]
+        },
+        "404": {}
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "write",
+      "status": "discovered",
+      "test_paths": [],
+      "notes": "Not included in the first implemented slice."
+    },
+    {
+      "operationId": "StringStickerController_create",
+      "method": "POST",
+      "path": "/api-v2/string-stickers",
+      "category": "Стикер с набором состояний",
+      "parameters": [],
+      "request_schemas": {
+        "application/json": [
+          "#/components/schemas/CreateStringStickerDto"
+        ]
+      },
+      "response_schemas": {
+        "201": {
+          "application/json": [
+            "#/components/schemas/WithIdDto"
+          ]
+        }
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "write",
+      "status": "discovered",
+      "test_paths": [],
+      "notes": "Not included in the first implemented slice."
+    },
+    {
+      "operationId": "StringStickerController_get",
+      "method": "GET",
+      "path": "/api-v2/string-stickers/{id}",
+      "category": "Стикер с набором состояний",
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "type": "string",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {},
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/StringStickerWithStatesDto"
+          ]
+        },
+        "404": {}
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "read",
+      "status": "discovered",
+      "test_paths": [],
+      "notes": "Not included in the first implemented slice."
+    },
+    {
+      "operationId": "StringStickerController_search",
+      "method": "GET",
+      "path": "/api-v2/string-stickers",
+      "category": "Стикер с набором состояний",
+      "parameters": [
+        {
+          "name": "includeDeleted",
+          "in": "query",
+          "required": false,
+          "type": "boolean",
+          "schema_sources": []
+        },
+        {
+          "name": "limit",
+          "in": "query",
+          "required": false,
+          "type": "number",
+          "schema_sources": []
+        },
+        {
+          "name": "offset",
+          "in": "query",
+          "required": false,
+          "type": "number",
+          "schema_sources": []
+        },
+        {
+          "name": "name",
+          "in": "query",
+          "required": false,
+          "type": "string",
+          "schema_sources": []
+        },
+        {
+          "name": "boardId",
+          "in": "query",
+          "required": false,
+          "type": "string",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {},
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/StringStickerWithStatesListDto"
+          ]
+        },
+        "404": {}
+      },
+      "pagination": {
+        "kind": "offset",
+        "parameters": [
+          "limit",
+          "offset"
+        ]
+      },
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "read",
+      "status": "discovered",
+      "test_paths": [],
+      "notes": "Not included in the first implemented slice."
+    },
+    {
+      "operationId": "StringStickerController_update",
+      "method": "PUT",
+      "path": "/api-v2/string-stickers/{id}",
+      "category": "Стикер с набором состояний",
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "type": "string",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {
+        "application/json": [
+          "#/components/schemas/UpdateStringStickerDto"
+        ]
+      },
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/WithIdDto"
+          ]
+        },
+        "404": {}
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "write",
+      "status": "discovered",
+      "test_paths": [],
+      "notes": "Not included in the first implemented slice."
+    },
+    {
+      "operationId": "StringStickerStateController_create",
+      "method": "POST",
+      "path": "/api-v2/string-stickers/{stickerId}/states",
+      "category": "Состояния стикера с набором состояний",
+      "parameters": [
+        {
+          "name": "stickerId",
+          "in": "path",
+          "required": true,
+          "type": "string",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {
+        "application/json": [
+          "#/components/schemas/CreateStringStickerStateDto"
+        ]
+      },
+      "response_schemas": {
+        "201": {
+          "application/json": [
+            "#/components/schemas/WithStickerStateIdDto"
+          ]
+        },
+        "404": {}
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "write",
+      "status": "discovered",
+      "test_paths": [],
+      "notes": "Not included in the first implemented slice."
+    },
+    {
+      "operationId": "StringStickerStateController_get",
+      "method": "GET",
+      "path": "/api-v2/string-stickers/{stickerId}/states/{stickerStateId}",
+      "category": "Состояния стикера с набором состояний",
+      "parameters": [
+        {
+          "name": "stickerId",
+          "in": "path",
+          "required": true,
+          "type": "string",
+          "schema_sources": []
+        },
+        {
+          "name": "stickerStateId",
+          "in": "path",
+          "required": true,
+          "type": "string",
+          "schema_sources": []
+        },
+        {
+          "name": "includeDeleted",
+          "in": "query",
+          "required": false,
+          "type": "boolean",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {},
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/StringStickerStateDto"
+          ]
+        },
+        "404": {}
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "read",
+      "status": "discovered",
+      "test_paths": [],
+      "notes": "Not included in the first implemented slice."
+    },
+    {
+      "operationId": "StringStickerStateController_update",
+      "method": "PUT",
+      "path": "/api-v2/string-stickers/{stickerId}/states/{stickerStateId}",
+      "category": "Состояния стикера с набором состояний",
+      "parameters": [
+        {
+          "name": "stickerId",
+          "in": "path",
+          "required": true,
+          "type": "string",
+          "schema_sources": []
+        },
+        {
+          "name": "stickerStateId",
+          "in": "path",
+          "required": true,
+          "type": "string",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {
+        "application/json": [
+          "#/components/schemas/UpdateStringStickerStateDto"
+        ]
+      },
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/WithStickerStateIdDto"
+          ]
+        },
+        "404": {}
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "write",
+      "status": "discovered",
+      "test_paths": [],
+      "notes": "Not included in the first implemented slice."
+    },
+    {
+      "operationId": "TaskController_create",
+      "method": "POST",
+      "path": "/api-v2/tasks",
+      "category": "Задачи",
+      "parameters": [],
+      "request_schemas": {
+        "application/json": [
+          "#/components/schemas/CreateTaskDto"
+        ]
+      },
+      "response_schemas": {
+        "201": {
+          "application/json": [
+            "#/components/schemas/WithIdDto"
+          ]
+        }
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "write",
+      "status": "discovered",
+      "test_paths": [],
+      "notes": "Not included in the first implemented slice."
+    },
+    {
+      "operationId": "TaskController_get",
+      "method": "GET",
+      "path": "/api-v2/tasks/{id}",
+      "category": "Задачи",
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "type": "string",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {},
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/TaskDto"
+          ]
+        },
+        "404": {}
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "read",
+      "status": "mock_tested",
+      "test_paths": [
+        "tests/test_api_client.py"
+      ],
+      "notes": null
+    },
+    {
+      "operationId": "TaskController_getChatSubscribers",
+      "method": "GET",
+      "path": "/api-v2/tasks/{id}/chat-subscribers",
+      "category": "Задачи",
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "type": "string",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {},
+      "response_schemas": {
+        "200": {
+          "application/json": []
+        },
+        "404": {}
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "read",
+      "status": "discovered",
+      "test_paths": [],
+      "notes": "Not included in the first implemented slice."
+    },
+    {
+      "operationId": "TaskController_getLog",
+      "method": "GET",
+      "path": "/api-v2/tasks/{id}/log",
+      "category": "Задачи",
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "type": "string",
+          "schema_sources": []
+        },
+        {
+          "name": "limit",
+          "in": "query",
+          "required": false,
+          "type": "number",
+          "schema_sources": []
+        },
+        {
+          "name": "before",
+          "in": "query",
+          "required": false,
+          "type": "number",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {},
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/TaskLogListDto"
+          ]
+        },
+        "404": {}
+      },
+      "pagination": {
+        "kind": "timestamp_cursor",
+        "parameters": [
+          "limit",
+          "before"
+        ]
+      },
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "read",
+      "status": "discovered",
+      "test_paths": [],
+      "notes": "Not included in the first implemented slice."
+    },
+    {
+      "operationId": "TaskController_search",
+      "method": "GET",
+      "path": "/api-v2/task-list",
+      "category": "Задачи",
+      "parameters": [
+        {
+          "name": "includeDeleted",
+          "in": "query",
+          "required": false,
+          "type": "boolean",
+          "schema_sources": []
+        },
+        {
+          "name": "limit",
+          "in": "query",
+          "required": false,
+          "type": "number",
+          "schema_sources": []
+        },
+        {
+          "name": "offset",
+          "in": "query",
+          "required": false,
+          "type": "number",
+          "schema_sources": []
+        },
+        {
+          "name": "title",
+          "in": "query",
+          "required": false,
+          "type": "string",
+          "schema_sources": []
+        },
+        {
+          "name": "columnId",
+          "in": "query",
+          "required": false,
+          "type": "string",
+          "schema_sources": []
+        },
+        {
+          "name": "assignedTo",
+          "in": "query",
+          "required": false,
+          "type": "string",
+          "schema_sources": []
+        },
+        {
+          "name": "stickerId",
+          "in": "query",
+          "required": false,
+          "type": "string",
+          "schema_sources": []
+        },
+        {
+          "name": "stickerStateId",
+          "in": "query",
+          "required": false,
+          "type": "string",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {},
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/TaskListDto"
+          ]
+        },
+        "404": {}
+      },
+      "pagination": {
+        "kind": "offset",
+        "parameters": [
+          "limit",
+          "offset"
+        ]
+      },
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "read",
+      "status": "mock_tested",
+      "test_paths": [
+        "tests/test_api_client.py"
+      ],
+      "notes": null
+    },
+    {
+      "operationId": "TaskController_searchReversed",
+      "method": "GET",
+      "path": "/api-v2/tasks",
+      "category": "Задачи",
+      "parameters": [
+        {
+          "name": "includeDeleted",
+          "in": "query",
+          "required": false,
+          "type": "boolean",
+          "schema_sources": []
+        },
+        {
+          "name": "limit",
+          "in": "query",
+          "required": false,
+          "type": "number",
+          "schema_sources": []
+        },
+        {
+          "name": "offset",
+          "in": "query",
+          "required": false,
+          "type": "number",
+          "schema_sources": []
+        },
+        {
+          "name": "title",
+          "in": "query",
+          "required": false,
+          "type": "string",
+          "schema_sources": []
+        },
+        {
+          "name": "columnId",
+          "in": "query",
+          "required": false,
+          "type": "string",
+          "schema_sources": []
+        },
+        {
+          "name": "assignedTo",
+          "in": "query",
+          "required": false,
+          "type": "string",
+          "schema_sources": []
+        },
+        {
+          "name": "stickerId",
+          "in": "query",
+          "required": false,
+          "type": "string",
+          "schema_sources": []
+        },
+        {
+          "name": "stickerStateId",
+          "in": "query",
+          "required": false,
+          "type": "string",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {},
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/TaskListDto"
+          ]
+        },
+        "404": {}
+      },
+      "pagination": {
+        "kind": "offset",
+        "parameters": [
+          "limit",
+          "offset"
+        ]
+      },
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "read",
+      "status": "mock_tested",
+      "test_paths": [
+        "tests/test_api_client.py"
+      ],
+      "notes": null
+    },
+    {
+      "operationId": "TaskController_update",
+      "method": "PUT",
+      "path": "/api-v2/tasks/{id}",
+      "category": "Задачи",
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "type": "string",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {
+        "application/json": [
+          "#/components/schemas/UpdateTaskDto"
+        ]
+      },
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/WithIdDto"
+          ]
+        },
+        "404": {}
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "write",
+      "status": "discovered",
+      "test_paths": [],
+      "notes": "Not included in the first implemented slice."
+    },
+    {
+      "operationId": "TaskController_updateChatSubscribers",
+      "method": "PUT",
+      "path": "/api-v2/tasks/{id}/chat-subscribers",
+      "category": "Задачи",
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "type": "string",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {
+        "application/json": [
+          "#/components/schemas/TaskChatSubscribersDto"
+        ]
+      },
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/WithIdDto"
+          ]
+        },
+        "404": {}
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "write",
+      "status": "discovered",
+      "test_paths": [],
+      "notes": "Not included in the first implemented slice."
+    },
+    {
+      "operationId": "UserController_clearCustomStatus",
+      "method": "DELETE",
+      "path": "/api-v2/users/me/custom-status",
+      "category": "Сотрудники",
+      "parameters": [],
+      "request_schemas": {},
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/WithIdDto"
+          ]
+        },
+        "404": {}
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "destructive",
+      "status": "discovered",
+      "test_paths": [],
+      "notes": "Not included in the first implemented slice."
     },
     {
       "operationId": "UserController_create",
       "method": "POST",
-      "path": "/api-v2/users"
+      "path": "/api-v2/users",
+      "category": "Сотрудники",
+      "parameters": [],
+      "request_schemas": {
+        "application/json": [
+          "#/components/schemas/CreateUserDto"
+        ]
+      },
+      "response_schemas": {
+        "201": {
+          "application/json": [
+            "#/components/schemas/WithIdDto"
+          ]
+        }
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "write",
+      "status": "discovered",
+      "test_paths": [],
+      "notes": "Not included in the first implemented slice."
     },
     {
       "operationId": "UserController_delete",
       "method": "DELETE",
-      "path": "/api-v2/users/{id}"
+      "path": "/api-v2/users/{id}",
+      "category": "Сотрудники",
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "type": "string",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {},
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/WithIdDto"
+          ]
+        },
+        "404": {}
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "destructive",
+      "status": "discovered",
+      "test_paths": [],
+      "notes": "Not included in the first implemented slice."
     },
     {
       "operationId": "UserController_get",
       "method": "GET",
-      "path": "/api-v2/users/{id}"
-    },
-    {
-      "operationId": "UserController_update",
-      "method": "PUT",
-      "path": "/api-v2/users/{id}"
+      "path": "/api-v2/users/{id}",
+      "category": "Сотрудники",
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "type": "string",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {},
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/UserDto"
+          ]
+        },
+        "404": {}
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "read",
+      "status": "discovered",
+      "test_paths": [],
+      "notes": "Not included in the first implemented slice."
     },
     {
       "operationId": "UserController_getMe",
       "method": "GET",
-      "path": "/api-v2/users/me"
+      "path": "/api-v2/users/me",
+      "category": "Сотрудники",
+      "parameters": [],
+      "request_schemas": {},
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/UserDto"
+          ]
+        },
+        "404": {}
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "read",
+      "status": "discovered",
+      "test_paths": [],
+      "notes": "Not included in the first implemented slice."
     },
     {
-      "operationId": "WebhookController_search",
+      "operationId": "UserController_search",
       "method": "GET",
-      "path": "/api-v2/webhooks"
+      "path": "/api-v2/users",
+      "category": "Сотрудники",
+      "parameters": [
+        {
+          "name": "limit",
+          "in": "query",
+          "required": false,
+          "type": "number",
+          "schema_sources": []
+        },
+        {
+          "name": "offset",
+          "in": "query",
+          "required": false,
+          "type": "number",
+          "schema_sources": []
+        },
+        {
+          "name": "email",
+          "in": "query",
+          "required": false,
+          "type": "string",
+          "schema_sources": []
+        },
+        {
+          "name": "projectId",
+          "in": "query",
+          "required": false,
+          "type": "string",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {},
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/UserListDto"
+          ]
+        },
+        "404": {}
+      },
+      "pagination": {
+        "kind": "offset",
+        "parameters": [
+          "limit",
+          "offset"
+        ]
+      },
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "read",
+      "status": "discovered",
+      "test_paths": [],
+      "notes": "Not included in the first implemented slice."
+    },
+    {
+      "operationId": "UserController_setCustomStatus",
+      "method": "PUT",
+      "path": "/api-v2/users/me/custom-status",
+      "category": "Сотрудники",
+      "parameters": [],
+      "request_schemas": {
+        "application/json": [
+          "#/components/schemas/UserCustomStatusDto"
+        ]
+      },
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/WithIdDto"
+          ]
+        },
+        "404": {}
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "write",
+      "status": "discovered",
+      "test_paths": [],
+      "notes": "Not included in the first implemented slice."
+    },
+    {
+      "operationId": "UserController_update",
+      "method": "PUT",
+      "path": "/api-v2/users/{id}",
+      "category": "Сотрудники",
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "type": "string",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {
+        "application/json": [
+          "#/components/schemas/UpdateUserDto"
+        ]
+      },
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/WithIdDto"
+          ]
+        },
+        "404": {}
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "write",
+      "status": "discovered",
+      "test_paths": [],
+      "notes": "Not included in the first implemented slice."
     },
     {
       "operationId": "WebhookController_create",
       "method": "POST",
-      "path": "/api-v2/webhooks"
+      "path": "/api-v2/webhooks",
+      "category": "Подписки на события",
+      "parameters": [],
+      "request_schemas": {
+        "application/json": [
+          "#/components/schemas/CreateWebhookDto"
+        ]
+      },
+      "response_schemas": {
+        "201": {
+          "application/json": [
+            "#/components/schemas/WithIdDto"
+          ]
+        }
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "write",
+      "status": "discovered",
+      "test_paths": [],
+      "notes": "Not included in the first implemented slice."
     },
     {
       "operationId": "WebhookController_put",
       "method": "PUT",
-      "path": "/api-v2/webhooks/{id}"
+      "path": "/api-v2/webhooks/{id}",
+      "category": "Подписки на события",
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "type": "string",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {
+        "application/json": [
+          "#/components/schemas/UpdateWebhookDto"
+        ]
+      },
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/WithIdDto"
+          ]
+        },
+        "404": {}
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "write",
+      "status": "discovered",
+      "test_paths": [],
+      "notes": "Not included in the first implemented slice."
+    },
+    {
+      "operationId": "WebhookController_search",
+      "method": "GET",
+      "path": "/api-v2/webhooks",
+      "category": "Подписки на события",
+      "parameters": [
+        {
+          "name": "includeDeleted",
+          "in": "query",
+          "required": false,
+          "type": "boolean",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {},
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/WebhookDto"
+          ]
+        }
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "read",
+      "status": "discovered",
+      "test_paths": [],
+      "notes": "Not included in the first implemented slice."
+    },
+    {
+      "operationId": "getCompanies",
+      "method": "POST",
+      "path": "/api-v2/auth/companies",
+      "category": "Авторизация",
+      "parameters": [
+        {
+          "name": "limit",
+          "in": "query",
+          "required": false,
+          "type": "number",
+          "schema_sources": []
+        },
+        {
+          "name": "offset",
+          "in": "query",
+          "required": false,
+          "type": "number",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {
+        "application/json": [
+          "#/components/schemas/CredentialsWithNameDto"
+        ]
+      },
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/CompanyListDto"
+          ]
+        },
+        "401": {},
+        "403": {},
+        "429": {}
+      },
+      "pagination": {
+        "kind": "offset",
+        "parameters": [
+          "limit",
+          "offset"
+        ]
+      },
+      "auth": {
+        "schemes": []
+      },
+      "effect": "read",
+      "status": "mock_tested",
+      "test_paths": [
+        "tests/test_api_client.py"
+      ],
+      "notes": null
     }
   ]
 }
