@@ -40,7 +40,9 @@ authenticated transport is implemented.
 
 ## Environment
 
-Copy .env.example to .env for local settings. Never commit live credentials,
+Copy .env.example to .env for Docker Compose interpolation. The Python CLI reads
+its process environment, so export values explicitly when testing locally.
+Never commit live credentials,
 test workspace exports, or secrets. The doctor command reports only booleans
 indicating whether credentials are present, never credential values.
 

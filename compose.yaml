@@ -1,4 +1,4 @@
-# Scaffold verification only; no published ports.
+# Scaffold verification only, no published ports.
 # docker compose --profile verify run --rm config-check
 services:
   config-check:
@@ -14,8 +14,10 @@ services:
     cap_drop:
       - ALL
     environment:
-      YOUGILE_BASE_URL: "https://ru.yougile.com"
-      MCP_TRANSPORT: "stdio"
-      MCP_HOST: "127.0.0.1"
-      MCP_PORT: "8000"
-      MCP_AUTH_MODE: "required"
+      YOUGILE_BASE_URL: "${YOUGILE_BASE_URL:-https://ru.yougile.com}"
+      MCP_TRANSPORT: "${MCP_TRANSPORT:-stdio}"
+      MCP_HOST: "${MCP_HOST:-127.0.0.1}"
+      MCP_PORT: "${MCP_PORT:-8000}"
+      MCP_AUTH_MODE: "${MCP_AUTH_MODE:-required}"
+      MCP_PUBLIC_URL: "${MCP_PUBLIC_URL:-}"
+      MCP_LOG_LEVEL: "${MCP_LOG_LEVEL:-INFO}"
