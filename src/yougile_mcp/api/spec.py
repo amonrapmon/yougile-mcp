@@ -25,6 +25,7 @@ class Operation:
     operation_id: str
     method: str
     path: str
+    effect: str
     parameters: tuple[Mapping[str, Any], ...]
     request_body: Mapping[str, Any] | None
     responses: Mapping[str, Any]
@@ -65,12 +66,21 @@ def operations() -> dict[str, Operation]:
                 operation_id=operation_id,
                 method=method,
                 path=path,
+                effect=operation_effect(operation_id, method),
                 parameters=tuple(parameters),
                 request_body=raw.get("requestBody"),
                 responses=raw.get("responses", {}),
                 security=tuple(raw.get("security", spec.get("security", []))),
             )
     return found
+
+
+def operation_effect(operation_id: str, method: str) -> str:
+    if method == "GET" or operation_id in {"getCompanies", "AuthKeyController_search"}:
+        return "read"
+    if method == "DELETE":
+        return "destructive"
+    return "write"
 
 
 def validate_schema(value: Any, schema: Mapping[str, Any], *, request: bool) -> None:

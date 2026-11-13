@@ -40,7 +40,7 @@
       },
       "effect": "write",
       "status": "discovered",
-      "test_paths": [],
+      "test_bindings": [],
       "notes": "Not included in the first implemented slice."
     },
     {
@@ -68,7 +68,7 @@
       },
       "effect": "destructive",
       "status": "discovered",
-      "test_paths": [],
+      "test_bindings": [],
       "notes": "Not included in the first implemented slice."
     },
     {
@@ -99,7 +99,7 @@
       },
       "effect": "read",
       "status": "discovered",
-      "test_paths": [],
+      "test_bindings": [],
       "notes": "Not included in the first implemented slice."
     },
     {
@@ -128,7 +128,7 @@
       },
       "effect": "write",
       "status": "discovered",
-      "test_paths": [],
+      "test_bindings": [],
       "notes": "Not included in the first implemented slice."
     },
     {
@@ -162,8 +162,12 @@
       },
       "effect": "read",
       "status": "mock_tested",
-      "test_paths": [
-        "tests/test_api_client.py"
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_board_detail_and_column_list_schemas",
+          "client_call": "get_board",
+          "kwargs": {}
+        }
       ],
       "notes": null
     },
@@ -232,8 +236,12 @@
       },
       "effect": "read",
       "status": "mock_tested",
-      "test_paths": [
-        "tests/test_api_client.py"
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_headers_query_and_response_dto",
+          "client_call": "search_boards",
+          "kwargs": {}
+        }
       ],
       "notes": null
     },
@@ -272,7 +280,7 @@
       },
       "effect": "write",
       "status": "discovered",
-      "test_paths": [],
+      "test_bindings": [],
       "notes": "Not included in the first implemented slice."
     },
     {
@@ -313,7 +321,7 @@
       },
       "effect": "read",
       "status": "discovered",
-      "test_paths": [],
+      "test_bindings": [],
       "notes": "Not included in the first implemented slice."
     },
     {
@@ -409,7 +417,7 @@
       },
       "effect": "read",
       "status": "discovered",
-      "test_paths": [],
+      "test_bindings": [],
       "notes": "Not included in the first implemented slice."
     },
     {
@@ -446,7 +454,7 @@
       },
       "effect": "write",
       "status": "discovered",
-      "test_paths": [],
+      "test_bindings": [],
       "notes": "Not included in the first implemented slice."
     },
     {
@@ -479,7 +487,7 @@
       },
       "effect": "write",
       "status": "discovered",
-      "test_paths": [],
+      "test_bindings": [],
       "notes": "Not included in the first implemented slice."
     },
     {
@@ -524,7 +532,7 @@
       },
       "effect": "write",
       "status": "discovered",
-      "test_paths": [],
+      "test_bindings": [],
       "notes": "Not included in the first implemented slice."
     },
     {
@@ -553,8 +561,12 @@
       },
       "effect": "write",
       "status": "mock_tested",
-      "test_paths": [
-        "tests/test_api_client.py"
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_write_sends_json_body_and_returns_created_dto",
+          "client_call": "create_column",
+          "kwargs": {}
+        }
       ],
       "notes": null
     },
@@ -589,7 +601,7 @@
       },
       "effect": "read",
       "status": "discovered",
-      "test_paths": [],
+      "test_bindings": [],
       "notes": "Not included in the first implemented slice."
     },
     {
@@ -657,8 +669,12 @@
       },
       "effect": "read",
       "status": "mock_tested",
-      "test_paths": [
-        "tests/test_api_client.py"
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_board_detail_and_column_list_schemas",
+          "client_call": "search_columns",
+          "kwargs": {}
+        }
       ],
       "notes": null
     },
@@ -697,7 +713,7 @@
       },
       "effect": "write",
       "status": "discovered",
-      "test_paths": [],
+      "test_bindings": [],
       "notes": "Not included in the first implemented slice."
     },
     {
@@ -723,7 +739,7 @@
       },
       "effect": "read",
       "status": "discovered",
-      "test_paths": [],
+      "test_bindings": [],
       "notes": "The vendor path contains a non-standard wildcard with no declared parameter schema."
     },
     {
@@ -753,7 +769,7 @@
       },
       "effect": "write",
       "status": "discovered",
-      "test_paths": [],
+      "test_bindings": [],
       "notes": "The vendor path contains a non-standard wildcard with no declared parameter schema."
     },
     {
@@ -782,7 +798,7 @@
       },
       "effect": "write",
       "status": "discovered",
-      "test_paths": [],
+      "test_bindings": [],
       "notes": "Not included in the first implemented slice."
     },
     {
@@ -822,7 +838,7 @@
       },
       "effect": "read",
       "status": "discovered",
-      "test_paths": [],
+      "test_bindings": [],
       "notes": "Not included in the first implemented slice."
     },
     {
@@ -851,7 +867,7 @@
       },
       "effect": "write",
       "status": "discovered",
-      "test_paths": [],
+      "test_bindings": [],
       "notes": "Not included in the first implemented slice."
     },
     {
@@ -885,7 +901,7 @@
       },
       "effect": "read",
       "status": "discovered",
-      "test_paths": [],
+      "test_bindings": [],
       "notes": "Not included in the first implemented slice."
     },
     {
@@ -953,7 +969,7 @@
       },
       "effect": "read",
       "status": "discovered",
-      "test_paths": [],
+      "test_bindings": [],
       "notes": "Not included in the first implemented slice."
     },
     {
@@ -991,7 +1007,7 @@
       },
       "effect": "write",
       "status": "discovered",
-      "test_paths": [],
+      "test_bindings": [],
       "notes": "Not included in the first implemented slice."
     },
     {
@@ -1022,7 +1038,7 @@
       },
       "effect": "write",
       "status": "discovered",
-      "test_paths": [],
+      "test_bindings": [],
       "notes": "Upload limits and allowed MIME types need an approved client policy."
     },
     {
@@ -1051,7 +1067,7 @@
       },
       "effect": "write",
       "status": "discovered",
-      "test_paths": [],
+      "test_bindings": [],
       "notes": "Not included in the first implemented slice."
     },
     {
@@ -1085,7 +1101,7 @@
       },
       "effect": "read",
       "status": "discovered",
-      "test_paths": [],
+      "test_bindings": [],
       "notes": "Not included in the first implemented slice."
     },
     {
@@ -1146,7 +1162,7 @@
       },
       "effect": "read",
       "status": "discovered",
-      "test_paths": [],
+      "test_bindings": [],
       "notes": "Not included in the first implemented slice."
     },
     {
@@ -1184,7 +1200,7 @@
       },
       "effect": "write",
       "status": "discovered",
-      "test_paths": [],
+      "test_bindings": [],
       "notes": "Not included in the first implemented slice."
     },
     {
@@ -1213,7 +1229,7 @@
       },
       "effect": "write",
       "status": "discovered",
-      "test_paths": [],
+      "test_bindings": [],
       "notes": "Not included in the first implemented slice."
     },
     {
@@ -1247,7 +1263,7 @@
       },
       "effect": "read",
       "status": "discovered",
-      "test_paths": [],
+      "test_bindings": [],
       "notes": "Not included in the first implemented slice."
     },
     {
@@ -1308,7 +1324,7 @@
       },
       "effect": "read",
       "status": "discovered",
-      "test_paths": [],
+      "test_bindings": [],
       "notes": "Not included in the first implemented slice."
     },
     {
@@ -1346,7 +1362,7 @@
       },
       "effect": "write",
       "status": "discovered",
-      "test_paths": [],
+      "test_bindings": [],
       "notes": "Not included in the first implemented slice."
     },
     {
@@ -1383,7 +1399,7 @@
       },
       "effect": "write",
       "status": "discovered",
-      "test_paths": [],
+      "test_bindings": [],
       "notes": "Not included in the first implemented slice."
     },
     {
@@ -1424,7 +1440,7 @@
       },
       "effect": "destructive",
       "status": "discovered",
-      "test_paths": [],
+      "test_bindings": [],
       "notes": "Not included in the first implemented slice."
     },
     {
@@ -1465,7 +1481,7 @@
       },
       "effect": "read",
       "status": "discovered",
-      "test_paths": [],
+      "test_bindings": [],
       "notes": "Not included in the first implemented slice."
     },
     {
@@ -1526,7 +1542,7 @@
       },
       "effect": "read",
       "status": "discovered",
-      "test_paths": [],
+      "test_bindings": [],
       "notes": "Not included in the first implemented slice."
     },
     {
@@ -1571,7 +1587,7 @@
       },
       "effect": "write",
       "status": "discovered",
-      "test_paths": [],
+      "test_bindings": [],
       "notes": "Not included in the first implemented slice."
     },
     {
@@ -1600,7 +1616,7 @@
       },
       "effect": "write",
       "status": "discovered",
-      "test_paths": [],
+      "test_bindings": [],
       "notes": "Not included in the first implemented slice."
     },
     {
@@ -1634,7 +1650,7 @@
       },
       "effect": "read",
       "status": "discovered",
-      "test_paths": [],
+      "test_bindings": [],
       "notes": "Not included in the first implemented slice."
     },
     {
@@ -1702,7 +1718,7 @@
       },
       "effect": "read",
       "status": "discovered",
-      "test_paths": [],
+      "test_bindings": [],
       "notes": "Not included in the first implemented slice."
     },
     {
@@ -1740,7 +1756,7 @@
       },
       "effect": "write",
       "status": "discovered",
-      "test_paths": [],
+      "test_bindings": [],
       "notes": "Not included in the first implemented slice."
     },
     {
@@ -1778,7 +1794,7 @@
       },
       "effect": "write",
       "status": "discovered",
-      "test_paths": [],
+      "test_bindings": [],
       "notes": "Not included in the first implemented slice."
     },
     {
@@ -1826,7 +1842,7 @@
       },
       "effect": "read",
       "status": "discovered",
-      "test_paths": [],
+      "test_bindings": [],
       "notes": "Not included in the first implemented slice."
     },
     {
@@ -1871,7 +1887,7 @@
       },
       "effect": "write",
       "status": "discovered",
-      "test_paths": [],
+      "test_bindings": [],
       "notes": "Not included in the first implemented slice."
     },
     {
@@ -1900,7 +1916,7 @@
       },
       "effect": "write",
       "status": "discovered",
-      "test_paths": [],
+      "test_bindings": [],
       "notes": "Not included in the first implemented slice."
     },
     {
@@ -1934,7 +1950,7 @@
       },
       "effect": "read",
       "status": "discovered",
-      "test_paths": [],
+      "test_bindings": [],
       "notes": "Not included in the first implemented slice."
     },
     {
@@ -2002,7 +2018,7 @@
       },
       "effect": "read",
       "status": "discovered",
-      "test_paths": [],
+      "test_bindings": [],
       "notes": "Not included in the first implemented slice."
     },
     {
@@ -2040,7 +2056,7 @@
       },
       "effect": "write",
       "status": "discovered",
-      "test_paths": [],
+      "test_bindings": [],
       "notes": "Not included in the first implemented slice."
     },
     {
@@ -2078,7 +2094,7 @@
       },
       "effect": "write",
       "status": "discovered",
-      "test_paths": [],
+      "test_bindings": [],
       "notes": "Not included in the first implemented slice."
     },
     {
@@ -2126,7 +2142,7 @@
       },
       "effect": "read",
       "status": "discovered",
-      "test_paths": [],
+      "test_bindings": [],
       "notes": "Not included in the first implemented slice."
     },
     {
@@ -2171,7 +2187,7 @@
       },
       "effect": "write",
       "status": "discovered",
-      "test_paths": [],
+      "test_bindings": [],
       "notes": "Not included in the first implemented slice."
     },
     {
@@ -2200,7 +2216,7 @@
       },
       "effect": "write",
       "status": "discovered",
-      "test_paths": [],
+      "test_bindings": [],
       "notes": "Not included in the first implemented slice."
     },
     {
@@ -2234,8 +2250,12 @@
       },
       "effect": "read",
       "status": "mock_tested",
-      "test_paths": [
-        "tests/test_api_client.py"
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_path_value_is_percent_encoded",
+          "client_call": "get_task",
+          "kwargs": {}
+        }
       ],
       "notes": null
     },
@@ -2268,7 +2288,7 @@
       },
       "effect": "read",
       "status": "discovered",
-      "test_paths": [],
+      "test_bindings": [],
       "notes": "Not included in the first implemented slice."
     },
     {
@@ -2322,7 +2342,7 @@
       },
       "effect": "read",
       "status": "discovered",
-      "test_paths": [],
+      "test_bindings": [],
       "notes": "Not included in the first implemented slice."
     },
     {
@@ -2411,8 +2431,14 @@
       },
       "effect": "read",
       "status": "mock_tested",
-      "test_paths": [
-        "tests/test_api_client.py"
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_task_search_maps_both_confirmed_list_operations",
+          "client_call": "search_tasks",
+          "kwargs": {
+            "reversed_order": false
+          }
+        }
       ],
       "notes": null
     },
@@ -2502,8 +2528,14 @@
       },
       "effect": "read",
       "status": "mock_tested",
-      "test_paths": [
-        "tests/test_api_client.py"
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_task_search_maps_both_confirmed_list_operations",
+          "client_call": "search_tasks",
+          "kwargs": {
+            "reversed_order": true
+          }
+        }
       ],
       "notes": null
     },
@@ -2542,7 +2574,7 @@
       },
       "effect": "write",
       "status": "discovered",
-      "test_paths": [],
+      "test_bindings": [],
       "notes": "Not included in the first implemented slice."
     },
     {
@@ -2580,7 +2612,7 @@
       },
       "effect": "write",
       "status": "discovered",
-      "test_paths": [],
+      "test_bindings": [],
       "notes": "Not included in the first implemented slice."
     },
     {
@@ -2606,7 +2638,7 @@
       },
       "effect": "destructive",
       "status": "discovered",
-      "test_paths": [],
+      "test_bindings": [],
       "notes": "Not included in the first implemented slice."
     },
     {
@@ -2635,7 +2667,7 @@
       },
       "effect": "write",
       "status": "discovered",
-      "test_paths": [],
+      "test_bindings": [],
       "notes": "Not included in the first implemented slice."
     },
     {
@@ -2669,7 +2701,7 @@
       },
       "effect": "destructive",
       "status": "discovered",
-      "test_paths": [],
+      "test_bindings": [],
       "notes": "Not included in the first implemented slice."
     },
     {
@@ -2703,7 +2735,7 @@
       },
       "effect": "read",
       "status": "discovered",
-      "test_paths": [],
+      "test_bindings": [],
       "notes": "Not included in the first implemented slice."
     },
     {
@@ -2729,7 +2761,7 @@
       },
       "effect": "read",
       "status": "discovered",
-      "test_paths": [],
+      "test_bindings": [],
       "notes": "Not included in the first implemented slice."
     },
     {
@@ -2790,7 +2822,7 @@
       },
       "effect": "read",
       "status": "discovered",
-      "test_paths": [],
+      "test_bindings": [],
       "notes": "Not included in the first implemented slice."
     },
     {
@@ -2820,7 +2852,7 @@
       },
       "effect": "write",
       "status": "discovered",
-      "test_paths": [],
+      "test_bindings": [],
       "notes": "Not included in the first implemented slice."
     },
     {
@@ -2858,7 +2890,7 @@
       },
       "effect": "write",
       "status": "discovered",
-      "test_paths": [],
+      "test_bindings": [],
       "notes": "Not included in the first implemented slice."
     },
     {
@@ -2887,7 +2919,7 @@
       },
       "effect": "write",
       "status": "discovered",
-      "test_paths": [],
+      "test_bindings": [],
       "notes": "Not included in the first implemented slice."
     },
     {
@@ -2925,7 +2957,7 @@
       },
       "effect": "write",
       "status": "discovered",
-      "test_paths": [],
+      "test_bindings": [],
       "notes": "Not included in the first implemented slice."
     },
     {
@@ -2958,7 +2990,7 @@
       },
       "effect": "read",
       "status": "discovered",
-      "test_paths": [],
+      "test_bindings": [],
       "notes": "Not included in the first implemented slice."
     },
     {
@@ -3009,8 +3041,12 @@
       },
       "effect": "read",
       "status": "mock_tested",
-      "test_paths": [
-        "tests/test_api_client.py"
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_company_lookup_keeps_credentials_in_body_without_bearer",
+          "client_call": "get_companies",
+          "kwargs": {}
+        }
       ],
       "notes": null
     }

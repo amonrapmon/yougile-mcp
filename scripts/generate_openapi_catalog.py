@@ -10,19 +10,47 @@ import json
 from pathlib import Path
 from typing import Any
 
+from yougile_mcp.api.spec import operation_effect
+
 ROOT = Path(__file__).resolve().parents[1]
 SPEC_PATH = ROOT / "src/yougile_mcp/api/openapi-v2.json"
 SOURCE_PATH = ROOT / "src/yougile_mcp/api/openapi-source.json"
 OUTPUT_PATH = ROOT / "catalog/openapi-operations.json"
-MOCK_TESTED = {
-    "getCompanies",
-    "BoardController_search",
-    "BoardController_get",
-    "ColumnController_search",
-    "ColumnController_create",
-    "TaskController_search",
-    "TaskController_searchReversed",
-    "TaskController_get",
+MOCK_TESTS = {
+    "getCompanies": {
+        "test": "test_company_lookup_keeps_credentials_in_body_without_bearer",
+        "call": "get_companies",
+    },
+    "BoardController_search": {
+        "test": "test_headers_query_and_response_dto",
+        "call": "search_boards",
+    },
+    "BoardController_get": {
+        "test": "test_board_detail_and_column_list_schemas",
+        "call": "get_board",
+    },
+    "ColumnController_search": {
+        "test": "test_board_detail_and_column_list_schemas",
+        "call": "search_columns",
+    },
+    "ColumnController_create": {
+        "test": "test_write_sends_json_body_and_returns_created_dto",
+        "call": "create_column",
+    },
+    "TaskController_search": {
+        "test": "test_task_search_maps_both_confirmed_list_operations",
+        "call": "search_tasks",
+        "kwargs": {"reversed_order": False},
+    },
+    "TaskController_searchReversed": {
+        "test": "test_task_search_maps_both_confirmed_list_operations",
+        "call": "search_tasks",
+        "kwargs": {"reversed_order": True},
+    },
+    "TaskController_get": {
+        "test": "test_path_value_is_percent_encoded",
+        "call": "get_task",
+    },
 }
 
 
@@ -42,14 +70,6 @@ def schema_sources(value: Any) -> list[str]:
 
     visit(value)
     return sorted(references)
-
-
-def _effect(operation_id: str, method: str) -> str:
-    if method == "GET" or operation_id in {"getCompanies", "AuthKeyController_search"}:
-        return "read"
-    if method == "DELETE":
-        return "destructive"
-    return "write"
 
 
 def _pagination(parameters: list[dict[str, Any]]) -> dict[str, Any] | None:
@@ -103,9 +123,20 @@ def build_catalog(spec: dict[str, Any], source: dict[str, Any]) -> dict[str, Any
                     "response_schemas": responses,
                     "pagination": _pagination(parameters),
                     "auth": {"schemes": auth_schemes},
-                    "effect": _effect(operation_id, method),
-                    "status": "mock_tested" if operation_id in MOCK_TESTED else "discovered",
-                    "test_paths": ["tests/test_api_client.py"] if operation_id in MOCK_TESTED else [],
+                    "effect": operation_effect(operation_id, method),
+                    "status": "mock_tested" if operation_id in MOCK_TESTS else "discovered",
+                    "test_bindings": [
+                        {
+                            "test_path": (
+                                "tests/test_api_client.py::ApiClientTests."
+                                f"{MOCK_TESTS[operation_id]['test']}"
+                            ),
+                            "client_call": MOCK_TESTS[operation_id]["call"],
+                            "kwargs": MOCK_TESTS[operation_id].get("kwargs", {}),
+                        }
+                    ]
+                    if operation_id in MOCK_TESTS
+                    else [],
                     "notes": _note(operation_id),
                 }
             )
@@ -121,7 +152,7 @@ def build_catalog(spec: dict[str, Any], source: dict[str, Any]) -> dict[str, Any
 
 
 def _note(operation_id: str) -> str | None:
-    if operation_id in MOCK_TESTED:
+    if operation_id in MOCK_TESTS:
         return None
     if operation_id in {"CompanyController_get", "CompanyController_update"}:
         return "The vendor path contains a non-standard wildcard with no declared parameter schema."

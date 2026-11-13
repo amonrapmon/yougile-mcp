@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import json
 import unittest
+from itertools import count
 from pathlib import Path
 from typing import Any
 from unittest.mock import patch
@@ -13,8 +14,8 @@ import httpx
 
 from yougile_mcp.api import (
     AuthenticationError,
-    CompanyRateLimiter,
     InvalidInputError,
+    MissingCompanyIdError,
     MissingCredentialsError,
     NotFoundError,
     PaginationError,
@@ -34,10 +35,14 @@ from yougile_mcp.config import Settings
 
 ROOT = Path(__file__).resolve().parents[1]
 SECRET = "test-secret-do-not-log"
+_TEST_COMPANIES = count()
 
 
-def _settings(api_key: str | None = SECRET) -> Settings:
+def _settings(
+    api_key: str | None = SECRET, *, company_id: str | None = None
+) -> Settings:
     values = {} if api_key is None else {"YOUGILE_API_KEY": api_key}
+    values["YOUGILE_COMPANY_ID"] = company_id or f"test-company-{next(_TEST_COMPANIES)}"
     return Settings.from_env(values)
 
 
@@ -123,6 +128,39 @@ class ApiClientTests(unittest.IsolatedAsyncioTestCase):
                 await client.get_companies({"login": "user@example.test"})  # type: ignore[typeddict-item]
         self.assertEqual(calls, 0)
 
+    async def test_read_only_post_timeout_and_rate_limit_use_read_semantics(self):
+        calls = 0
+
+        def timeout_handler(request: httpx.Request) -> httpx.Response:
+            nonlocal calls
+            calls += 1
+            raise httpx.ReadTimeout("timeout", request=request)
+
+        async with YouGileClient(
+            _settings(None), transport=httpx.MockTransport(timeout_handler), sleep=_no_sleep
+        ) as client:
+            with self.assertRaises(RequestTimeoutError):
+                await client.get_companies({"login": "user@example.test", "password": SECRET})
+        self.assertEqual(calls, 1)
+
+        calls = 0
+
+        def rate_limit_handler(_: httpx.Request) -> httpx.Response:
+            nonlocal calls
+            calls += 1
+            if calls == 1:
+                return httpx.Response(429, headers={"Retry-After": "0"})
+            return httpx.Response(200, json=_page(0, [], next_page=False))
+
+        async with YouGileClient(
+            _settings(None), transport=httpx.MockTransport(rate_limit_handler), sleep=_no_sleep
+        ) as client:
+            result = await client.get_companies(
+                {"login": "user@example.test", "password": SECRET}
+            )
+        self.assertEqual(result.status_code, 200)
+        self.assertEqual(calls, 2)
+
     async def test_path_value_is_percent_encoded(self):
         seen = []
 
@@ -182,7 +220,7 @@ class ApiClientTests(unittest.IsolatedAsyncioTestCase):
         async with YouGileClient(
             _settings(), transport=httpx.MockTransport(handler), sleep=_no_sleep
         ) as client:
-            await client.search_tasks({"columnId": "column-1"})
+            await client.search_tasks({"columnId": "column-1"}, reversed_order=False)
             await client.search_tasks({"columnId": "column-1"}, reversed_order=True)
 
         self.assertEqual(seen, [("GET", "/api-v2/task-list"), ("GET", "/api-v2/tasks")])
@@ -240,6 +278,22 @@ class ApiClientTests(unittest.IsolatedAsyncioTestCase):
             _settings(None), transport=httpx.MockTransport(handler), sleep=_no_sleep
         ) as client:
             with self.assertRaises(MissingCredentialsError):
+                await client.search_boards()
+        self.assertEqual(calls, 0)
+
+    async def test_missing_company_id_fails_before_protected_http_call(self):
+        calls = 0
+
+        def handler(_: httpx.Request) -> httpx.Response:
+            nonlocal calls
+            calls += 1
+            return httpx.Response(200, json=_page(0, [], next_page=False))
+
+        settings = Settings.from_env({"YOUGILE_API_KEY": SECRET})
+        async with YouGileClient(
+            settings, transport=httpx.MockTransport(handler), sleep=_no_sleep
+        ) as client:
+            with self.assertRaises(MissingCompanyIdError):
                 await client.search_boards()
         self.assertEqual(calls, 0)
 
@@ -460,6 +514,7 @@ class ApiClientTests(unittest.IsolatedAsyncioTestCase):
             operation_id="text",
             method="GET",
             path="/text",
+            effect="read",
             parameters=(),
             request_body=None,
             responses={"200": {"content": {"text/html": {"schema": {"type": "string"}}}}},
@@ -470,6 +525,34 @@ class ApiClientTests(unittest.IsolatedAsyncioTestCase):
             httpx.Response(200, headers={"Content-Type": "text/html"}, content=b"<p>ok</p>"),
         )
         self.assertEqual(result.data, "<p>ok</p>")
+
+    async def test_response_schema_matches_actual_content_type(self):
+        operation = Operation(
+            operation_id="multi-media",
+            method="GET",
+            path="/multi-media",
+            effect="read",
+            parameters=(),
+            request_body=None,
+            responses={
+                "200": {
+                    "content": {
+                        "application/json": {"schema": {"type": "object"}},
+                        "text/plain": {"schema": {"type": "string"}},
+                    }
+                }
+            },
+            security=(),
+        )
+        result = _decode_response(
+            operation,
+            httpx.Response(
+                200,
+                headers={"Content-Type": "text/plain; charset=utf-8"},
+                content=b"plain response",
+            ),
+        )
+        self.assertEqual(result.data, "plain response")
 
     async def test_pagination_handles_empty_single_and_multiple_pages(self):
         for pages, expected_count in (
@@ -534,20 +617,23 @@ class ApiClientTests(unittest.IsolatedAsyncioTestCase):
             delays.append(seconds)
             now[0] += seconds
 
-        limiter = CompanyRateLimiter(clock=lambda: now[0], sleep=advance)
         def handler(_: httpx.Request) -> httpx.Response:
             return httpx.Response(200, json=_page(0, [], next_page=False))
 
-        transport_one = httpx.MockTransport(handler)
-        transport_two = httpx.MockTransport(handler)
-        async with YouGileClient(
-            _settings(), transport=transport_one, limiter=limiter, sleep=advance
-        ) as first, YouGileClient(
-            _settings(), transport=transport_two, limiter=limiter, sleep=advance
-        ) as second:
-            for index in range(50):
-                await (first if index % 2 else second).search_boards()
-            await second.search_boards()
+        with patch("yougile_mcp.api.client.time.monotonic", side_effect=lambda: now[0]):
+            async with YouGileClient(
+                _settings("first-key", company_id="shared-company"),
+                transport=httpx.MockTransport(handler),
+                sleep=advance,
+            ) as first, YouGileClient(
+                _settings("second-key", company_id="shared-company"),
+                transport=httpx.MockTransport(handler),
+                sleep=advance,
+            ) as second:
+                self.assertIs(first._limiter, second._limiter)
+                for index in range(50):
+                    await (first if index % 2 else second).search_boards()
+                await second.search_boards()
         self.assertEqual(delays, [60.0])
 
 

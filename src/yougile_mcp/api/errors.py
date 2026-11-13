@@ -24,6 +24,10 @@ class MissingCredentialsError(ApiError):
     category = "missing_credentials"
 
 
+class MissingCompanyIdError(ApiError):
+    category = "missing_company_id"
+
+
 class AuthenticationError(ApiError):
     category = "authentication_failed"
 

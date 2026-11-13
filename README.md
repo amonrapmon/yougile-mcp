@@ -45,17 +45,20 @@ async def read_boards():
         return await api.search_boards({"limit": 50, "offset": 0})
 ```
 
-Without an API key, protected calls fail before sending a request. The
-`doctor` command remains offline. `create_column` is the current write
-example; its body is validated against the official schema and is tested
+Protected calls require both `YOUGILE_API_KEY` and `YOUGILE_COMPANY_ID`; a
+missing value fails before sending a request. `get_companies` can run before
+the company ID is known. The `doctor` command remains offline. `create_column`
+is the current write example; its body is validated against the official schema and is tested
 only through a fake HTTP transport. Do not use it against a real company in
 this task. See `tests/test_api_client.py` for the mocked write example.
 
-The client defaults to at most 50 requests per minute for one shared client,
-matching the official company limit. GET requests may retry a bounded 429
-response when `Retry-After` fits the wait budget. A write timeout raises an
-uncertain-write error and is never retried. `list_all` uses bounded offset
-pagination (100 pages and 10,000 items); it raises on a stalled cursor or
+Clients with the same `YOUGILE_COMPANY_ID` share a process-local budget of at
+most 50 requests per minute, matching the
+[official company limit](https://docs.yougile.com/docs/admin-guide-linux/api/).
+Read operations may retry a bounded 429 response when `Retry-After` fits the
+wait budget. A write timeout raises an uncertain-write error and is never
+retried. Multiple server replicas need a distributed limiter. `list_all` uses
+bounded offset pagination (100 pages and 10,000 items); it raises on a stalled cursor or
 budget overflow instead of returning a partial result.
 
 ## Verify the foundation

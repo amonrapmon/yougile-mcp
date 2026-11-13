@@ -1,8 +1,9 @@
 """Pinned public API inventory sanity checks."""
 
-import json
+import ast
 import hashlib
 import importlib.util
+import json
 import sys
 import unittest
 from pathlib import Path
@@ -17,6 +18,12 @@ assert GENERATOR_SPEC is not None and GENERATOR_SPEC.loader is not None
 generator = importlib.util.module_from_spec(GENERATOR_SPEC)
 sys.modules[GENERATOR_SPEC.name] = generator
 GENERATOR_SPEC.loader.exec_module(generator)
+CHECKER_PATH = ROOT / "scripts/check_catalog.py"
+CHECKER_SPEC = importlib.util.spec_from_file_location("check_catalog", CHECKER_PATH)
+assert CHECKER_SPEC is not None and CHECKER_SPEC.loader is not None
+checker = importlib.util.module_from_spec(CHECKER_SPEC)
+sys.modules[CHECKER_SPEC.name] = checker
+CHECKER_SPEC.loader.exec_module(checker)
 
 
 class InventoryTests(unittest.TestCase):
@@ -56,9 +63,56 @@ class InventoryTests(unittest.TestCase):
         )
         self.assertFalse(any(item["status"] == "implemented" for item in rows))
         self.assertFalse(any(item["status"] == "live_verified" for item in rows))
+        self.assertEqual(checker._test_binding_errors(rows, checker._api_test_methods()), [])
         for row in rows:
             if row["status"] == "mock_tested":
-                self.assertIn("tests/test_api_client.py", row["test_paths"])
+                self.assertTrue(
+                    all(
+                        binding["test_path"].startswith(checker.API_TEST_PATH)
+                        for binding in row["test_bindings"]
+                    )
+                )
+
+    def test_coverage_binding_fails_when_specific_test_is_missing(self):
+        row = {
+            "operationId": "BoardController_search",
+            "status": "mock_tested",
+            "test_bindings": [
+                {
+                    "test_path": "tests/test_api_client.py::ApiClientTests.test_removed_board_search_test",
+                    "client_call": "search_boards",
+                    "kwargs": {},
+                }
+            ],
+        }
+        self.assertEqual(
+            checker._test_binding_errors([row], {}),
+            [
+                "Covered operation test is missing: BoardController_search -> "
+                "test_removed_board_search_test"
+            ],
+        )
+
+    def test_coverage_binding_fails_when_test_does_not_call_operation(self):
+        row = {
+            "operationId": "BoardController_search",
+            "status": "mock_tested",
+            "test_bindings": [
+                {
+                    "test_path": "tests/test_api_client.py::ApiClientTests.test_bound_test",
+                    "client_call": "search_boards",
+                    "kwargs": {},
+                }
+            ],
+        }
+        method = ast.parse("async def test_bound_test():\n    return None\n").body[0]
+        self.assertEqual(
+            checker._test_binding_errors([row], {"test_bound_test": method}),
+            [
+                "Test does not call search_boards for BoardController_search: "
+                "test_bound_test"
+            ],
+        )
 
     def test_coverage_matrix_is_generated_from_the_pinned_source(self):
         spec = json.loads((ROOT / "src/yougile_mcp/api/openapi-v2.json").read_text(encoding="utf-8"))

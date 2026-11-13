@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import asyncio
 import re
+import threading
 import time
 from collections import deque
 from collections.abc import Mapping
@@ -20,6 +21,7 @@ from .errors import (
     AuthenticationError,
     ApiError,
     InvalidInputError,
+    MissingCompanyIdError,
     MissingCredentialsError,
     NotFoundError,
     PaginationError,
@@ -70,10 +72,12 @@ _MAX_RETRY_AFTER_SECONDS = 5.0
 _MAX_429_RETRIES = 2
 _PATH_VARIABLE = re.compile(r"\{([^{}]+)\}")
 _RESERVED_HEADERS = {"authorization", "host", "content-length", "cookie"}
+_COMPANY_LIMITERS: dict[str, CompanyRateLimiter] = {}
+_COMPANY_LIMITERS_LOCK = threading.Lock()
 
 
 class CompanyRateLimiter:
-    """A rolling company budget shared by every call using this instance."""
+    """Process-local rolling company budget shared by clients using this instance."""
 
     def __init__(
         self,
@@ -84,11 +88,11 @@ class CompanyRateLimiter:
         self._clock = clock
         self._sleep = sleep
         self._requests: deque[float] = deque()
-        self._lock = asyncio.Lock()
+        self._lock = threading.Lock()
 
     async def acquire(self) -> None:
         while True:
-            async with self._lock:
+            with self._lock:
                 now = self._clock()
                 while self._requests and now - self._requests[0] >= 60:
                     self._requests.popleft()
@@ -99,8 +103,18 @@ class CompanyRateLimiter:
             await self._sleep(wait)
 
 
+def _company_limiter(settings: Settings, sleep: Any) -> CompanyRateLimiter:
+    key = f"company:{settings.company_id}" if settings.company_id else "unconfigured"
+    with _COMPANY_LIMITERS_LOCK:
+        limiter = _COMPANY_LIMITERS.get(key)
+        if limiter is None:
+            limiter = CompanyRateLimiter(clock=time.monotonic, sleep=sleep)
+            _COMPANY_LIMITERS[key] = limiter
+        return limiter
+
+
 class YouGileClient:
-    """One client per company; share it across actors and tools in that process."""
+    """Clients with the same company ID share one process-local request budget."""
 
     def __init__(
         self,
@@ -112,7 +126,8 @@ class YouGileClient:
         timeout: float = 10.0,
     ) -> None:
         self._api_key = settings.yougile_api_key.reveal() if settings.yougile_api_key else None
-        self._limiter = limiter or CompanyRateLimiter(sleep=sleep)
+        self._company_id = settings.company_id
+        self._limiter = limiter if limiter is not None else _company_limiter(settings, sleep)
         self._sleep = sleep
         self._http = httpx.AsyncClient(
             base_url=settings.yougile_base_url,
@@ -143,6 +158,8 @@ class YouGileClient:
         if operation_id not in IMPLEMENTED_OPERATION_IDS:
             raise UnsupportedOperationError()
         operation = operations()[operation_id]
+        if operation.security and not self._company_id:
+            raise MissingCompanyIdError()
         path_values = dict(path or {})
         query_values = dict(query or {})
         header_values = dict(headers or {})
@@ -286,7 +303,7 @@ class YouGileClient:
                 ) as raw_response:
                     if raw_response.status_code == 429:
                         retry_after = _retry_after(raw_response.headers.get("Retry-After"))
-                        if operation.method == "GET" and attempt < _MAX_429_RETRIES:
+                        if operation.effect == "read" and attempt < _MAX_429_RETRIES:
                             delay = retry_after if retry_after is not None else min(0.5 * (2**attempt), 5.0)
                             if delay <= _MAX_RETRY_AFTER_SECONDS:
                                 attempt += 1
@@ -305,10 +322,10 @@ class YouGileClient:
                         request=raw_response.request,
                     )
             except httpx.TimeoutException:
-                error = UncertainWriteError() if operation.method != "GET" else RequestTimeoutError()
+                error = UncertainWriteError() if operation.effect != "read" else RequestTimeoutError()
                 raise error from None
             except httpx.RequestError:
-                error = UncertainWriteError() if operation.method != "GET" else UpstreamError()
+                error = UncertainWriteError() if operation.effect != "read" else UpstreamError()
                 raise error from None
 
             if not 200 <= response.status_code < 300:
@@ -416,10 +433,10 @@ def _http_error(status_code: int) -> ApiError:
 
 
 def _decode_response(operation: Operation, response: httpx.Response) -> ApiResponse[Any]:
+    content_type = response.headers.get("Content-Type", "").split(";", 1)[0].strip().lower()
     if response.status_code == 204 or not response.content:
         body = None
     else:
-        content_type = response.headers.get("Content-Type", "").split(";", 1)[0].strip().lower()
         if content_type == "application/json" or content_type.endswith("+json"):
             try:
                 body = response.json()
@@ -432,13 +449,22 @@ def _decode_response(operation: Operation, response: httpx.Response) -> ApiRespo
 
     response_spec = operation.responses.get(str(response.status_code), operation.responses.get("default", {}))
     content = response_spec.get("content", {}) if isinstance(response_spec, dict) else {}
+    schema = _response_schema(content, content_type)
     if body is not None:
-        schema = next(
-            (media.get("schema") for media in content.values() if isinstance(media, dict) and "schema" in media),
-            None,
-        )
         if schema is not None:
             validate_schema(body, schema, request=False)
-    elif any(isinstance(media, dict) and "schema" in media for media in content.values()):
+    elif schema is not None:
         raise UpstreamError(status_code=response.status_code)
     return ApiResponse(status_code=response.status_code, data=body)
+
+
+def _response_schema(content: object, content_type: str) -> object | None:
+    if not isinstance(content, Mapping) or not content:
+        return None
+    actual_type = content_type.lower().split(";", 1)[0].strip()
+    major_type = actual_type.partition("/")[0]
+    for media_type in (actual_type, f"{major_type}/*", "*/*"):
+        for declared_type, definition in content.items():
+            if declared_type.lower() == media_type and isinstance(definition, Mapping):
+                return definition.get("schema")
+    raise UpstreamError()

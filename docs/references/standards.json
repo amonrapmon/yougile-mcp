@@ -20,9 +20,9 @@
     "yougile_api": {
       "api_version": "v2",
       "base_url": "https://ru.yougile.com/api-v2",
-      "snapshot_file": "catalog/openapi-operations.json",
+      "snapshot_file": "src/yougile_mcp/api/openapi-v2.json",
       "snapshot_oas_version": "3.0.0",
-      "status": "vendor_api_docs_and_third_party_operation_inventory"
+      "status": "official_vendor_openapi_snapshot"
     }
   },
   "review_policy": {
