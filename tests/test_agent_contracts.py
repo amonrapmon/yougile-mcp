@@ -19,9 +19,10 @@ spec.loader.exec_module(module)
 class GovernanceTests(unittest.TestCase):
     def test_all_repo_records_validate(self):
         records = module.load_records()
-        self.assertEqual(len(records), 5)
-        self.assertEqual({r.id for r in records}, {f"YC-{i:03d}" for i in range(1, 6)})
-        self.assertTrue(all(r.authority == "current" for r in records))
+        self.assertEqual(len(records), 10)
+        self.assertEqual({r.id for r in records}, {f"YC-{i:03d}" for i in range(1, 11)})
+        self.assertEqual(sum(r.authority == "current" for r in records), 5)
+        self.assertEqual(sum(r.authority == "draft" for r in records), 5)
 
     def test_scoped_routing(self):
         records = module.load_records()
@@ -29,7 +30,10 @@ class GovernanceTests(unittest.TestCase):
         self.assertEqual(
             {r.id for r in current}, {"YC-001", "YC-002", "YC-003", "YC-004"}
         )
-        self.assertEqual(draft, [])
+        self.assertEqual(
+            {r.id for r in draft},
+            {"YC-006", "YC-007", "YC-008", "YC-009", "YC-010"},
+        )
         current, _ = module.applicable(records, "docs/contracts/YC-005-governance.md")
         self.assertEqual({r.id for r in current}, {"YC-005"})
 

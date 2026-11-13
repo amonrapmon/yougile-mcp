@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "pins": {
+    "mcp_protocol": {
+      "version": "2026-07-28",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28",
+      "status": "design_reference"
+    },
+    "mcp_sdk_python": {
+      "version_family": "2.x",
+      "reference_release": "2.3.0",
+      "url": "https://github.com/modelcontextprotocol/python-sdk/releases",
+      "status": "implementation_candidate_not_dependency"
+    },
+    "openapi_standard": {
+      "version": "3.2.1",
+      "url": "https://spec.openapis.org/oas/latest.html",
+      "status": "format_reference_not_vendor_schema"
+    },
+    "yougile_api": {
+      "api_version": "v2",
+      "base_url": "https://ru.yougile.com/api-v2",
+      "snapshot_file": "catalog/openapi-operations.json",
+      "snapshot_oas_version": "3.0.0",
+      "status": "vendor_api_docs_and_third_party_operation_inventory"
+    }
+  },
+  "review_policy": {
+    "latest_version_requires_human_review": true,
+    "draft_contracts": [
+      "YC-006",
+      "YC-007",
+      "YC-008",
+      "YC-009",
+      "YC-010"
+    ],
+    "notes": "Versions are independent. The chosen runtime SDK must be pinned at implementation time and verified with actual clients."
+  }
+}
