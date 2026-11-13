@@ -46,6 +46,21 @@ Never commit live credentials,
 test workspace exports, or secrets. The doctor command reports only booleans
 indicating whether credentials are present, never credential values.
 
+## Agent governance (Astryx-inspired)
+
+The canonical entry point is AGENTS.md. Nearest nested AGENTS.md files add
+subsystem rules; .agents/rules/ holds cross-cutting constraints,
+.agents/workflows/ holds repeatable processes and .agents/skills/ holds
+task-specific recipes. Durable behavior lives in docs/contracts/ with
+draft/current/archived authority. Only current records are binding.
+
+- python scripts/agent_contracts.py check
+- python scripts/agent_contracts.py for src/yougile_mcp/config.py
+- python scripts/agent_contracts.py diff origin/main
+
+This arrangement is inspired by the governance model in Meta Astryx
+(https://github.com/meta/astryx), but its rules and implementation are original.
+
 ## Development contract
 
 Read AGENTS.md, docs/ARCHITECTURE.md, docs/PROVENANCE.md,

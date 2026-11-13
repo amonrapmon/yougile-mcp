@@ -33,6 +33,10 @@ jobs:
         run: python -m compileall -q src scripts tests
       - name: Unit tests
         run: python -m unittest discover -s tests -v
+      - name: Agent contracts and path-routing check
+        run: |
+          python scripts/agent_contracts.py check
+          python scripts/agent_contracts.py for src/yougile_mcp/config.py
       - name: Catalog invariant check
         run: python scripts/check_catalog.py
       - name: Config diagnostic
