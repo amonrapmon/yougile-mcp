@@ -59,12 +59,22 @@ Follow .agents/workflows/change.md for implementation work,
 .agents/workflows/review.md before marking a PR ready. Specialized repeatable
 playbooks live in .agents/skills/; choose only those relevant to the task.
 
+## Protocol adapters and standards
+
+All internal operations, authorization, DTOs and business logic stay
+independent of the MCP SDK or other discovery protocols. A future UTCP manual
+may describe separately authorized HTTP endpoints, but must never reveal
+YouGile API keys or allow clients to bypass policy. See
+docs/references/README.md and DRAFT engineering records YC-006..YC-010.
+Drafts are not approved implementation authority.
+
 ## Mandatory checks
 
 Run the following, and report which were actually executed:
 
 - python scripts/agent_contracts.py check
 - python scripts/agent_contracts.py diff origin/main (when git history is available)
+- python scripts/architecture_guard.py
 - python scripts/check_catalog.py
 - python -m unittest discover -s tests -v
 - ruff check .
