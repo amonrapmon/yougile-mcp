@@ -19,7 +19,7 @@ from .errors import InvalidInputError, UpstreamError
 
 _SPEC_FILE = "openapi-v2.json"
 _SOURCE_FILE = "openapi-source.json"
-COMPATIBILITY_OVERLAY_VERSION = "2026-11-14.2"
+COMPATIBILITY_OVERLAY_VERSION = "2026-11-14.3"
 COMPATIBILITY_OVERLAY_SOURCE_SHA256 = "9452cba3571607848de77fc12e68104cb454e403c35c7a6b97521ea6e0d1d406"
 _COMPATIBILITY_PATHS = {
     "CompanyController_get": "/api-v2/companies",
@@ -66,6 +66,12 @@ def load_compatible_spec() -> dict[str, Any]:
 
     company = spec["components"]["schemas"]["CompanyDto"]["properties"]
     company["deleted"]["nullable"] = True
+
+    # Live 200 list responses include deleted=null on active projects, boards and
+    # tasks. Restrict this override to the three observed search DTOs; do not
+    # silently change detail or write schemas without independent evidence.
+    for schema_name in ("ProjectListDtoBase", "BoardListDtoBase", "TaskListDtoBase"):
+        spec["components"]["schemas"][schema_name]["properties"]["deleted"]["nullable"] = True
 
     webhook_filters = spec["components"]["schemas"]["WebhookFilters"]
     webhook_filters["properties"] = {
