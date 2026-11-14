@@ -1315,6 +1315,38 @@ class ApiClientTests(unittest.IsolatedAsyncioTestCase):
                 await client.search_boards()
         self.assertEqual(calls, 1)
 
+    async def test_identity_encoding_avoids_live_response_decoding_failure(self):
+        """Use identity encoding for both read and write calls to avoid bad compressed replies."""
+        seen = []
+
+        def handler(request: httpx.Request) -> httpx.Response:
+            seen.append(request)
+            if request.headers.get("Accept-Encoding") != "identity":
+                # Emulate the HTTP 200 + httpx.DecodingError observed during live GETs.
+                return httpx.Response(
+                    200,
+                    headers={"Content-Type": "application/json", "Content-Encoding": "gzip"},
+                    content=b"not-a-valid-gzip-stream",
+                )
+            if request.url.path == "/api-v2/users/me":
+                return httpx.Response(
+                    200, json=_sample_operation_response("UserController_getMe", 200)
+                )
+            if request.url.path == "/api-v2/columns":
+                return httpx.Response(201, json={"id": "column-test"})
+            raise AssertionError("unexpected route")
+
+        async with YouGileClient(
+            _settings(), transport=httpx.MockTransport(handler), sleep=_no_sleep
+        ) as client:
+            user = await client.request("UserController_getMe")
+            created = await client.create_column({"title": "Test", "boardId": "board-test"})
+
+        self.assertEqual(user.status_code, 200)
+        self.assertEqual(created.status_code, 201)
+        self.assertEqual(created.data, {"id": "column-test"})
+        self.assertEqual([item.headers["Accept-Encoding"] for item in seen], ["identity"] * 2)
+
     async def test_200_201_202_204_and_empty_body_responses(self):
         outcomes = [
             httpx.Response(200, json=_page(0, [], next_page=False)),
