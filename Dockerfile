@@ -1,4 +1,4 @@
-FROM python:3.12-slim AS build
+FROM python:3.15-slim AS build
 
 ENV PIP_NO_CACHE_DIR=1
 WORKDIR /app
@@ -8,7 +8,7 @@ COPY src/ ./src/
 RUN python -m pip install uv==0.13.8 \
  && uv sync --locked --no-dev --no-editable
 
-FROM python:3.12-slim
+FROM python:3.15-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
