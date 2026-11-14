@@ -1850,6 +1850,79 @@ class ApiClientTests(unittest.IsolatedAsyncioTestCase):
                         )
                 self.assertEqual(calls, 1)
 
+    async def test_live_list_deleted_null_is_accepted_only_in_confirmed_search_dtos(self):
+        """All three live list APIs may return deleted=null for active records."""
+        cases = {
+            "ProjectController_search": (
+                "/api-v2/projects",
+                {"id": "project-test", "title": "Sample", "timestamp": 123},
+            ),
+            "BoardController_search": (
+                "/api-v2/boards",
+                {"id": "board-test", "title": "Sample", "projectId": "project-test"},
+            ),
+            "TaskController_search": (
+                "/api-v2/task-list",
+                {"id": "task-test", "title": "Sample", "timestamp": 123},
+            ),
+        }
+        for operation_id, (path, sample) in cases.items():
+            with self.subTest(operation=operation_id):
+                seen = []
+
+                def handler(request: httpx.Request) -> httpx.Response:
+                    seen.append(request)
+                    return httpx.Response(
+                        200,
+                        json=_page(
+                            0,
+                            [
+                                {**sample, "deleted": None},
+                                {**sample, "deleted": False},
+                                {**sample, "deleted": True},
+                            ],
+                            next_page=False,
+                        ),
+                    )
+
+                async with YouGileClient(
+                    _settings(), transport=httpx.MockTransport(handler), sleep=_no_sleep
+                ) as client:
+                    result = await client.request(
+                        operation_id, query={"limit": 3, "offset": 0}
+                    )
+
+                self.assertEqual(len(seen), 1)
+                self.assertEqual(seen[0].url.path, path)
+                self.assertEqual(result.status_code, 200)
+                self.assertEqual(
+                    [record["deleted"] for record in result.data["content"]],
+                    [None, False, True],
+                )
+
+    async def test_live_nullable_deleted_overlay_does_not_permit_invalid_values(self):
+        """Confirmed nullable list fields stay bool|null, not arbitrary strings."""
+        cases = {
+            "ProjectController_search": {"id": "project-test", "title": "Sample", "timestamp": 123},
+            "BoardController_search": {
+                "id": "board-test", "title": "Sample", "projectId": "project-test"
+            },
+            "TaskController_search": {"id": "task-test", "title": "Sample", "timestamp": 123},
+        }
+        for operation_id, sample in cases.items():
+            with self.subTest(operation=operation_id):
+                def handler(_: httpx.Request) -> httpx.Response:
+                    return httpx.Response(
+                        200,
+                        json=_page(0, [{**sample, "deleted": "not-a-boolean"}], next_page=False),
+                    )
+
+                async with YouGileClient(
+                    _settings(), transport=httpx.MockTransport(handler), sleep=_no_sleep
+                ) as client:
+                    with self.assertRaises(UpstreamError):
+                        await client.request(operation_id, query={"limit": 1, "offset": 0})
+
     async def test_compatibility_overlay_uses_canonical_routes_without_mutating_vendor_spec(self):
         spec = load_spec()
         compatible = load_compatible_spec()
@@ -1866,6 +1939,19 @@ class ApiClientTests(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(
             compatible["components"]["schemas"]["CompanyDto"]["properties"]["deleted"]["nullable"]
         )
+        for schema_name in ("ProjectListDtoBase", "BoardListDtoBase", "TaskListDtoBase"):
+            with self.subTest(schema=schema_name):
+                raw_field = spec["components"]["schemas"][schema_name]["properties"]["deleted"]
+                compatible_field = compatible["components"]["schemas"][schema_name]["properties"]["deleted"]
+                self.assertNotIn("nullable", raw_field)
+                self.assertEqual(raw_field["type"], "boolean")
+                self.assertIs(compatible_field["nullable"], True)
+                self.assertEqual(compatible_field["type"], "boolean")
+        for schema_name in ("ProjectDto", "BoardDto", "TaskDto"):
+            self.assertNotIn(
+                "nullable", compatible["components"]["schemas"][schema_name]["properties"]["deleted"]
+            )
+
         self.assertEqual(
             compatible["components"]["schemas"]["WebhookFilters"]["properties"]["name"],
             {"type": "string"},
