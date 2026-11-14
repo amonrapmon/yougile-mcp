@@ -146,7 +146,11 @@ CURL_OBSERVED_OPERATION_IDS = {
 SDK_PASS_OPERATION_IDS = {
     "BoardController_get",
     "BoardController_search",
+    "ChatMessageController_get",
     "ChatMessageController_search",
+    "ChatMessageController_sendMessage",
+    "ChatMessageController_typing",
+    "ChatMessageController_update",
     "ColumnController_get",
     "ColumnController_search",
     "CompanyController_get",
@@ -156,6 +160,8 @@ SDK_PASS_OPERATION_IDS = {
     "FileController_uploadFile",
     "GroupChatController_get",
     "GroupChatController_search",
+    "GroupChatController_update",
+    "CrmContactPersonsController_create",
     "BoardController_create",
     "BoardController_update",
     "ColumnController_create",
@@ -202,12 +208,15 @@ SDK_PASS_OPERATION_IDS = {
 SDK_MISMATCH_OPERATION_IDS: set[str] = set()
 SDK_EXPECTED_ERROR_OPERATION_IDS = {"CrmExternalIdController_findContactByExternalId"}
 SDK_VALIDATION_ERROR_OPERATION_IDS = {
-    "CrmContactPersonsController_create",
+    "GroupChatController_create",
     "UserController_create",
 }
 COMPATIBILITY_OVERLAY_OPERATION_IDS = {
     "BoardController_get",
     "BoardController_search",
+    "ChatMessageController_get",
+    "ChatMessageController_search",
+    "ChatMessageController_typing",
     "TaskController_search",
     "CompanyController_get",
     "CompanyController_update",
@@ -232,6 +241,25 @@ COMPATIBILITY_NOTES = {
         "GEN-229 repeated the live SDK GET successfully after the list DTO overlay "
         "for deleted=null; invalid non-boolean values remain rejected."
     ),
+    "ChatMessageController_get": (
+        "GEN-229 live message detail omits textHtml and editTimestamp; the overlay "
+        "makes only those fields optional and validates them when present."
+    ),
+    "ChatMessageController_search": (
+        "GEN-229 live message list omits textHtml and editTimestamp; the overlay "
+        "makes only those fields optional and validates them when present."
+    ),
+    "ChatMessageController_sendMessage": (
+        "GEN-229 sent a synthetic message to the single-member CRM_TEST project chat; "
+        "the message was soft-deleted after exercising read/update operations."
+    ),
+    "ChatMessageController_typing": (
+        "GEN-229 live typing returned HTTP 201 with the ChatTypingDto documented "
+        "for HTTP 200; the overlay validates both statuses against that DTO."
+    ),
+    "ChatMessageController_update": (
+        "GEN-229 soft-deleted only the synthetic message created for the live test."
+    ),
     "ProjectController_search": (
         "GEN-229 repeated the live SDK GET successfully after the list DTO overlay "
         "for deleted=null; invalid non-boolean values remain rejected."
@@ -249,14 +277,14 @@ COMPATIBILITY_NOTES = {
         "the original title remained unchanged."
     ),
     "CrmContactPersonsController_create": (
-        "A diagnostic create using a non-CRM project was rejected with HTTP 400. "
-        "The operation remains blocked because the test company has no valid CRM "
-        "project fixture; valid-payload behavior is unverified."
+        "GEN-229 created a synthetic contact in CRM_TEST with HTTP 201. The 72-operation "
+        "inventory has no contact-delete operation, so the contact remains as a fixture."
     ),
     "CrmExternalIdController_findContactByExternalId": (
         "A live lookup for a synthetic absent external ID returned HTTP 404; "
         "the overlay records this response while the pinned snapshot lists only 200. "
-        "A positive lookup still needs a CRM external-ID fixture."
+        "The API exposes no operation or CreateContactPersonDto field to assign the "
+        "provider/chatId mapping required for a positive lookup."
     ),
     "WebhookController_create": (
         "Overlay keeps filter name as a string and accepts string or string-array "
@@ -285,6 +313,15 @@ COMPATIBILITY_NOTES = {
         "GEN-229 follow-up SDK GET found deleted=null after the group-chat list "
         "overlay; the narrow GroupChatDto overlay was followed by a successful GET. "
         "Invalid values remain rejected."
+    ),
+    "GroupChatController_create": (
+        "GEN-229 four live API POST attempts returned HTTP 400 after local schema "
+        "validation; safe diagnostics found no machine error code. The separate "
+        "UI-created CRM_TEST chat does not verify this operation."
+    ),
+    "GroupChatController_update": (
+        "GEN-229 no-op title update on the single-member CRM_TEST project chat "
+        "returned HTTP 200."
     ),
     "ProjectController_get": (
         "GEN-229 first live SDK GET returned deleted=null; the narrow ProjectDto "

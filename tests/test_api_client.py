@@ -2089,6 +2089,83 @@ class ApiClientTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(raised.exception.diagnostic.expected_type, "boolean")
                 self.assertEqual(raised.exception.diagnostic.actual_type, "string")
 
+    async def test_chat_message_responses_allow_observed_omissions_and_keep_other_fields_strict(self):
+        cases = {
+            "ChatMessageController_get": {"path": {"chatId": "chat-test", "id": 42}},
+            "ChatMessageController_search": {
+                "path": {"chatId": "chat-test"},
+                "query": {"limit": 1, "offset": 0},
+            },
+        }
+
+        async def request(operation_id: str, kwargs: dict[str, Any], body: dict[str, Any]):
+            async with YouGileClient(
+                _settings(),
+                transport=httpx.MockTransport(lambda _: httpx.Response(200, json=body)),
+                sleep=_no_sleep,
+            ) as client:
+                return await client.request(operation_id, **kwargs)
+
+        for operation_id, kwargs in cases.items():
+            with self.subTest(operation=operation_id):
+                def record(body: dict[str, Any]) -> dict[str, Any]:
+                    return body["content"][0] if operation_id == "ChatMessageController_search" else body
+
+                body = _sample_operation_response(operation_id)
+                message = record(body)
+                message.pop("textHtml")
+                message.pop("editTimestamp")
+                response = await request(operation_id, kwargs, body)
+                message = record(response.data)
+                self.assertNotIn("textHtml", message)
+                self.assertNotIn("editTimestamp", message)
+
+                for field, value, expected_type, actual_type in (
+                    ("textHtml", 123, "string", "number"),
+                    ("editTimestamp", "invalid", "number", "string"),
+                ):
+                    invalid = _sample_operation_response(operation_id)
+                    invalid_message = record(invalid)
+                    invalid_message.pop("editTimestamp" if field == "textHtml" else "textHtml")
+                    invalid_message[field] = value
+                    with self.assertRaises(UpstreamError) as raised:
+                        await request(operation_id, kwargs, invalid)
+                    self.assertEqual(raised.exception.diagnostic.expected_type, expected_type)
+                    self.assertEqual(raised.exception.diagnostic.actual_type, actual_type)
+
+                invalid = _sample_operation_response(operation_id)
+                invalid_message = record(invalid)
+                invalid_message.pop("id")
+                with self.assertRaises(UpstreamError) as raised:
+                    await request(operation_id, kwargs, invalid)
+                self.assertEqual(raised.exception.diagnostic.rule, "required")
+
+    async def test_chat_typing_201_response_is_validated(self):
+        body = _sample_operation_response("ChatMessageController_typing")
+        async with YouGileClient(
+            _settings(),
+            transport=httpx.MockTransport(lambda _: httpx.Response(201, json=body)),
+            sleep=_no_sleep,
+        ) as client:
+            response = await client.request(
+                "ChatMessageController_typing", path={"chatId": "chat-test"}
+            )
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.data, body)
+
+        async with YouGileClient(
+            _settings(),
+            transport=httpx.MockTransport(
+                lambda _: httpx.Response(201, json={"chatId": "chat-test"})
+            ),
+            sleep=_no_sleep,
+        ) as client:
+            with self.assertRaises(UpstreamError) as raised:
+                await client.request(
+                    "ChatMessageController_typing", path={"chatId": "chat-test"}
+                )
+        self.assertEqual(raised.exception.diagnostic.rule, "required")
+
     async def test_compatibility_overlay_uses_canonical_routes_without_mutating_vendor_spec(self):
         spec = load_spec()
         compatible = load_compatible_spec()
@@ -2105,6 +2182,17 @@ class ApiClientTests(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(
             compatible["components"]["schemas"]["CompanyDto"]["properties"]["deleted"]["nullable"]
         )
+        for schema_name in ("ChatMessageDto", "ChatMessageListDtoBase"):
+            with self.subTest(schema=schema_name):
+                self.assertTrue({"textHtml", "editTimestamp"}.issubset(
+                    spec["components"]["schemas"][schema_name]["required"]
+                ))
+                self.assertFalse({"textHtml", "editTimestamp"}.intersection(
+                    compatible["components"]["schemas"][schema_name]["required"]
+                ))
+        typing_path = "/api-v2/chats/{chatId}/typing"
+        self.assertNotIn("201", spec["paths"][typing_path]["post"]["responses"])
+        self.assertIn("201", compatible["paths"][typing_path]["post"]["responses"])
         for schema_name in ("ProjectListDtoBase", "BoardListDtoBase", "TaskListDtoBase"):
             with self.subTest(schema=schema_name):
                 raw_field = spec["components"]["schemas"][schema_name]["properties"]["deleted"]

@@ -112,12 +112,15 @@ class InventoryTests(unittest.TestCase):
         by_id = {item["operationId"]: item for item in rows}
         self.assertEqual(checker._coverage_metadata_errors(rows, source_meta["sha256"]), [])
         overlay_rows = [item for item in rows if item["compatibility_overlay"] is not None]
-        self.assertEqual(len(overlay_rows), 16)
+        self.assertEqual(len(overlay_rows), 19)
         self.assertEqual(
             {item["operationId"] for item in overlay_rows},
             {
                 "BoardController_get",
                 "BoardController_search",
+                "ChatMessageController_get",
+                "ChatMessageController_search",
+                "ChatMessageController_typing",
                 "CompanyController_get",
                 "CompanyController_update",
                 "CrmExternalIdController_findContactByExternalId",
@@ -136,7 +139,7 @@ class InventoryTests(unittest.TestCase):
         )
         self.assertEqual(
             {item["compatibility_overlay"]["version"] for item in overlay_rows},
-            {"2026-11-14.7"},
+            {"2026-11-15.8"},
         )
         self.assertEqual(
             {item["compatibility_overlay"]["source_sha256"] for item in overlay_rows},
@@ -145,6 +148,9 @@ class InventoryTests(unittest.TestCase):
         for operation_id in (
             "BoardController_get",
             "BoardController_search",
+            "ChatMessageController_get",
+            "ChatMessageController_search",
+            "ChatMessageController_typing",
             "CompanyController_get",
             "CompanyController_update",
             "CrmExternalIdController_findContactByExternalId",

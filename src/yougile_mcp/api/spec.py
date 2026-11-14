@@ -19,7 +19,7 @@ from .errors import InvalidInputError, SchemaDiagnostic, UpstreamError
 
 _SPEC_FILE = "openapi-v2.json"
 _SOURCE_FILE = "openapi-source.json"
-COMPATIBILITY_OVERLAY_VERSION = "2026-11-14.7"
+COMPATIBILITY_OVERLAY_VERSION = "2026-11-15.8"
 COMPATIBILITY_OVERLAY_SOURCE_SHA256 = "9452cba3571607848de77fc12e68104cb454e403c35c7a6b97521ea6e0d1d406"
 _COMPATIBILITY_PATHS = {
     "CompanyController_get": "/api-v2/companies",
@@ -83,6 +83,18 @@ def load_compatible_spec() -> dict[str, Any]:
         "GroupChatListDtoBase",
     ):
         spec["components"]["schemas"][schema_name]["properties"]["deleted"]["nullable"] = True
+
+    # Live message responses omit these fields; when present, their types stay strict.
+    for schema_name in ("ChatMessageDto", "ChatMessageListDtoBase"):
+        schema = spec["components"]["schemas"][schema_name]
+        schema["required"] = [
+            field for field in schema["required"] if field not in {"textHtml", "editTimestamp"}
+        ]
+
+    # Live typing calls return the documented DTO with HTTP 201 instead of 200.
+    typing = spec["paths"]["/api-v2/chats/{chatId}/typing"]["post"]
+    typing["responses"]["201"] = deepcopy(typing["responses"]["200"])
+    typing["responses"]["201"]["description"] = "Typing status created"
 
     webhook_filters = spec["components"]["schemas"]["WebhookFilters"]
     webhook_filters["properties"] = {

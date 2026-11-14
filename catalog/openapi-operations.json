@@ -204,7 +204,7 @@
       "status": "mock_tested",
       "live_evidence": "live_verified_via_client",
       "compatibility_overlay": {
-        "version": "2026-11-14.7",
+        "version": "2026-11-15.8",
         "source_sha256": "9452cba3571607848de77fc12e68104cb454e403c35c7a6b97521ea6e0d1d406"
       },
       "test_bindings": [
@@ -283,7 +283,7 @@
       "status": "mock_tested",
       "live_evidence": "live_verified_via_client",
       "compatibility_overlay": {
-        "version": "2026-11-14.7",
+        "version": "2026-11-15.8",
         "source_sha256": "9452cba3571607848de77fc12e68104cb454e403c35c7a6b97521ea6e0d1d406"
       },
       "test_bindings": [
@@ -381,8 +381,11 @@
       },
       "effect": "read",
       "status": "mock_tested",
-      "live_evidence": "not_tested",
-      "compatibility_overlay": null,
+      "live_evidence": "live_verified_via_client",
+      "compatibility_overlay": {
+        "version": "2026-11-15.8",
+        "source_sha256": "9452cba3571607848de77fc12e68104cb454e403c35c7a6b97521ea6e0d1d406"
+      },
       "test_bindings": [
         {
           "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
@@ -392,7 +395,7 @@
           }
         }
       ],
-      "notes": null
+      "notes": "GEN-229 live message detail omits textHtml and editTimestamp; the overlay makes only those fields optional and validates them when present."
     },
     {
       "operationId": "ChatMessageController_search",
@@ -488,7 +491,10 @@
       "effect": "read",
       "status": "mock_tested",
       "live_evidence": "live_verified_via_client",
-      "compatibility_overlay": null,
+      "compatibility_overlay": {
+        "version": "2026-11-15.8",
+        "source_sha256": "9452cba3571607848de77fc12e68104cb454e403c35c7a6b97521ea6e0d1d406"
+      },
       "test_bindings": [
         {
           "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
@@ -498,7 +504,7 @@
           }
         }
       ],
-      "notes": null
+      "notes": "GEN-229 live message list omits textHtml and editTimestamp; the overlay makes only those fields optional and validates them when present."
     },
     {
       "operationId": "ChatMessageController_sendMessage",
@@ -534,7 +540,7 @@
       },
       "effect": "write",
       "status": "mock_tested",
-      "live_evidence": "not_tested",
+      "live_evidence": "live_verified_via_client",
       "compatibility_overlay": null,
       "test_bindings": [
         {
@@ -545,7 +551,7 @@
           }
         }
       ],
-      "notes": null
+      "notes": "GEN-229 sent a synthetic message to the single-member CRM_TEST project chat; the message was soft-deleted after exercising read/update operations."
     },
     {
       "operationId": "ChatMessageController_typing",
@@ -577,8 +583,11 @@
       },
       "effect": "write",
       "status": "mock_tested",
-      "live_evidence": "not_tested",
-      "compatibility_overlay": null,
+      "live_evidence": "live_verified_via_client",
+      "compatibility_overlay": {
+        "version": "2026-11-15.8",
+        "source_sha256": "9452cba3571607848de77fc12e68104cb454e403c35c7a6b97521ea6e0d1d406"
+      },
       "test_bindings": [
         {
           "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
@@ -588,7 +597,7 @@
           }
         }
       ],
-      "notes": null
+      "notes": "GEN-229 live typing returned HTTP 201 with the ChatTypingDto documented for HTTP 200; the overlay validates both statuses against that DTO."
     },
     {
       "operationId": "ChatMessageController_update",
@@ -632,7 +641,7 @@
       },
       "effect": "write",
       "status": "mock_tested",
-      "live_evidence": "not_tested",
+      "live_evidence": "live_verified_via_client",
       "compatibility_overlay": null,
       "test_bindings": [
         {
@@ -643,7 +652,7 @@
           }
         }
       ],
-      "notes": null
+      "notes": "GEN-229 soft-deleted only the synthetic message created for the live test."
     },
     {
       "operationId": "ColumnController_create",
@@ -875,7 +884,7 @@
       "status": "mock_tested",
       "live_evidence": "live_verified_via_client",
       "compatibility_overlay": {
-        "version": "2026-11-14.7",
+        "version": "2026-11-15.8",
         "source_sha256": "9452cba3571607848de77fc12e68104cb454e403c35c7a6b97521ea6e0d1d406"
       },
       "test_bindings": [
@@ -918,7 +927,7 @@
       "status": "mock_tested",
       "live_evidence": "live_verified_via_client",
       "compatibility_overlay": {
-        "version": "2026-11-14.7",
+        "version": "2026-11-15.8",
         "source_sha256": "9452cba3571607848de77fc12e68104cb454e403c35c7a6b97521ea6e0d1d406"
       },
       "test_bindings": [
@@ -958,7 +967,7 @@
       },
       "effect": "write",
       "status": "mock_tested",
-      "live_evidence": "live_validation_error_via_client",
+      "live_evidence": "live_verified_via_client",
       "compatibility_overlay": null,
       "test_bindings": [
         {
@@ -969,7 +978,7 @@
           }
         }
       ],
-      "notes": "A diagnostic create using a non-CRM project was rejected with HTTP 400. The operation remains blocked because the test company has no valid CRM project fixture; valid-payload behavior is unverified."
+      "notes": "GEN-229 created a synthetic contact in CRM_TEST with HTTP 201. The 72-operation inventory has no contact-delete operation, so the contact remains as a fixture."
     },
     {
       "operationId": "CrmExternalIdController_findContactByExternalId",
@@ -1010,7 +1019,7 @@
       "status": "mock_tested",
       "live_evidence": "live_expected_error_via_client",
       "compatibility_overlay": {
-        "version": "2026-11-14.7",
+        "version": "2026-11-15.8",
         "source_sha256": "9452cba3571607848de77fc12e68104cb454e403c35c7a6b97521ea6e0d1d406"
       },
       "test_bindings": [
@@ -1022,7 +1031,7 @@
           }
         }
       ],
-      "notes": "A live lookup for a synthetic absent external ID returned HTTP 404; the overlay records this response while the pinned snapshot lists only 200. A positive lookup still needs a CRM external-ID fixture."
+      "notes": "A live lookup for a synthetic absent external ID returned HTTP 404; the overlay records this response while the pinned snapshot lists only 200. The API exposes no operation or CreateContactPersonDto field to assign the provider/chatId mapping required for a positive lookup."
     },
     {
       "operationId": "DepartmentController_create",
@@ -1263,7 +1272,7 @@
       "status": "mock_tested",
       "live_evidence": "live_verified_via_client",
       "compatibility_overlay": {
-        "version": "2026-11-14.7",
+        "version": "2026-11-15.8",
         "source_sha256": "9452cba3571607848de77fc12e68104cb454e403c35c7a6b97521ea6e0d1d406"
       },
       "test_bindings": [
@@ -1303,7 +1312,7 @@
       },
       "effect": "write",
       "status": "mock_tested",
-      "live_evidence": "not_tested",
+      "live_evidence": "live_validation_error_via_client",
       "compatibility_overlay": null,
       "test_bindings": [
         {
@@ -1314,7 +1323,7 @@
           }
         }
       ],
-      "notes": null
+      "notes": "GEN-229 four live API POST attempts returned HTTP 400 after local schema validation; safe diagnostics found no machine error code. The separate UI-created CRM_TEST chat does not verify this operation."
     },
     {
       "operationId": "GroupChatController_get",
@@ -1349,7 +1358,7 @@
       "status": "mock_tested",
       "live_evidence": "live_verified_via_client",
       "compatibility_overlay": {
-        "version": "2026-11-14.7",
+        "version": "2026-11-15.8",
         "source_sha256": "9452cba3571607848de77fc12e68104cb454e403c35c7a6b97521ea6e0d1d406"
       },
       "test_bindings": [
@@ -1423,7 +1432,7 @@
       "status": "mock_tested",
       "live_evidence": "live_verified_via_client",
       "compatibility_overlay": {
-        "version": "2026-11-14.7",
+        "version": "2026-11-15.8",
         "source_sha256": "9452cba3571607848de77fc12e68104cb454e403c35c7a6b97521ea6e0d1d406"
       },
       "test_bindings": [
@@ -1472,7 +1481,7 @@
       },
       "effect": "write",
       "status": "mock_tested",
-      "live_evidence": "not_tested",
+      "live_evidence": "live_verified_via_client",
       "compatibility_overlay": null,
       "test_bindings": [
         {
@@ -1483,7 +1492,7 @@
           }
         }
       ],
-      "notes": null
+      "notes": "GEN-229 no-op title update on the single-member CRM_TEST project chat returned HTTP 200."
     },
     {
       "operationId": "ProjectController_create",
@@ -1557,7 +1566,7 @@
       "status": "mock_tested",
       "live_evidence": "live_verified_via_client",
       "compatibility_overlay": {
-        "version": "2026-11-14.7",
+        "version": "2026-11-15.8",
         "source_sha256": "9452cba3571607848de77fc12e68104cb454e403c35c7a6b97521ea6e0d1d406"
       },
       "test_bindings": [
@@ -1631,7 +1640,7 @@
       "status": "mock_tested",
       "live_evidence": "live_verified_via_client",
       "compatibility_overlay": {
-        "version": "2026-11-14.7",
+        "version": "2026-11-15.8",
         "source_sha256": "9452cba3571607848de77fc12e68104cb454e403c35c7a6b97521ea6e0d1d406"
       },
       "test_bindings": [
@@ -1780,7 +1789,7 @@
       "status": "mock_tested",
       "live_evidence": "live_verified_via_client",
       "compatibility_overlay": {
-        "version": "2026-11-14.7",
+        "version": "2026-11-15.8",
         "source_sha256": "9452cba3571607848de77fc12e68104cb454e403c35c7a6b97521ea6e0d1d406"
       },
       "test_bindings": [
@@ -2783,7 +2792,7 @@
       "status": "mock_tested",
       "live_evidence": "live_verified_via_client",
       "compatibility_overlay": {
-        "version": "2026-11-14.7",
+        "version": "2026-11-15.8",
         "source_sha256": "9452cba3571607848de77fc12e68104cb454e403c35c7a6b97521ea6e0d1d406"
       },
       "test_bindings": [
@@ -2989,7 +2998,7 @@
       "status": "mock_tested",
       "live_evidence": "live_verified_via_client",
       "compatibility_overlay": {
-        "version": "2026-11-14.7",
+        "version": "2026-11-15.8",
         "source_sha256": "9452cba3571607848de77fc12e68104cb454e403c35c7a6b97521ea6e0d1d406"
       },
       "test_bindings": [
@@ -3584,7 +3593,7 @@
       "status": "mock_tested",
       "live_evidence": "live_verified_via_client",
       "compatibility_overlay": {
-        "version": "2026-11-14.7",
+        "version": "2026-11-15.8",
         "source_sha256": "9452cba3571607848de77fc12e68104cb454e403c35c7a6b97521ea6e0d1d406"
       },
       "test_bindings": [
@@ -3635,7 +3644,7 @@
       "status": "mock_tested",
       "live_evidence": "live_verified_via_client",
       "compatibility_overlay": {
-        "version": "2026-11-14.7",
+        "version": "2026-11-15.8",
         "source_sha256": "9452cba3571607848de77fc12e68104cb454e403c35c7a6b97521ea6e0d1d406"
       },
       "test_bindings": [
@@ -3681,7 +3690,7 @@
       "status": "mock_tested",
       "live_evidence": "live_verified_via_client",
       "compatibility_overlay": {
-        "version": "2026-11-14.7",
+        "version": "2026-11-15.8",
         "source_sha256": "9452cba3571607848de77fc12e68104cb454e403c35c7a6b97521ea6e0d1d406"
       },
       "test_bindings": [
