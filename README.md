@@ -20,9 +20,8 @@ document describes 72 YouGile REST API v2 operations. The previous 70-operation
 snapshot had no removals and lacked two operations added by the official source;
 five operations remain outside the PR #5 inventory. The coverage matrix marks
 66 operations as mock-tested and 6 as discovered. The uncovered company
-wildcard and webhook filter schemas have concrete vendor-contract blockers;
-remaining operations are being implemented in later groups. See catalog/ and
-docs/PROVENANCE.md.
+wildcard, webhook filter and file-upload contracts have concrete schema or
+policy blockers. See catalog/ and docs/PROVENANCE.md.
 
 An importable asynchronous API client currently covers mock-tested read
 operations for users, projects and roles, departments, boards, columns, tasks,
