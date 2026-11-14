@@ -201,6 +201,8 @@ def _test_binding_errors(operations: list[dict], test_methods: dict[str, ast.AST
                     or item["effect"] != (
                         "read"
                         if item["method"] == "GET" or operation_id == "AuthKeyController_search"
+                        else "destructive"
+                        if item["method"] == "DELETE"
                         else "write"
                     )
                 ):

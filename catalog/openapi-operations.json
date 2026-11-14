@@ -75,9 +75,17 @@
         "schemes": []
       },
       "effect": "destructive",
-      "status": "discovered",
-      "test_bindings": [],
-      "notes": "Not yet covered by a MockTransport contract."
+      "status": "mock_tested",
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
+          "client_call": "request",
+          "kwargs": {
+            "operation_id": "AuthKeyController_delete"
+          }
+        }
+      ],
+      "notes": null
     },
     {
       "operationId": "AuthKeyController_search",
@@ -1647,9 +1655,17 @@
         ]
       },
       "effect": "destructive",
-      "status": "discovered",
-      "test_bindings": [],
-      "notes": "Not yet covered by a MockTransport contract."
+      "status": "mock_tested",
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
+          "client_call": "request",
+          "kwargs": {
+            "operation_id": "ProjectRolesController_delete"
+          }
+        }
+      ],
+      "notes": null
     },
     {
       "operationId": "ProjectRolesController_get",
@@ -3021,9 +3037,17 @@
         ]
       },
       "effect": "destructive",
-      "status": "discovered",
-      "test_bindings": [],
-      "notes": "Not yet covered by a MockTransport contract."
+      "status": "mock_tested",
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
+          "client_call": "request",
+          "kwargs": {
+            "operation_id": "UserController_clearCustomStatus"
+          }
+        }
+      ],
+      "notes": null
     },
     {
       "operationId": "UserController_create",
@@ -3092,9 +3116,17 @@
         ]
       },
       "effect": "destructive",
-      "status": "discovered",
-      "test_bindings": [],
-      "notes": "Not yet covered by a MockTransport contract."
+      "status": "mock_tested",
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
+          "client_call": "request",
+          "kwargs": {
+            "operation_id": "UserController_delete"
+          }
+        }
+      ],
+      "notes": null
     },
     {
       "operationId": "UserController_get",

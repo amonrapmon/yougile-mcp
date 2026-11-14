@@ -19,16 +19,16 @@ that unlicensed PR has been imported. The pinned official OpenAPI 3.0.0
 document describes 72 YouGile REST API v2 operations. The previous 70-operation
 snapshot had no removals and lacked two operations added by the official source;
 five operations remain outside the PR #5 inventory. The coverage matrix marks
-62 operations as mock-tested and 10 as discovered. The uncovered company
+66 operations as mock-tested and 6 as discovered. The uncovered company
 wildcard and webhook filter schemas have concrete vendor-contract blockers;
 remaining operations are being implemented in later groups. See catalog/ and
 docs/PROVENANCE.md.
 
 An importable asynchronous API client currently covers mock-tested read
 operations for users, projects and roles, departments, boards, columns, tasks,
-stickers, group chats, chat messages and CRM lookup, plus create/update
-operations across those resources, API-key creation, user status and chat
-typing operations, company listing and column creation.
+stickers, group chats, chat messages and CRM lookup. It also covers create,
+update and delete operations across those resources, API-key creation, user
+status and chat typing, company listing and column creation.
 Company listing sends credentials in its documented request body without a
 bearer API key. The generic `request(operation_id, path=..., query=...,
 body=...)` entry point validates requests and responses against the pinned

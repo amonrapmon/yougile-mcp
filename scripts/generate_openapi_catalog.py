@@ -110,6 +110,12 @@ WRITE_OPERATION_IDS = {
     "UserController_setCustomStatus",
     "UserController_update",
 }
+DESTRUCTIVE_OPERATION_IDS = {
+    "AuthKeyController_delete",
+    "ProjectRolesController_delete",
+    "UserController_clearCustomStatus",
+    "UserController_delete",
+}
 MOCK_TESTS.update(
     {
         operation_id: {
@@ -117,7 +123,7 @@ MOCK_TESTS.update(
             "call": "request",
             "kwargs": {"operation_id": operation_id},
         }
-        for operation_id in READ_OPERATION_IDS | WRITE_OPERATION_IDS
+        for operation_id in READ_OPERATION_IDS | WRITE_OPERATION_IDS | DESTRUCTIVE_OPERATION_IDS
     }
 )
 

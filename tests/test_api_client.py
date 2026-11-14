@@ -725,6 +725,44 @@ OPERATION_CASES = {
         "authenticated": True,
         "invalid": {"path": {"id": "user/8"}, "body": {"isAdmin": "no"}},
     },
+    "AuthKeyController_delete": {
+        "method": "DELETE",
+        "path_template": "/api-v2/auth/keys/{key}",
+        "expected_path": "/api-v2/auth/keys/key%2F1",
+        "path": {"key": "key/1"},
+        "query": {},
+        "status_code": 200,
+        "empty_response": True,
+        "authenticated": False,
+        "invalid": {"path": {}},
+    },
+    "ProjectRolesController_delete": {
+        "method": "DELETE",
+        "path_template": "/api-v2/projects/{projectId}/roles/{id}",
+        "expected_path": "/api-v2/projects/project%2F9/roles/role%202",
+        "path": {"projectId": "project/9", "id": "role 2"},
+        "query": {},
+        "authenticated": True,
+        "invalid": {"path": {"projectId": "project/9"}},
+    },
+    "UserController_clearCustomStatus": {
+        "method": "DELETE",
+        "path_template": "/api-v2/users/me/custom-status",
+        "expected_path": "/api-v2/users/me/custom-status",
+        "path": {},
+        "query": {},
+        "authenticated": True,
+        "invalid": {"query": {"unknown": "value"}},
+    },
+    "UserController_delete": {
+        "method": "DELETE",
+        "path_template": "/api-v2/users/{id}",
+        "expected_path": "/api-v2/users/user%2F8",
+        "path": {"id": "user/8"},
+        "query": {},
+        "authenticated": True,
+        "invalid": {"path": {}},
+    },
 }
 
 
@@ -1125,6 +1163,21 @@ class ApiClientTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(calls, 1)
         self.assertNotIn(SECRET, str(raised.exception))
 
+    async def test_destructive_timeout_is_uncertain_and_never_retried(self):
+        calls = 0
+
+        def handler(request: httpx.Request) -> httpx.Response:
+            nonlocal calls
+            calls += 1
+            raise httpx.ReadTimeout("timeout", request=request)
+
+        async with YouGileClient(
+            _settings(), transport=httpx.MockTransport(handler), sleep=_no_sleep
+        ) as client:
+            with self.assertRaises(UncertainWriteError):
+                await client.request("UserController_delete", path={"id": "user/8"})
+        self.assertEqual(calls, 1)
+
     async def test_get_timeout_has_timeout_category(self):
         def handler(request: httpx.Request) -> httpx.Response:
             raise httpx.ReadTimeout("timeout", request=request)
@@ -1469,17 +1522,28 @@ class ApiClientTests(unittest.IsolatedAsyncioTestCase):
             with self.subTest(operation_id=operation_id):
                 seen = []
                 status_code = case.get("status_code", 200)
-                response_body = _sample_operation_response(operation_id, status_code)
+                empty_response = case.get("empty_response", False)
+                response_body = (
+                    None
+                    if empty_response
+                    else _sample_operation_response(operation_id, status_code)
+                )
                 expected_effect = (
                     "read"
                     if case["method"] == "GET" or operation_id == "AuthKeyController_search"
+                    else "destructive"
+                    if case["method"] == "DELETE"
                     else "write"
                 )
                 self.assertEqual(operations()[operation_id].effect, expected_effect)
 
                 def handler(request: httpx.Request) -> httpx.Response:
                     seen.append(request)
-                    return httpx.Response(status_code, json=response_body)
+                    return (
+                        httpx.Response(status_code)
+                        if empty_response
+                        else httpx.Response(status_code, json=response_body)
+                    )
 
                 async with YouGileClient(
                     _settings(), transport=httpx.MockTransport(handler), sleep=_no_sleep
@@ -1533,7 +1597,14 @@ class ApiClientTests(unittest.IsolatedAsyncioTestCase):
         async with YouGileClient(
             _settings(), transport=httpx.MockTransport(handler), sleep=_no_sleep
         ) as client:
-            for operation_id in ("CompanyController_get", "WebhookController_search"):
+            for operation_id in (
+                "CompanyController_get",
+                "CompanyController_update",
+                "FileController_uploadFile",
+                "WebhookController_create",
+                "WebhookController_put",
+                "WebhookController_search",
+            ):
                 with self.subTest(operation_id=operation_id):
                     with self.assertRaises(UnsupportedOperationError):
                         await client.request(operation_id)
