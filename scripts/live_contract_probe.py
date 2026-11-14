@@ -27,7 +27,11 @@ from yougile_mcp.config import Settings  # noqa: E402
 
 MAX_REQUESTS = 50
 DEFAULT_REQUEST_LIMIT = 20
-PREFLIGHT_OPERATION_IDS = ("UserController_getMe", "CompanyController_get")
+PREFLIGHT_OPERATION_IDS = (
+    "UserController_getMe",
+    "CompanyController_get",
+    "WebhookController_search",
+)
 _REFERENCE = re.compile(r"^\$([A-Za-z0-9_-]+)\.(.+)$")
 _STEP_ID = re.compile(r"^[A-Za-z0-9_-]{1,40}$")
 _FIXTURE_PREFIX = re.compile(r"^YOUGILE_MCP_E2E_[A-Za-z0-9_-]{6,40}$")
@@ -60,6 +64,10 @@ _SENSITIVE_OPERATIONS = {
     "UserController_clearCustomStatus",
     "WebhookController_create",
     "WebhookController_put",
+}
+_CROSS_COMPANY_SCOPE_OPERATIONS = {
+    "UserController_setCustomStatus",
+    "UserController_clearCustomStatus",
 }
 _SECRET_FIELD_MARKERS = ("apikey", "authorization", "password", "secret", "token")
 
@@ -130,10 +138,11 @@ def load_plan(path: Path) -> dict[str, Any]:
 
     available = operations()
     seen_step_ids: set[str] = set()
-    seen_operation_ids: set[str] = set()
     for step in steps:
         if not isinstance(step, dict) or set(step) - {
-            "step_id", "operationId", "path", "query", "body", "multipart_file"
+            "step_id", "operationId", "path", "query", "body", "multipart_file",
+            "verify_webhook_delivery", "verify_webhook_state", "expect_error",
+            "blocked_reason",
         }:
             raise PlanError("plan_invalid")
         step_id = step.get("step_id")
@@ -144,7 +153,6 @@ def load_plan(path: Path) -> dict[str, Any]:
             or step_id in seen_step_ids
             or not isinstance(operation_id, str)
             or operation_id not in available
-            or operation_id in seen_operation_ids
         ):
             raise PlanError("plan_invalid")
         for field in ("path", "query"):
@@ -152,8 +160,37 @@ def load_plan(path: Path) -> dict[str, Any]:
                 raise PlanError("plan_invalid")
         if "multipart_file" in step and not isinstance(step["multipart_file"], dict):
             raise PlanError("plan_invalid")
+        if "verify_webhook_delivery" in step and (
+            operation_id != "WebhookController_search"
+            or not isinstance(step["verify_webhook_delivery"], str)
+            or _REFERENCE.fullmatch(step["verify_webhook_delivery"]) is None
+        ):
+            raise PlanError("plan_invalid")
+        if "expect_error" in step and (
+            operation_id != "CrmExternalIdController_findContactByExternalId"
+            or step["expect_error"] != "not_found"
+        ):
+            raise PlanError("plan_invalid")
+        if "blocked_reason" in step and (
+            operation_id != "CrmContactPersonsController_create"
+            or step["blocked_reason"] != "crm_project_fixture_unavailable"
+        ):
+            raise PlanError("plan_invalid")
+        webhook_state = step.get("verify_webhook_state")
+        if "verify_webhook_state" in step and (
+            operation_id != "WebhookController_search"
+            or not isinstance(webhook_state, dict)
+            or set(webhook_state) - {"webhook_id", "disabled", "deleted"}
+            or not isinstance(webhook_state.get("webhook_id"), str)
+            or _REFERENCE.fullmatch(webhook_state["webhook_id"]) is None
+            or not any(key in webhook_state for key in ("disabled", "deleted"))
+            or any(
+                key in webhook_state and not isinstance(webhook_state[key], bool)
+                for key in ("disabled", "deleted")
+            )
+        ):
+            raise PlanError("plan_invalid")
         seen_step_ids.add(step_id)
-        seen_operation_ids.add(operation_id)
     return plan
 
 
@@ -243,7 +280,6 @@ def build_read_only_plan() -> dict[str, Any]:
             "stickerStateId": "$string_sticker.states.0.id",
         },
     )
-    add("webhooks", "WebhookController_search")
     return {
         "company_scope": "disposable_test_company",
         "fixture_ids": [],
@@ -286,6 +322,9 @@ def _base_row(operation: Operation) -> dict[str, Any]:
         "status": "NOT RUN",
         "category": "dry_run_only",
         "http_status": None,
+        "invocations": 0,
+        "http_attempts": 0,
+        "step_results": [],
         "inputs": {
             "path": path_names,
             "required_query": query_names,
@@ -297,6 +336,8 @@ def _base_row(operation: Operation) -> dict[str, Any]:
         row.update(status="SKIPPED", category="sdk_operation_unavailable")
     elif operation.operation_id in _CREDENTIAL_OPERATIONS and operation.effect == "read":
         row.update(status="SKIPPED", category="credential_bearing_operation")
+    elif operation.operation_id in _CROSS_COMPANY_SCOPE_OPERATIONS:
+        row.update(status="BLOCKED", category="operation_scope_exceeds_disposable_company")
     elif operation.effect == "destructive":
         row.update(status="BLOCKED", category="destructive_approval_required")
     elif operation.effect == "write":
@@ -313,6 +354,8 @@ def build_report(request_limit: int = DEFAULT_REQUEST_LIMIT) -> dict[str, Any]:
         "request_limit": request_limit,
         "requests_used": 0,
         "company_scope_matches_configured_id": None,
+        "unapproved_active_callbacks": None,
+        "side_effect_checks": {},
         "operations": [_base_row(op) for op in sorted(operations().values(), key=lambda item: item.operation_id)],
     }
 
@@ -324,8 +367,12 @@ def build_plan_preview(plan: dict[str, Any], request_limit: int) -> dict[str, An
         row = _find_row(report, step["operationId"])
         row["planned"] = True
         operation = available[step["operationId"]]
-        if operation.operation_id in _CREDENTIAL_OPERATIONS and operation.effect == "read":
+        if "blocked_reason" in step:
+            row.update(status="BLOCKED", category=step["blocked_reason"])
+        elif operation.operation_id in _CREDENTIAL_OPERATIONS and operation.effect == "read":
             row.update(status="SKIPPED", category="credential_bearing_operation")
+        elif operation.operation_id in _CROSS_COMPANY_SCOPE_OPERATIONS:
+            row.update(status="BLOCKED", category="operation_scope_exceeds_disposable_company")
         elif operation.effect != "read":
             row.update(
                 status="BLOCKED",
@@ -337,6 +384,9 @@ def build_plan_preview(plan: dict[str, Any], request_limit: int) -> dict[str, An
             )
         else:
             row.update(status="NOT RUN", category="dry_run_no_network")
+    for operation_id in PREFLIGHT_OPERATION_IDS:
+        row = _find_row(report, operation_id)
+        row.update(planned=True, status="NOT RUN", category="dry_run_no_network")
     return report
 
 
@@ -346,12 +396,42 @@ def _find_row(report: dict[str, Any], operation_id: str) -> dict[str, Any]:
 
 def _mark(report: dict[str, Any], operation_id: str, status: str, category: str) -> None:
     row = _find_row(report, operation_id)
-    row.update(status=status, category=category, http_status=None, schema=None)
+    _record_step(row, status=status, category=category)
+
+
+def _record_step(
+    row: dict[str, Any],
+    *,
+    status: str,
+    category: str | None,
+    http_status: int | None = None,
+    http_attempts: int = 0,
+    schema: dict[str, Any] | None = None,
+) -> None:
+    result = {
+        "status": status,
+        "category": category,
+        "http_status": http_status,
+        "http_attempts": http_attempts,
+        "schema": schema,
+    }
+    results = row.setdefault("step_results", [])
+    results.append(result)
+    row["invocations"] = len(results)
+    row["http_attempts"] = row.get("http_attempts", 0) + http_attempts
+    priority = {"FAIL": 5, "BLOCKED": 4, "SKIPPED": 3, "PASS": 2, "NOT RUN": 1}
+    representative = max(results, key=lambda item: priority[item["status"]])
+    row.update(
+        status=representative["status"],
+        category=representative["category"],
+        http_status=representative["http_status"],
+        schema=representative["schema"],
+    )
 
 
 def _resolve(value: Any, outputs: dict[str, Any]) -> Any:
     if isinstance(value, dict):
-        return {key: _resolve(item, outputs) for key, item in value.items()}
+        return {_resolve(key, outputs): _resolve(item, outputs) for key, item in value.items()}
     if isinstance(value, list):
         return [_resolve(item, outputs) for item in value]
     if not isinstance(value, str) or not value.startswith("$"):
@@ -396,9 +476,13 @@ def _fixture_gate(
     allow_writes: bool,
     allow_destructive: bool,
     allow_sensitive: bool,
+    confirm_callback_workflow_safe: bool = False,
+    baseline_company_title: str | None = None,
 ) -> str | None:
     if operation.operation_id in _CREDENTIAL_OPERATIONS:
         return "credential_bearing_operation"
+    if operation.operation_id in _CROSS_COMPANY_SCOPE_OPERATIONS:
+        return "operation_scope_exceeds_disposable_company"
     if operation.operation_id not in IMPLEMENTED_OPERATION_IDS:
         return "sdk_operation_unavailable"
     if operation.effect == "destructive" and not allow_destructive:
@@ -407,6 +491,8 @@ def _fixture_gate(
         return "write_approval_required"
     if operation.operation_id in _SENSITIVE_OPERATIONS and not allow_sensitive:
         return "sensitive_operation_approval_required"
+    if operation.operation_id in {"WebhookController_create", "WebhookController_put"} and not confirm_callback_workflow_safe:
+        return "callback_workflow_not_verified"
     if operation.operation_id == "ChatMessageController_sendMessage" and not any(
         fixture_prefix in item for item in _strings(body)
     ):
@@ -417,6 +503,25 @@ def _fixture_gate(
         url_values = _named_values(body, "url")
         if any(not isinstance(item, str) or item not in callback_urls for item in url_values):
             return "callback_not_allowlisted"
+    if operation.operation_id == "WebhookController_create":
+        filters = body.get("filters", []) if isinstance(body, dict) else []
+        named_filters = {
+            item.get("name"): item.get("value")
+            for item in filters if isinstance(item, dict)
+        } if isinstance(filters, list) else {}
+        location_filter = named_filters.get("location")
+        title_filter = named_filters.get("title")
+        location_ids = location_filter if isinstance(location_filter, list) else []
+        title_patterns = title_filter if isinstance(title_filter, list) else []
+        if (
+            not isinstance(body, dict)
+            or not isinstance(body.get("event"), str)
+            or not body["event"].startswith("task-")
+            or not location_ids
+            or any(str(item) not in fixture_ids | created_ids for item in location_ids)
+            or not any(isinstance(item, str) and fixture_prefix in item for item in title_patterns)
+        ):
+            return "webhook_filter_must_scope_to_marked_fixture"
 
     owned_ids = fixture_ids | created_ids
     path_names, _, _ = _required_inputs(operation)
@@ -440,7 +545,14 @@ def _fixture_gate(
         payload = body
         if multipart_file:
             payload = {"filename": multipart_file.get("filename"), "content": multipart_file.get("content")}
-        if not any(fixture_prefix in item for item in _strings(payload)):
+        restoring_company_title = (
+            operation.operation_id == "CompanyController_update"
+            and isinstance(body, dict)
+            and set(body) == {"title"}
+            and isinstance(body.get("title"), str)
+            and body["title"] == baseline_company_title
+        )
+        if not restoring_company_title and not any(fixture_prefix in item for item in _strings(payload)):
             return "test_fixture_marker_required"
     if operation.operation_id == "FileController_uploadFile":
         if (
@@ -467,16 +579,70 @@ def _named_values(value: Any, name: str):
             yield from _named_values(item, name)
 
 
-def _safe_error(row: dict[str, Any], error: ApiError) -> None:
-    row.update(status="FAIL", category=error.category, http_status=error.status_code)
+def _safe_error(row: dict[str, Any], error: ApiError, *, http_attempts: int = 0) -> None:
     diagnostic = error.diagnostic
+    schema = None
     if diagnostic is not None:
-        row["schema"] = {
+        schema = {
             "path": diagnostic.path,
             "rule": diagnostic.rule,
             "expected_type": diagnostic.expected_type,
             "actual_type": diagnostic.actual_type,
         }
+    _record_step(
+        row,
+        status="FAIL",
+        category=error.category,
+        http_status=error.status_code,
+        http_attempts=http_attempts,
+        schema=schema,
+    )
+
+
+def _webhook_delivery_signal(data: Any, webhook_id: str) -> tuple[str, str]:
+    if not isinstance(data, list):
+        return "BLOCKED", "webhook_search_shape_unavailable"
+    webhook = next(
+        (row for row in data if isinstance(row, dict) and row.get("id") == webhook_id),
+        None,
+    )
+    if webhook is None:
+        return "BLOCKED", "test_webhook_not_found"
+    failures = webhook.get("failuresSinceLastSuccess")
+    last_success = webhook.get("lastSuccess")
+    if isinstance(failures, (int, float)) and not isinstance(failures, bool) and failures > 0:
+        return "FAIL", "delivery_failures_reported"
+    if isinstance(last_success, (int, float)) and not isinstance(last_success, bool) and last_success > 0:
+        return "PASS", "server_last_success_observed"
+    return "PENDING", "no_server_success_signal"
+
+
+def _webhook_state_signal(
+    data: Any, webhook_id: str, expected: dict[str, Any]
+) -> tuple[str, str]:
+    if not isinstance(data, list):
+        return "BLOCKED", "webhook_search_shape_unavailable"
+    webhook = next(
+        (row for row in data if isinstance(row, dict) and row.get("id") == webhook_id),
+        None,
+    )
+    if webhook is None:
+        return "FAIL", "test_webhook_state_not_found"
+    if all(webhook.get(key) is value for key, value in expected.items() if key != "webhook_id"):
+        return "PASS", "webhook_state_observed"
+    return "FAIL", "webhook_state_mismatch"
+
+
+def _record_side_effect_check(
+    report: dict[str, Any], key: str, status: str, category: str
+) -> None:
+    check = report["side_effect_checks"].setdefault(
+        key, {"status": None, "category": None, "observations": []}
+    )
+    check["observations"].append({"status": status, "category": category})
+    priority = {"FAIL": 4, "BLOCKED": 3, "PENDING": 2, "PASS": 1}
+    if check["status"] is None or priority[status] > priority[check["status"]]:
+        check.update(status=status, category=category)
 
 
 async def execute_plan(
@@ -487,6 +653,7 @@ async def execute_plan(
     allow_writes: bool,
     allow_destructive: bool,
     allow_sensitive: bool,
+    confirm_callback_workflow_safe: bool = False,
 ) -> dict[str, Any]:
     report = build_report(request_limit)
     available = operations()
@@ -519,22 +686,83 @@ async def execute_plan(
 
     async with YouGileClient(settings, timeout=10, max_requests=request_limit) as client:
         preflight_failed = False
+        allowed_callbacks = set(plan.get("callback_urls", []))
+        preflight_company_title: str | None = None
         for operation_id in PREFLIGHT_OPERATION_IDS:
             row = _find_row(report, operation_id)
+            request_count_before = client.requests_sent
             try:
                 response = await client.request(operation_id)
             except ApiError as error:
-                _safe_error(row, error)
+                _safe_error(
+                    row,
+                    error,
+                    http_attempts=client.requests_sent - request_count_before,
+                )
                 preflight_failed = True
             else:
-                row.update(status="PASS", category="preflight", http_status=response.status_code)
                 if operation_id == "CompanyController_get":
                     data = response.data if isinstance(response.data, dict) else {}
                     matches = data.get("id") == settings.company_id
+                    title = data.get("title")
+                    preflight_company_title = title if isinstance(title, str) else None
                     report["company_scope_matches_configured_id"] = bool(matches)
-                    if not matches:
-                        _mark(report, operation_id, "FAIL", "company_scope_mismatch")
+                    if matches:
+                        _record_step(
+                            row,
+                            status="PASS",
+                            category="preflight",
+                            http_status=response.status_code,
+                            http_attempts=client.requests_sent - request_count_before,
+                        )
+                    else:
+                        _record_step(
+                            row,
+                            status="FAIL",
+                            category="company_scope_mismatch",
+                            http_status=response.status_code,
+                            http_attempts=client.requests_sent - request_count_before,
+                        )
                         preflight_failed = True
+                elif operation_id == "WebhookController_search":
+                    records = response.data if isinstance(response.data, list) else None
+                    if records is None:
+                        _record_step(
+                            row,
+                            status="FAIL",
+                            category="webhook_scope_preflight_invalid",
+                            http_status=response.status_code,
+                            http_attempts=client.requests_sent - request_count_before,
+                        )
+                        preflight_failed = True
+                    else:
+                        active = [
+                            item for item in records
+                            if isinstance(item, dict)
+                            and item.get("deleted") is not True
+                            and item.get("disabled") is not True
+                        ]
+                        unapproved = sum(
+                            1 for item in active
+                            if not isinstance(item.get("url"), str)
+                            or item["url"] not in allowed_callbacks
+                        )
+                        report["unapproved_active_callbacks"] = unapproved
+                        _record_step(
+                            row,
+                            status="PASS",
+                            category="preflight",
+                            http_status=response.status_code,
+                            http_attempts=client.requests_sent - request_count_before,
+                        )
+                else:
+                    _record_step(
+                        row,
+                        status="PASS",
+                        category="preflight",
+                        http_status=response.status_code,
+                        http_attempts=client.requests_sent - request_count_before,
+                    )
             report["requests_used"] = client.requests_sent
         if report["company_scope_matches_configured_id"] is not True:
             preflight_failed = True
@@ -543,16 +771,25 @@ async def execute_plan(
                 _mark(report, step["operationId"], "BLOCKED", "company_preflight_failed")
             return report
 
+        unsafe_existing_callbacks = bool(report["unapproved_active_callbacks"])
+
         fixture_ids = set(plan["fixture_ids"])
         created_ids: set[str] = set()
         observed_ids: set[str] = set()
-        outputs: dict[str, Any] = {}
+        outputs: dict[str, Any] = {"company_before": {"title": preflight_company_title}}
+        baseline_company_title = preflight_company_title
         halt_reason = None
         for step in steps:
             operation = operations_by_step[step["step_id"]]
             row = _find_row(report, operation.operation_id)
             if halt_reason:
                 _mark(report, operation.operation_id, "BLOCKED", halt_reason)
+                continue
+            if "blocked_reason" in step:
+                _mark(report, operation.operation_id, "BLOCKED", step["blocked_reason"])
+                continue
+            if unsafe_existing_callbacks and operation.effect != "read":
+                _mark(report, operation.operation_id, "BLOCKED", "unapproved_active_callback")
                 continue
             try:
                 path = _resolve(step.get("path", {}), outputs)
@@ -574,6 +811,8 @@ async def execute_plan(
                     allow_writes=allow_writes,
                     allow_destructive=allow_destructive,
                     allow_sensitive=allow_sensitive,
+                    confirm_callback_workflow_safe=confirm_callback_workflow_safe,
+                    baseline_company_title=baseline_company_title,
                 )
             except (IndexError, KeyError, TypeError, ValueError):
                 _mark(report, operation.operation_id, "SKIPPED", "no_test_fixture_found")
@@ -590,6 +829,7 @@ async def execute_plan(
                 continue
 
             try:
+                request_count_before = client.requests_sent
                 response = await client.request(
                     operation.operation_id,
                     path=path,
@@ -602,22 +842,86 @@ async def execute_plan(
                     ) if multipart is not None else None,
                 )
             except ApiError as error:
-                _safe_error(row, error)
+                attempts = client.requests_sent - request_count_before
+                if error.category == step.get("expect_error"):
+                    _record_step(
+                        row,
+                        status="PASS",
+                        category=f"expected_{error.category}",
+                        http_status=error.status_code,
+                        http_attempts=attempts,
+                    )
+                elif error.category == "request_budget_exhausted":
+                    _record_step(
+                        row,
+                        status="BLOCKED",
+                        category="request_budget_exhausted",
+                        http_attempts=attempts,
+                    )
+                else:
+                    _safe_error(row, error, http_attempts=attempts)
                 if error.category == "uncertain_write":
                     halt_reason = "stopped_after_uncertain_write"
                 elif error.category == "request_budget_exhausted":
                     halt_reason = "request_budget_exhausted"
-                    row.update(status="BLOCKED", category="request_budget_exhausted")
                 report["requests_used"] = client.requests_sent
                 continue
-            row.update(status="PASS", category=None, http_status=response.status_code)
+            _record_step(
+                row,
+                status="FAIL" if "expect_error" in step else "PASS",
+                category=(
+                    "expected_error_not_observed" if "expect_error" in step else None
+                ),
+                http_status=response.status_code,
+                http_attempts=client.requests_sent - request_count_before,
+            )
+            if "expect_error" in step:
+                report["requests_used"] = client.requests_sent
+                continue
             outputs[step["step_id"]] = response.data
             if operation.effect == "read":
                 observed_ids.update(_collect_ids(response.data))
-            if isinstance(response.data, dict) and isinstance(response.data.get("id"), str):
-                created_ids.add(response.data["id"])
+            if isinstance(response.data, dict):
+                resource_id = response.data.get("id")
+                if isinstance(resource_id, str) or (
+                    isinstance(resource_id, int) and not isinstance(resource_id, bool)
+                ):
+                    created_ids.add(str(resource_id))
+            if operation.operation_id == "CompanyController_get":
+                data = response.data if isinstance(response.data, dict) else {}
+                title = data.get("title")
+                baseline_company_title = title if isinstance(title, str) else None
+            if "verify_webhook_delivery" in step:
+                try:
+                    webhook_id = _resolve(step["verify_webhook_delivery"], outputs)
+                except (IndexError, KeyError, TypeError, ValueError):
+                    webhook_status, webhook_category = "BLOCKED", "test_webhook_not_found"
+                else:
+                    webhook_status, webhook_category = _webhook_delivery_signal(
+                        response.data, str(webhook_id)
+                    )
+                _record_side_effect_check(
+                    report, "webhook_delivery", webhook_status, webhook_category
+                )
+            if "verify_webhook_state" in step:
+                expected = step["verify_webhook_state"]
+                try:
+                    webhook_id = _resolve(expected["webhook_id"], outputs)
+                except (IndexError, KeyError, TypeError, ValueError):
+                    webhook_status, webhook_category = "BLOCKED", "test_webhook_not_found"
+                else:
+                    webhook_status, webhook_category = _webhook_state_signal(
+                        response.data, str(webhook_id), expected
+                    )
+                _record_side_effect_check(
+                    report, "webhook_state", webhook_status, webhook_category
+                )
             report["requests_used"] = client.requests_sent
         report["requests_used"] = client.requests_sent
+
+    for check in report["side_effect_checks"].values():
+        if check["status"] == "PENDING":
+            check.update(status="BLOCKED", category="verification_signal_not_observed")
 
     return report
 
@@ -638,11 +942,24 @@ def _print_report(report: dict[str, Any]) -> None:
     print(f"requests: {report['requests_used']}/{report['request_limit']}")
     if report["company_scope_matches_configured_id"] is not None:
         print(f"configured company matches authenticated company: {str(report['company_scope_matches_configured_id']).lower()}")
+    if report["unapproved_active_callbacks"] is not None:
+        print(f"unapproved active callbacks: {report['unapproved_active_callbacks']}")
+    if "webhook_delivery" in report["side_effect_checks"]:
+        check = report["side_effect_checks"]["webhook_delivery"]
+        print(f"webhook delivery signal: {check['status']} {check['category']}")
+    if "webhook_state" in report["side_effect_checks"]:
+        check = report["side_effect_checks"]["webhook_state"]
+        print(
+            f"webhook state signal: {check['status']} {check['category']} "
+            f"observations={len(check['observations'])}"
+        )
     print("operationId\tmethod\tpath\teffect\tplanned\tstatus\tdetail")
     for row in report["operations"]:
         detail = row["category"] or ""
         if row["http_status"] is not None:
             detail += (" " if detail else "") + f"HTTP {row['http_status']}"
+        if row["invocations"]:
+            detail += (" " if detail else "") + f"steps={row['invocations']} attempts={row['http_attempts']}"
         if row["schema"]:
             item = row["schema"]
             detail += f" {item['path']} {item['rule']} expected={item['expected_type']} actual={item['actual_type']}"
@@ -661,6 +978,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--allow-writes", action="store_true", help="owner approved the reviewed plan's non-destructive writes")
     parser.add_argument("--allow-destructive", action="store_true", help="owner approved exact destructive targets in fixture_ids")
     parser.add_argument("--allow-sensitive", action="store_true", help="owner separately approved sensitive effects in the reviewed plan")
+    parser.add_argument("--confirm-callback-workflow-safe", action="store_true", help="owner confirmed the allowlisted webhook workflow has no production side effects")
     args = parser.parse_args(argv)
     if not 1 <= args.max_requests <= MAX_REQUESTS:
         parser.error("--max-requests must be between 1 and 50")
@@ -699,6 +1017,7 @@ def main(argv: list[str] | None = None) -> int:
                 allow_writes=args.allow_writes,
                 allow_destructive=args.allow_destructive,
                 allow_sensitive=args.allow_sensitive,
+                confirm_callback_workflow_safe=args.confirm_callback_workflow_safe,
             )
         )
     _print_report(report)

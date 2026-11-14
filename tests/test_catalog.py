@@ -59,8 +59,9 @@ class InventoryTests(unittest.TestCase):
             {item["live_evidence"] for item in rows},
             {
                 "not_tested",
-                "curl_observed",
                 "live_verified_via_client",
+                "live_expected_error_via_client",
+                "live_validation_error_via_client",
             },
         )
         self.assertEqual(
@@ -69,11 +70,7 @@ class InventoryTests(unittest.TestCase):
                 for item in rows
                 if item["live_evidence"] == "curl_observed"
             },
-            {
-                "FileController_uploadFile",
-                "WebhookController_create",
-                "WebhookController_put",
-            },
+            set(),
         )
         self.assertEqual(
             {
@@ -82,6 +79,22 @@ class InventoryTests(unittest.TestCase):
                 if item["live_evidence"] == "live_verified_via_client"
             },
             generator.SDK_PASS_OPERATION_IDS,
+        )
+        self.assertEqual(
+            {
+                item["operationId"]
+                for item in rows
+                if item["live_evidence"] == "live_expected_error_via_client"
+            },
+            generator.SDK_EXPECTED_ERROR_OPERATION_IDS,
+        )
+        self.assertEqual(
+            {
+                item["operationId"]
+                for item in rows
+                if item["live_evidence"] == "live_validation_error_via_client"
+            },
+            generator.SDK_VALIDATION_ERROR_OPERATION_IDS,
         )
         self.assertEqual(
             {
@@ -99,7 +112,7 @@ class InventoryTests(unittest.TestCase):
         by_id = {item["operationId"]: item for item in rows}
         self.assertEqual(checker._coverage_metadata_errors(rows, source_meta["sha256"]), [])
         overlay_rows = [item for item in rows if item["compatibility_overlay"] is not None]
-        self.assertEqual(len(overlay_rows), 14)
+        self.assertEqual(len(overlay_rows), 16)
         self.assertEqual(
             {item["operationId"] for item in overlay_rows},
             {
@@ -107,11 +120,13 @@ class InventoryTests(unittest.TestCase):
                 "BoardController_search",
                 "CompanyController_get",
                 "CompanyController_update",
+                "CrmExternalIdController_findContactByExternalId",
                 "FileController_uploadFile",
                 "GroupChatController_get",
                 "GroupChatController_search",
                 "ProjectController_get",
                 "ProjectController_search",
+                "ProjectRolesController_delete",
                 "TaskController_get",
                 "TaskController_search",
                 "WebhookController_create",
@@ -121,7 +136,7 @@ class InventoryTests(unittest.TestCase):
         )
         self.assertEqual(
             {item["compatibility_overlay"]["version"] for item in overlay_rows},
-            {"2026-11-14.5"},
+            {"2026-11-14.6"},
         )
         self.assertEqual(
             {item["compatibility_overlay"]["source_sha256"] for item in overlay_rows},
@@ -132,11 +147,13 @@ class InventoryTests(unittest.TestCase):
             "BoardController_search",
             "CompanyController_get",
             "CompanyController_update",
+            "CrmExternalIdController_findContactByExternalId",
             "FileController_uploadFile",
             "GroupChatController_get",
             "GroupChatController_search",
             "ProjectController_get",
             "ProjectController_search",
+            "ProjectRolesController_delete",
             "TaskController_get",
             "TaskController_search",
             "WebhookController_create",
@@ -145,8 +162,11 @@ class InventoryTests(unittest.TestCase):
         ):
             self.assertEqual(by_id[operation_id]["status"], "mock_tested")
             self.assertTrue(by_id[operation_id]["notes"])
-        self.assertEqual(by_id["CompanyController_update"]["live_evidence"], "not_tested")
-        self.assertIn("no live company update", by_id["CompanyController_update"]["notes"])
+        self.assertEqual(
+            by_id["CompanyController_update"]["live_evidence"],
+            "live_verified_via_client",
+        )
+        self.assertIn("Live no-op PUT", by_id["CompanyController_update"]["notes"])
         self.assertFalse(any(item["status"] == "implemented" for item in rows))
         self.assertFalse(any(item["status"] == "live_verified" for item in rows))
         self.assertEqual(checker._test_binding_errors(rows, checker._api_test_methods()), [])

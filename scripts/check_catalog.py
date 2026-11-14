@@ -238,6 +238,8 @@ def _coverage_metadata_errors(operations: list[dict], source_sha256: str) -> lis
         "curl_observed",
         "live_verified_via_client",
         "live_mismatch_via_client",
+        "live_expected_error_via_client",
+        "live_validation_error_via_client",
     }
     for item in operations:
         operation_id = item.get("operationId", "<unknown>")

@@ -2100,6 +2100,46 @@ class ApiClientTests(unittest.IsolatedAsyncioTestCase):
         self.assertIn("201", operations()["FileController_uploadFile"].responses)
         self.assertEqual(spec["paths"][raw_company_path]["get"]["operationId"], "CompanyController_get")
 
+    async def test_project_role_delete_accepts_partial_dto_and_keeps_present_fields_strict(self):
+        body = {"id": "test-role"}
+        async with YouGileClient(
+            _settings(),
+            transport=httpx.MockTransport(lambda _: httpx.Response(200, json=body)),
+            sleep=_no_sleep,
+        ) as client:
+            response = await client.request(
+                "ProjectRolesController_delete",
+                path={"projectId": "test-project", "id": "test-role"},
+            )
+        self.assertEqual(response.data, body)
+
+        async with YouGileClient(
+            _settings(),
+            transport=httpx.MockTransport(
+                lambda _: httpx.Response(200, json={"id": 42})
+            ),
+            sleep=_no_sleep,
+        ) as client:
+            with self.assertRaises(UpstreamError) as raised:
+                await client.request(
+                    "ProjectRolesController_delete",
+                    path={"projectId": "test-project", "id": "test-role"},
+                )
+        self.assertEqual(raised.exception.diagnostic.path, "id")
+        self.assertEqual(raised.exception.diagnostic.expected_type, "string")
+
+    def test_crm_external_id_overlay_documents_live_not_found_response(self):
+        self.assertNotIn(
+            "404",
+            load_spec()["paths"]["/api-v2/crm/contacts/by-external-id"]["get"]["responses"],
+        )
+        self.assertIn(
+            "404",
+            load_compatible_spec()["paths"]["/api-v2/crm/contacts/by-external-id"]["get"]["responses"],
+        )
+        response = operations()["CrmExternalIdController_findContactByExternalId"].responses["404"]
+        self.assertEqual(response, {"description": "Contact not found"})
+
     async def test_upload_policy_is_configurable_and_accepts_binary_multipart(self):
         seen = []
 

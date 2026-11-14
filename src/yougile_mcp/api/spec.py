@@ -19,7 +19,7 @@ from .errors import InvalidInputError, SchemaDiagnostic, UpstreamError
 
 _SPEC_FILE = "openapi-v2.json"
 _SOURCE_FILE = "openapi-source.json"
-COMPATIBILITY_OVERLAY_VERSION = "2026-11-14.5"
+COMPATIBILITY_OVERLAY_VERSION = "2026-11-14.6"
 COMPATIBILITY_OVERLAY_SOURCE_SHA256 = "9452cba3571607848de77fc12e68104cb454e403c35c7a6b97521ea6e0d1d406"
 _COMPATIBILITY_PATHS = {
     "CompanyController_get": "/api-v2/companies",
@@ -98,6 +98,20 @@ def load_compatible_spec() -> dict[str, Any]:
     webhooks["get"]["responses"]["200"]["content"]["application/json"]["schema"] = {
         "type": "array",
         "items": {"$ref": "#/components/schemas/WebhookDto"},
+    }
+
+    # Live DELETE returns a partial role DTO. Keep validating fields it does
+    # return, but do not require fields the endpoint omits after deletion.
+    role_delete = spec["paths"]["/api-v2/projects/{projectId}/roles/{id}"]["delete"]
+    role_delete_response = role_delete["responses"]["200"]["content"]["application/json"]
+    role_delete_schema = deepcopy(spec["components"]["schemas"]["ProjectRoleDto"])
+    role_delete_schema.pop("required", None)
+    role_delete_response["schema"] = role_delete_schema
+
+    # Live lookup of an absent external ID returns HTTP 404; the pinned
+    # OpenAPI snapshot lists only the successful response.
+    spec["paths"]["/api-v2/crm/contacts/by-external-id"]["get"]["responses"]["404"] = {
+        "description": "Contact not found"
     }
 
     upload = spec["paths"]["/api-v2/upload-file"]["post"]
