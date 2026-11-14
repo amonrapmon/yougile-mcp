@@ -61,7 +61,7 @@ class InventoryTests(unittest.TestCase):
             {item["operationId"] for item in rows if item["status"] == "mock_tested"},
             IMPLEMENTED_OPERATION_IDS,
         )
-        self.assertEqual(len(IMPLEMENTED_OPERATION_IDS), 32)
+        self.assertEqual(len(IMPLEMENTED_OPERATION_IDS), 46)
         by_id = {item["operationId"]: item for item in rows}
         for operation_id in (
             "CompanyController_get",
@@ -133,7 +133,7 @@ class InventoryTests(unittest.TestCase):
             "status": "mock_tested",
             "test_bindings": [
                 {
-                    "test_path": "tests/test_api_client.py::ApiClientTests.test_read_operation_contracts",
+                    "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
                     "client_call": "request",
                     "kwargs": {"operation_id": "UnknownOperation"},
                 }
@@ -150,25 +150,52 @@ class InventoryTests(unittest.TestCase):
             "operationId": "UserController_getMe",
             "method": "GET",
             "path": "/api-v2/users/me",
+            "effect": "read",
             "status": "mock_tested",
             "test_bindings": [
                 {
-                    "test_path": "tests/test_api_client.py::ApiClientTests.test_read_operation_contracts",
+                    "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
                     "client_call": "request",
                     "kwargs": {"operation_id": "UserController_getMe"},
                 }
             ],
         }
         method = ast.parse(
-            "async def test_read_operation_contracts():\n"
-            "    for operation_id, case in READ_OPERATION_CASES.items():\n"
+            "async def test_operation_contracts():\n"
+            "    for operation_id, case in OPERATION_CASES.items():\n"
             "        pass\n"
         ).body[0]
         self.assertEqual(
-            checker._test_binding_errors([row], {"test_read_operation_contracts": method}),
+            checker._test_binding_errors([row], {"test_operation_contracts": method}),
             [
                 "Test does not invoke the bound operation case: UserController_getMe"
             ],
+        )
+
+    def test_coverage_binding_requires_invalid_case_assertion(self):
+        row = {
+            "operationId": "UserController_getMe",
+            "method": "GET",
+            "path": "/api-v2/users/me",
+            "effect": "read",
+            "status": "mock_tested",
+            "test_bindings": [
+                {
+                    "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
+                    "client_call": "request",
+                    "kwargs": {"operation_id": "UserController_getMe"},
+                }
+            ],
+        }
+        method = ast.parse(
+            "async def test_operation_contracts():\n"
+            "    for operation_id, case in OPERATION_CASES.items():\n"
+            "        await client.request(operation_id=operation_id, path=case['path'], "
+            "query=case['query'], body=case.get('body'))\n"
+        ).body[0]
+        self.assertEqual(
+            checker._test_binding_errors([row], {"test_operation_contracts": method}),
+            ["Test does not invoke the bound operation case: UserController_getMe"],
         )
 
     def test_coverage_matrix_is_generated_from_the_pinned_source(self):

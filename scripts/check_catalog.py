@@ -40,7 +40,7 @@ def _operation_test_cases() -> dict[str, dict]:
     module = ast.parse(source)
     for node in module.body:
         if isinstance(node, ast.Assign) and any(
-            isinstance(target, ast.Name) and target.id == "READ_OPERATION_CASES"
+            isinstance(target, ast.Name) and target.id == "OPERATION_CASES"
             for target in node.targets
         ):
             cases = ast.literal_eval(node.value)
@@ -73,7 +73,11 @@ def _calls_client_method(
 
 def _calls_bound_operation_case(
     test_method: ast.FunctionDef | ast.AsyncFunctionDef,
+    operation_id_value: str,
 ) -> bool:
+    operation_cases = _operation_test_cases()
+    if operation_id_value not in operation_cases:
+        return False
     for node in ast.walk(test_method):
         if not isinstance(node, (ast.For, ast.AsyncFor)):
             continue
@@ -93,10 +97,44 @@ def _calls_bound_operation_case(
             and isinstance(iterator.func, ast.Attribute)
             and iterator.func.attr == "items"
             and isinstance(iterator.func.value, ast.Name)
-            and iterator.func.value.id == "READ_OPERATION_CASES"
+            and iterator.func.value.id == "OPERATION_CASES"
         ):
             continue
+        valid_call = False
+        invalid_call = False
         for child in ast.walk(node):
+            if isinstance(child, ast.With):
+                guarded = any(
+                    isinstance(context.context_expr, ast.Call)
+                    and isinstance(context.context_expr.func, ast.Attribute)
+                    and context.context_expr.func.attr == "assertRaises"
+                    and context.context_expr.args
+                    and isinstance(context.context_expr.args[0], ast.Name)
+                    and context.context_expr.args[0].id == "InvalidInputError"
+                    for context in child.items
+                )
+                if guarded and any(
+                    isinstance(call, ast.Call)
+                    and isinstance(call.func, ast.Attribute)
+                    and call.func.attr == "request"
+                    and any(
+                        keyword.arg is None
+                        and isinstance(keyword.value, ast.Subscript)
+                        and isinstance(keyword.value.value, ast.Name)
+                        and keyword.value.value.id == "case"
+                        and isinstance(keyword.value.slice, ast.Constant)
+                        and keyword.value.slice.value == "invalid"
+                        for keyword in call.keywords
+                    )
+                    and any(
+                        keyword.arg == "operation_id"
+                        and isinstance(keyword.value, ast.Name)
+                        and keyword.value.id == "operation_id"
+                        for keyword in call.keywords
+                    )
+                    for call in ast.walk(child)
+                ):
+                    invalid_call = True
             if not isinstance(child, ast.Call) or not isinstance(child.func, ast.Attribute):
                 continue
             if child.func.attr != "request":
@@ -113,7 +151,9 @@ def _calls_bound_operation_case(
                 and keywords[name].value.id == "case"
                 for name in ("path", "query")
             ) and isinstance(keywords.get("body"), ast.Call):
-                return True
+                valid_call = True
+        if valid_call and invalid_call:
+            return True
     return False
 
 
@@ -158,9 +198,14 @@ def _test_binding_errors(operations: list[dict], test_methods: dict[str, ast.AST
                     or case.get("path_template") != item["path"]
                     or not isinstance(case.get("expected_path"), str)
                     or not isinstance(case.get("invalid"), dict)
+                    or item["effect"] != (
+                        "read"
+                        if item["method"] == "GET" or operation_id == "AuthKeyController_search"
+                        else "write"
+                    )
                 ):
                     errors.append(f"Operation test case differs from catalog: {operation_id}")
-                elif not _calls_bound_operation_case(test_method):
+                elif not _calls_bound_operation_case(test_method, operation_id):
                     errors.append(
                         f"Test does not invoke the bound operation case: {operation_id}"
                     )

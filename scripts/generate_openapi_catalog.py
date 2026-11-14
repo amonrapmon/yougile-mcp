@@ -78,14 +78,30 @@ READ_OPERATION_IDS = {
     "UserController_getMe",
     "UserController_search",
 }
+WRITE_OPERATION_IDS = {
+    "AuthKeyController_create",
+    "BoardController_create",
+    "ChatMessageController_sendMessage",
+    "CrmContactPersonsController_create",
+    "DepartmentController_create",
+    "GroupChatController_create",
+    "ProjectController_create",
+    "ProjectRolesController_create",
+    "SprintStickerController_create",
+    "SprintStickerStateController_create",
+    "StringStickerController_create",
+    "StringStickerStateController_create",
+    "TaskController_create",
+    "UserController_create",
+}
 MOCK_TESTS.update(
     {
         operation_id: {
-            "test": "test_read_operation_contracts",
+            "test": "test_operation_contracts",
             "call": "request",
             "kwargs": {"operation_id": operation_id},
         }
-        for operation_id in READ_OPERATION_IDS
+        for operation_id in READ_OPERATION_IDS | WRITE_OPERATION_IDS
     }
 )
 

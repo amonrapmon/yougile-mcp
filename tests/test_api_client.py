@@ -30,7 +30,7 @@ from yougile_mcp.api import (
     YouGileClient,
 )
 from yougile_mcp.api.client import _decode_response
-from yougile_mcp.api.spec import Operation, load_spec
+from yougile_mcp.api.spec import Operation, load_spec, operations
 from yougile_mcp.config import Settings
 
 
@@ -62,7 +62,7 @@ def _task(task_id: str = "task-1") -> dict[str, Any]:
     return {"id": task_id, "title": "Task", "timestamp": 123}
 
 
-READ_OPERATION_CASES = {
+OPERATION_CASES = {
     "AuthKeyController_search": {
         "method": "POST",
         "path_template": "/api-v2/auth/keys/get",
@@ -322,6 +322,250 @@ READ_OPERATION_CASES = {
         "authenticated": True,
         "invalid": {"query": {"unknown": "value"}},
     },
+    "AuthKeyController_create": {
+        "method": "POST",
+        "path_template": "/api-v2/auth/keys",
+        "expected_path": "/api-v2/auth/keys",
+        "path": {},
+        "query": {},
+        "body": {"login": "user@example.test", "password": "test-password", "companyId": "company-1"},
+        "status_code": 201,
+        "authenticated": False,
+        "invalid": {"body": {}},
+    },
+    "UserController_create": {
+        "method": "POST",
+        "path_template": "/api-v2/users",
+        "expected_path": "/api-v2/users",
+        "path": {},
+        "query": {},
+        "body": {"email": "new-user@example.test"},
+        "status_code": 201,
+        "authenticated": True,
+        "invalid": {"body": {}},
+    },
+    "ProjectController_create": {
+        "method": "POST",
+        "path_template": "/api-v2/projects",
+        "expected_path": "/api-v2/projects",
+        "path": {},
+        "query": {},
+        "body": {"title": "Research"},
+        "status_code": 201,
+        "authenticated": True,
+        "invalid": {"body": {}},
+    },
+    "ProjectRolesController_create": {
+        "method": "POST",
+        "path_template": "/api-v2/projects/{projectId}/roles",
+        "expected_path": "/api-v2/projects/project%2F7/roles",
+        "path": {"projectId": "project/7"},
+        "query": {},
+        "body": {
+            "name": "Reviewer",
+            "permissions": {
+                "editTitle": False,
+                "delete": False,
+                "addBoard": False,
+                "boards": {
+                    "editTitle": False,
+                    "delete": False,
+                    "move": False,
+                    "showStickers": False,
+                    "editStickers": False,
+                    "addColumn": False,
+                    "columns": {
+                        "editTitle": False,
+                        "delete": False,
+                        "move": "no",
+                        "addTask": False,
+                        "allTasks": {
+                            "show": False,
+                            "delete": False,
+                            "editTitle": False,
+                            "editDescription": False,
+                            "complete": False,
+                            "close": False,
+                            "assignUsers": "no",
+                            "connect": False,
+                            "editSubtasks": "no",
+                            "editStickers": False,
+                            "editPins": False,
+                            "move": "no",
+                            "sendMessages": False,
+                            "sendFiles": False,
+                            "editWhoToNotify": "no",
+                        },
+                        "withMeTasks": {
+                            "show": False,
+                            "delete": False,
+                            "editTitle": False,
+                            "editDescription": False,
+                            "complete": False,
+                            "close": False,
+                            "assignUsers": "no",
+                            "connect": False,
+                            "editSubtasks": "no",
+                            "editStickers": False,
+                            "editPins": False,
+                            "move": "no",
+                            "sendMessages": False,
+                            "sendFiles": False,
+                            "editWhoToNotify": "no",
+                        },
+                        "myTasks": {
+                            "show": False,
+                            "delete": False,
+                            "editTitle": False,
+                            "editDescription": False,
+                            "complete": False,
+                            "close": False,
+                            "assignUsers": "no",
+                            "connect": False,
+                            "editSubtasks": "no",
+                            "editStickers": False,
+                            "editPins": False,
+                            "move": "no",
+                            "sendMessages": False,
+                            "sendFiles": False,
+                            "editWhoToNotify": "no",
+                        },
+                        "createdByMeTasks": {
+                            "show": False,
+                            "delete": False,
+                            "editTitle": False,
+                            "editDescription": False,
+                            "complete": False,
+                            "close": False,
+                            "assignUsers": "no",
+                            "connect": False,
+                            "editSubtasks": "no",
+                            "editStickers": False,
+                            "editPins": False,
+                            "move": "no",
+                            "sendMessages": False,
+                            "sendFiles": False,
+                            "editWhoToNotify": "no",
+                        },
+                    },
+                    "settings": False,
+                },
+            },
+        },
+        "status_code": 201,
+        "authenticated": True,
+        "invalid": {"path": {"projectId": "project/7"}, "body": {}},
+    },
+    "DepartmentController_create": {
+        "method": "POST",
+        "path_template": "/api-v2/departments",
+        "expected_path": "/api-v2/departments",
+        "path": {},
+        "query": {},
+        "body": {"title": "Engineering"},
+        "status_code": 201,
+        "authenticated": True,
+        "invalid": {"body": {}},
+    },
+    "BoardController_create": {
+        "method": "POST",
+        "path_template": "/api-v2/boards",
+        "expected_path": "/api-v2/boards",
+        "path": {},
+        "query": {},
+        "body": {"title": "Sprint board", "projectId": "project-1"},
+        "status_code": 201,
+        "authenticated": True,
+        "invalid": {"body": {}},
+    },
+    "TaskController_create": {
+        "method": "POST",
+        "path_template": "/api-v2/tasks",
+        "expected_path": "/api-v2/tasks",
+        "path": {},
+        "query": {},
+        "body": {"title": "Review API"},
+        "status_code": 201,
+        "authenticated": True,
+        "invalid": {"body": {}},
+    },
+    "StringStickerController_create": {
+        "method": "POST",
+        "path_template": "/api-v2/string-stickers",
+        "expected_path": "/api-v2/string-stickers",
+        "path": {},
+        "query": {},
+        "body": {"name": "Priority"},
+        "status_code": 201,
+        "authenticated": True,
+        "invalid": {"body": {}},
+    },
+    "StringStickerStateController_create": {
+        "method": "POST",
+        "path_template": "/api-v2/string-stickers/{stickerId}/states",
+        "expected_path": "/api-v2/string-stickers/sticker%2F2/states",
+        "path": {"stickerId": "sticker/2"},
+        "query": {},
+        "body": {"name": "Ready", "color": "green"},
+        "status_code": 201,
+        "authenticated": True,
+        "invalid": {"path": {"stickerId": "sticker/2"}, "body": {}},
+    },
+    "SprintStickerController_create": {
+        "method": "POST",
+        "path_template": "/api-v2/sprint-stickers",
+        "expected_path": "/api-v2/sprint-stickers",
+        "path": {},
+        "query": {},
+        "body": {"name": "Iteration"},
+        "status_code": 201,
+        "authenticated": True,
+        "invalid": {"body": {}},
+    },
+    "SprintStickerStateController_create": {
+        "method": "POST",
+        "path_template": "/api-v2/sprint-stickers/{stickerId}/states",
+        "expected_path": "/api-v2/sprint-stickers/sprint%2F2/states",
+        "path": {"stickerId": "sprint/2"},
+        "query": {},
+        "body": {"name": "Active", "begin": 1700000000000, "end": 1700003600000},
+        "status_code": 201,
+        "authenticated": True,
+        "invalid": {"path": {"stickerId": "sprint/2"}, "body": {}},
+    },
+    "GroupChatController_create": {
+        "method": "POST",
+        "path_template": "/api-v2/group-chats",
+        "expected_path": "/api-v2/group-chats",
+        "path": {},
+        "query": {},
+        "body": {"title": "Team updates", "users": {}, "userRoleMap": {}, "roleConfigMap": {}},
+        "status_code": 201,
+        "authenticated": True,
+        "invalid": {"body": {}},
+    },
+    "ChatMessageController_sendMessage": {
+        "method": "POST",
+        "path_template": "/api-v2/chats/{chatId}/messages",
+        "expected_path": "/api-v2/chats/chat%2F2/messages",
+        "path": {"chatId": "chat/2"},
+        "query": {},
+        "body": {"text": "Review", "textHtml": "<p>Review</p>", "label": "comment"},
+        "status_code": 201,
+        "authenticated": True,
+        "invalid": {"path": {"chatId": "chat/2"}, "body": {}},
+    },
+    "CrmContactPersonsController_create": {
+        "method": "POST",
+        "path_template": "/api-v2/crm/contact-persons",
+        "expected_path": "/api-v2/crm/contact-persons",
+        "path": {},
+        "query": {},
+        "body": {"projectId": "project-1", "title": "Alex Example"},
+        "status_code": 201,
+        "authenticated": True,
+        "invalid": {"body": {}},
+    },
 }
 
 
@@ -365,7 +609,7 @@ def _sample_schema(schema: dict[str, Any], spec: dict[str, Any] | None = None) -
     return result
 
 
-def _sample_operation_response(operation_id: str) -> Any:
+def _sample_operation_response(operation_id: str, status_code: int = 200) -> Any:
     operation = load_spec()["paths"]
     raw_operation = next(
         raw
@@ -374,7 +618,7 @@ def _sample_operation_response(operation_id: str) -> Any:
         if method in {"get", "post", "put", "patch", "delete"}
         and raw.get("operationId") == operation_id
     )
-    schema = raw_operation["responses"]["200"]["content"]["application/json"]["schema"]
+    schema = raw_operation["responses"][str(status_code)]["content"]["application/json"]["schema"]
     return _sample_schema(schema)
 
 
@@ -1061,15 +1305,22 @@ class ApiClientTests(unittest.IsolatedAsyncioTestCase):
                 await second.search_boards()
         self.assertEqual(delays, [60.0])
 
-    async def test_read_operation_contracts(self):
-        for operation_id, case in READ_OPERATION_CASES.items():
+    async def test_operation_contracts(self):
+        for operation_id, case in OPERATION_CASES.items():
             with self.subTest(operation_id=operation_id):
                 seen = []
-                response_body = _sample_operation_response(operation_id)
+                status_code = case.get("status_code", 200)
+                response_body = _sample_operation_response(operation_id, status_code)
+                expected_effect = (
+                    "read"
+                    if case["method"] == "GET" or operation_id == "AuthKeyController_search"
+                    else "write"
+                )
+                self.assertEqual(operations()[operation_id].effect, expected_effect)
 
                 def handler(request: httpx.Request) -> httpx.Response:
                     seen.append(request)
-                    return httpx.Response(200, json=response_body)
+                    return httpx.Response(status_code, json=response_body)
 
                 async with YouGileClient(
                     _settings(), transport=httpx.MockTransport(handler), sleep=_no_sleep
@@ -1085,7 +1336,7 @@ class ApiClientTests(unittest.IsolatedAsyncioTestCase):
                         body=case.get("body"),
                     )
 
-                self.assertEqual(result.status_code, 200)
+                self.assertEqual(result.status_code, status_code)
                 self.assertEqual(result.data, response_body)
                 self.assertEqual(len(seen), 1)
                 request = seen[0]
