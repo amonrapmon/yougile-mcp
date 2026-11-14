@@ -1,6 +1,6 @@
 # GEN-229 live E2E API v2 report
 
-**Date:** 2026-11-14
+**Date:** 2026-11-14; follow-up 2026-11-15
 **Draft PR:** [#13](https://github.com/amonrapmon/yougile-mcp/pull/13).
 **Scope:** all 72 OpenAPI v2 operation IDs, with live requests against the owner-confirmed disposable test company.
 **Credentials:** loaded from the profile-local `e2e.env` into the runner process; no key, company identifier, entity content, response body or fixture ID was written to the repository or report.
@@ -17,7 +17,7 @@
 | NOT RUN | 0 |
 | **Total** | **72** |
 
-The post-change runs used 23 HTTP attempts for the initial read-only sweep, 42 for the main fixture/write chain, 9 and 8 for two isolated synthetic-user/chat diagnostics, and 23 for the final read-only cleanup check. Each invocation stayed below the 50-request cap and verified the authenticated company matched the disposable test-company scope. The matrix carries forward prior live PASS evidence for unchanged operations when final cleanup left no detail fixture; mocked coverage is not counted as live.
+The original 72-operation pass used 23 HTTP attempts for the initial read-only sweep, 42 for the main fixture/write chain, 9 and 8 for two isolated synthetic-user/chat diagnostics, and 23 for the final read-only cleanup check. The Nov 15 follow-up used 9 and 11 attempts for two GroupChat diagnostics and 19 for the webhook lifecycle. Each invocation stayed below the 50-request cap and verified the authenticated company matched the disposable test-company scope. The matrix carries forward prior live PASS evidence for unchanged operations when final cleanup left no detail fixture; mocked coverage is not counted as live.
 
 PASS means the SDK response passed strict validation for the tested request; for `CrmExternalIdController_findContactByExternalId`, PASS is the expected 404 for a synthetic absent ID. It does not imply every payload, permission or pagination variant was exercised. BLOCKED and SKIPPED entries are not live coverage.
 
@@ -50,7 +50,7 @@ PASS means the SDK response passed strict validation for the tested request; for
 | `DepartmentController_search` | PASS | Live SDK response returned HTTP 2xx and passed strict response validation. |
 | `DepartmentController_update` | PASS | Live SDK response returned HTTP 2xx and passed strict response validation. |
 | `FileController_uploadFile` | PASS | Three small synthetic text uploads passed across the live runs. The API inventory has no upload-delete operation; these files remain as residue. |
-| `GroupChatController_create` | FAIL | Two synthetic users passed creation; group-chat POST returned HTTP 400 with two role-map variants, including the pinned OpenAPI example. The client does not retain the vendor error body, so the exact server validation reason is unknown. |
+| `GroupChatController_create` | FAIL | Four live POSTs returned HTTP 400. In the second follow-up attempt, both synthetic users passed GET; the request supplied the required OpenAPI fields with consistent `owner`/`admin` role configuration. The SDK classified the response as `validation_message_unclassified`; no machine error code was available. No chat or message was created. |
 | `GroupChatController_get` | PASS | Live SDK response returned HTTP 2xx and passed strict response validation. |
 | `GroupChatController_search` | PASS | Live SDK response returned HTTP 2xx and passed strict response validation. |
 | `GroupChatController_update` | SKIPPED | Group-chat creation returned HTTP 400; there was no test chat to update or soft-delete. |
@@ -93,9 +93,9 @@ PASS means the SDK response passed strict validation for the tested request; for
 | `UserController_search` | PASS | Live SDK response returned HTTP 2xx and passed strict response validation. |
 | `UserController_setCustomStatus` | BLOCKED | The runner blocks account-level custom-status mutations to preserve administrative access. |
 | `UserController_update` | PASS | Updated a synthetic test user and received HTTP 200; the user was deleted during cleanup. |
-| `WebhookController_create` | PASS | Webhook create passed; lifecycle state was later confirmed disabled and deleted. Delivery confirmation is tracked separately. |
-| `WebhookController_put` | PASS | Webhook update passed; lifecycle state was later confirmed disabled and deleted. Delivery confirmation is tracked separately. |
-| `WebhookController_search` | PASS | Live SDK response returned HTTP 2xx and passed strict response validation. |
+| `WebhookController_create` | PASS | The new filtered task-created subscription passed; its synthetic enabled-event was observed in n8n. |
+| `WebhookController_put` | PASS | Disable and soft-delete updates passed; readback confirmed each state. |
+| `WebhookController_search` | PASS | Live SDK response passed strict validation. The enabled-event updated `lastSuccess` with zero failures; after disable, the delivery counters stayed unchanged. The owner confirmed no callback requests arrived after the enabled-event at 2026-11-15 00:41:37 MSK. |
 | `getCompanies` | SKIPPED | Credential-bearing lookup is excluded from the diagnostic runner. |
 
 ## Confirmed compatibility findings and fixes
@@ -108,11 +108,12 @@ PASS means the SDK response passed strict validation for the tested request; for
 ## Other findings and limits
 
 - `UserController_create` returned HTTP 400 with `messengerOnly:true` in an earlier synthetic attempt and HTTP 201 with `messengerOnly:false`; both used non-routable `example.invalid` addresses. The error body is intentionally discarded, so this confirms a server-side input-dependent behavior but does not establish the reason or justify narrowing the OpenAPI boolean schema. User update and delete passed with synthetic fixtures.
-- `GroupChatController_create` returned HTTP 400 twice with two newly created synthetic users. The second request used the pinned OpenAPI example's `owner`/`admin` role mapping and role configuration. The client intentionally discards vendor error bodies; the group-chat validation cause is therefore unknown. Message and group-chat update operations remain SKIPPED because no chat was created.
+- `GroupChatController_create` returned HTTP 400 in four total live attempts. In the two follow-up attempts, both newly created synthetic users returned HTTP 200 from `UserController_get`; the request included all four required fields, and a consistent role map/configuration still failed. The authenticated user is an admin. The safe diagnostic found no machine code and classified the server message as `validation_message_unclassified`; its text is not retained. This is evidence of a server-side rejection after local request validation, but it does not identify a specific rule, so no schema overlay or SDK payload workaround was added. `GroupChatController_get`/search had earlier live PASS coverage; update and all message operations remain SKIPPED because no group chat was created.
 - CRM contact creation was not validly exercised: an earlier request using a non-CRM project returned HTTP 400, and no safe CRM project fixture was available. The final matrix marks it BLOCKED.
 - A board title update passed. A separate soft-delete-shaped update on a board with children returned HTTP 400; this was not attributed to an SDK schema mismatch.
-- Webhook create, update, search, disable and delete state checks passed, and the final read-only preflight found no unapproved active callback. The YouGile webhook record reported `failuresSinceLastSuccess > 0`; the owner also checked n8n and saw no execution for the test event. Event delivery is **FAIL**. The callback was not called directly, and the exact delivery cause is unknown.
-- The project hierarchy and the department, role, sticker and webhook fixtures were cleaned up or soft-deleted where supported. Five synthetic users were deleted. No group chat or message was created. Three small synthetic text uploads remain because the API inventory provides no upload-delete operation.
+- The follow-up created a new `task-created` hook filtered to the synthetic project column and two synthetic task titles. The enabled task produced a matching n8n execution, and YouGile reported a positive `lastSuccess` with zero delivery failures. After disabling the hook, the second matching task caused no later callback request per the owner's corrected observation; YouGile's counters were unchanged. Disable, soft-delete and readback passed. A final read found zero active webhook subscriptions. The receiver was not called directly.
+- The runner no longer treats unchanged YouGile counters alone as proof of no delivery after disable. It returns BLOCKED until receiver confirmation is available; the live result above is PASS only when combined with the owner's n8n observation.
+- The project hierarchy and the department, role, sticker and webhook fixtures were cleaned up or soft-deleted where supported. Nine synthetic users were deleted across all runs. No group chat or message was created. Three small synthetic text uploads remain because the API inventory provides no upload-delete operation.
 
 ## Evidence and diagnostics
 

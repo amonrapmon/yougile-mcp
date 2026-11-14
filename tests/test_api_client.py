@@ -1412,6 +1412,55 @@ class ApiClientTests(unittest.IsolatedAsyncioTestCase):
             with self.assertRaises(UpstreamError):
                 await client.get_board("board-1")
 
+    async def test_http_errors_expose_only_allowlisted_machine_code(self):
+        responses = [
+            httpx.Response(
+                400,
+                json={"code": "INVALID_MEMBER", "message": f"private value {SECRET}"},
+            ),
+            httpx.Response(400, json={"code": SECRET, "message": "private"}),
+        ]
+
+        def handler(_: httpx.Request) -> httpx.Response:
+            return responses.pop(0)
+
+        async with YouGileClient(
+            _settings(), transport=httpx.MockTransport(handler), sleep=_no_sleep
+        ) as client:
+            with self.assertRaises(VendorValidationError) as first:
+                await client.get_board("board-1")
+            with self.assertRaises(VendorValidationError) as second:
+                await client.get_board("board-2")
+
+        self.assertEqual(first.exception.upstream_code, "INVALID_MEMBER")
+        self.assertIsNone(second.exception.upstream_code)
+        self.assertNotIn(SECRET, str(first.exception))
+        self.assertNotIn("private value", str(first.exception))
+
+    async def test_validation_error_classifies_message_without_retaining_it(self):
+        def handler(_: httpx.Request) -> httpx.Response:
+            return httpx.Response(
+                400,
+                json={"message": f"Role configuration is invalid: {SECRET}"},
+            )
+
+        async with YouGileClient(
+            _settings(), transport=httpx.MockTransport(handler), sleep=_no_sleep
+        ) as client:
+            with self.assertRaises(VendorValidationError) as raised:
+                await client.request(
+                    "GroupChatController_create",
+                    body={
+                        "title": "YOUGILE_MCP_E2E_TEST_CHAT",
+                        "users": {},
+                        "userRoleMap": {},
+                        "roleConfigMap": {},
+                    },
+                )
+
+        self.assertEqual(raised.exception.upstream_reason, "role_configuration_rejected")
+        self.assertNotIn(SECRET, str(raised.exception))
+
     async def test_response_schema_diagnostics_redact_values_and_dynamic_keys(self):
         schema = operations()["ProjectController_search"].responses["200"]["content"][
             "application/json"

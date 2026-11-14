@@ -10,7 +10,7 @@ from contextlib import redirect_stdout
 from io import StringIO
 from pathlib import Path
 from types import SimpleNamespace
-from unittest.mock import patch
+from unittest.mock import AsyncMock, patch
 
 from scripts import live_contract_probe as probe
 from yougile_mcp.api.errors import NotFoundError, SchemaDiagnostic, UncertainWriteError, UpstreamError
@@ -234,6 +234,79 @@ class LiveContractProbeTests(unittest.IsolatedAsyncioTestCase):
             ("PENDING", "no_server_success_signal"),
         )
 
+    async def test_webhook_poll_waits_for_server_success_with_a_bound(self):
+        class FakeClient:
+            requests_sent = 0
+
+            def __init__(self):
+                self.responses = [
+                    [{"id": "test-hook", "lastSuccess": 123, "failuresSinceLastSuccess": 0}],
+                ]
+
+            async def request(self, operation_id):
+                self.assert_search(operation_id)
+                self.requests_sent += 1
+                return SimpleNamespace(status_code=200, data=self.responses.pop(0))
+
+            @staticmethod
+            def assert_search(operation_id):
+                if operation_id != "WebhookController_search":
+                    raise AssertionError("poll must use webhook search")
+
+        client = FakeClient()
+        with patch.object(probe.asyncio, "sleep", new=AsyncMock()):
+            result = await probe._poll_webhook_delivery(
+                client,
+                [{"id": "test-hook", "failuresSinceLastSuccess": 0}],
+                "test-hook",
+                request_limit=5,
+            )
+
+        self.assertEqual(result[:2], ("PASS", "server_last_success_observed"))
+        self.assertEqual(result[3], 1)
+
+    def test_webhook_disable_stability_compares_delivery_counters(self):
+        baseline = {
+            "lastSuccess": 123,
+            "hasLastSuccess": True,
+            "failuresSinceLastSuccess": 0,
+        }
+        self.assertEqual(
+            probe._webhook_no_delivery_signal(
+                [
+                    {
+                        "id": "test-hook",
+                        "disabled": True,
+                        **baseline,
+                    }
+                ],
+                "test-hook",
+                baseline,
+            ),
+            ("BLOCKED", "receiver_confirmation_required"),
+        )
+        self.assertEqual(
+            probe._webhook_no_delivery_signal(
+                [
+                    {
+                        "id": "test-hook",
+                        "disabled": True,
+                        "lastSuccess": 124,
+                        "failuresSinceLastSuccess": 0,
+                    }
+                ],
+                "test-hook",
+                baseline,
+            ),
+            ("FAIL", "delivery_counters_changed_after_disable"),
+        )
+        self.assertEqual(
+            probe._webhook_no_delivery_signal(
+                [{"id": "test-hook", "disabled": True}], "test-hook", None
+            ),
+            ("BLOCKED", "delivery_baseline_unavailable"),
+        )
+
     def test_webhook_state_signal_verifies_disable_and_delete(self):
         record = {"id": "test-hook", "disabled": True, "deleted": True}
         self.assertEqual(
@@ -268,6 +341,31 @@ class LiveContractProbeTests(unittest.IsolatedAsyncioTestCase):
             )
             plan = probe.load_plan(path)
         self.assertEqual(len(plan["steps"]), 2)
+
+    def test_plan_loader_accepts_delivery_stability_check_only_on_webhook_search(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "plan.json"
+            path.write_text(
+                json.dumps(
+                    {
+                        "company_scope": "disposable_test_company",
+                        "fixture_ids": [],
+                        "fixture_prefix": PREFIX,
+                        "steps": [
+                            {
+                                "step_id": "after_disable",
+                                "operationId": "WebhookController_search",
+                                "verify_no_delivery_after_disable": "$hook.id",
+                            }
+                        ],
+                    }
+                ),
+                encoding="utf-8",
+            )
+            plan = probe.load_plan(path)
+        self.assertEqual(
+            plan["steps"][0]["verify_no_delivery_after_disable"], "$hook.id"
+        )
 
     def test_default_matrix_covers_all_operations_and_read_plan_is_write_free(self):
         matrix = probe.build_report()

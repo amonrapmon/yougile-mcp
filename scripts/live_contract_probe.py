@@ -27,6 +27,8 @@ from yougile_mcp.config import Settings  # noqa: E402
 
 MAX_REQUESTS = 50
 DEFAULT_REQUEST_LIMIT = 20
+_WEBHOOK_DELIVERY_POLL_LIMIT = 4
+_WEBHOOK_DELIVERY_POLL_INTERVAL_SECONDS = 1
 PREFLIGHT_OPERATION_IDS = (
     "UserController_getMe",
     "CompanyController_get",
@@ -141,8 +143,8 @@ def load_plan(path: Path) -> dict[str, Any]:
     for step in steps:
         if not isinstance(step, dict) or set(step) - {
             "step_id", "operationId", "path", "query", "body", "multipart_file",
-            "verify_webhook_delivery", "verify_webhook_state", "expect_error",
-            "blocked_reason",
+            "verify_webhook_delivery", "verify_webhook_state",
+            "verify_no_delivery_after_disable", "expect_error", "blocked_reason",
         }:
             raise PlanError("plan_invalid")
         step_id = step.get("step_id")
@@ -164,6 +166,12 @@ def load_plan(path: Path) -> dict[str, Any]:
             operation_id != "WebhookController_search"
             or not isinstance(step["verify_webhook_delivery"], str)
             or _REFERENCE.fullmatch(step["verify_webhook_delivery"]) is None
+        ):
+            raise PlanError("plan_invalid")
+        if "verify_no_delivery_after_disable" in step and (
+            operation_id != "WebhookController_search"
+            or not isinstance(step["verify_no_delivery_after_disable"], str)
+            or _REFERENCE.fullmatch(step["verify_no_delivery_after_disable"]) is None
         ):
             raise PlanError("plan_invalid")
         if "expect_error" in step and (
@@ -601,6 +609,10 @@ def _safe_error(row: dict[str, Any], error: ApiError, *, http_attempts: int = 0)
         http_attempts=http_attempts,
         schema=schema,
     )
+    if error.upstream_code is not None:
+        row["upstream_code"] = error.upstream_code
+    if error.upstream_reason is not None:
+        row["upstream_reason"] = error.upstream_reason
 
 
 def _webhook_delivery_signal(data: Any, webhook_id: str) -> tuple[str, str]:
@@ -619,6 +631,70 @@ def _webhook_delivery_signal(data: Any, webhook_id: str) -> tuple[str, str]:
     if isinstance(last_success, (int, float)) and not isinstance(last_success, bool) and last_success > 0:
         return "PASS", "server_last_success_observed"
     return "PENDING", "no_server_success_signal"
+
+
+def _webhook_delivery_snapshot(data: Any, webhook_id: str) -> dict[str, Any] | None:
+    if not isinstance(data, list):
+        return None
+    webhook = next(
+        (row for row in data if isinstance(row, dict) and row.get("id") == webhook_id),
+        None,
+    )
+    if webhook is None:
+        return None
+    failures = webhook.get("failuresSinceLastSuccess")
+    last_success = webhook.get("lastSuccess")
+    if (
+        isinstance(failures, bool)
+        or not isinstance(failures, (int, float))
+        or (
+            "lastSuccess" in webhook
+            and (isinstance(last_success, bool) or not isinstance(last_success, (int, float)))
+        )
+    ):
+        return None
+    return {
+        "lastSuccess": last_success,
+        "hasLastSuccess": "lastSuccess" in webhook,
+        "failuresSinceLastSuccess": failures,
+    }
+
+
+def _webhook_no_delivery_signal(
+    data: Any, webhook_id: str, baseline: dict[str, Any] | None
+) -> tuple[str, str]:
+    if baseline is None:
+        return "BLOCKED", "delivery_baseline_unavailable"
+    snapshot = _webhook_delivery_snapshot(data, webhook_id)
+    if snapshot is None:
+        return "BLOCKED", "webhook_delivery_state_unavailable"
+    webhook = next(row for row in data if isinstance(row, dict) and row.get("id") == webhook_id)
+    if webhook.get("disabled") is not True:
+        return "FAIL", "webhook_not_disabled"
+    if snapshot == baseline:
+        return "BLOCKED", "receiver_confirmation_required"
+    return "FAIL", "delivery_counters_changed_after_disable"
+
+
+async def _poll_webhook_delivery(
+    client: YouGileClient, data: Any, webhook_id: str, *, request_limit: int
+) -> tuple[str, str, Any, int]:
+    status, category = _webhook_delivery_signal(data, webhook_id)
+    attempts = 0
+    for _ in range(_WEBHOOK_DELIVERY_POLL_LIMIT):
+        if status != "PENDING" or client.requests_sent >= request_limit:
+            break
+        await asyncio.sleep(_WEBHOOK_DELIVERY_POLL_INTERVAL_SECONDS)
+        before = client.requests_sent
+        try:
+            response = await client.request("WebhookController_search")
+        except ApiError as error:
+            attempts += client.requests_sent - before
+            return "BLOCKED", f"delivery_poll_{error.category}", data, attempts
+        attempts += client.requests_sent - before
+        data = response.data
+        status, category = _webhook_delivery_signal(data, webhook_id)
+    return status, category, data, attempts
 
 
 def _webhook_state_signal(
@@ -780,6 +856,7 @@ async def execute_plan(
         fixture_ids = set(plan["fixture_ids"])
         created_ids: set[str] = set()
         observed_ids: set[str] = set()
+        webhook_delivery_baselines: dict[str, dict[str, Any]] = {}
         outputs: dict[str, Any] = {"company_before": {"title": preflight_company_title}}
         baseline_company_title = preflight_company_title
         halt_reason = None
@@ -901,9 +978,29 @@ async def execute_plan(
                 except (IndexError, KeyError, TypeError, ValueError):
                     webhook_status, webhook_category = "BLOCKED", "test_webhook_not_found"
                 else:
-                    webhook_status, webhook_category = _webhook_delivery_signal(
-                        response.data, str(webhook_id)
+                    webhook_status, webhook_category, delivery_data, poll_attempts = (
+                        await _poll_webhook_delivery(
+                            client,
+                            response.data,
+                            str(webhook_id),
+                            request_limit=request_limit,
+                        )
                     )
+                    if poll_attempts:
+                        _record_step(
+                            row,
+                            status=(
+                                "BLOCKED"
+                                if webhook_category.startswith("delivery_poll_")
+                                else "PASS"
+                            ),
+                            category="webhook_delivery_poll",
+                            http_status=200,
+                            http_attempts=poll_attempts,
+                        )
+                    baseline = _webhook_delivery_snapshot(delivery_data, str(webhook_id))
+                    if baseline is not None:
+                        webhook_delivery_baselines[str(webhook_id)] = baseline
                 _record_side_effect_check(
                     report, "webhook_delivery", webhook_status, webhook_category
                 )
@@ -919,6 +1016,23 @@ async def execute_plan(
                     )
                 _record_side_effect_check(
                     report, "webhook_state", webhook_status, webhook_category
+                )
+            if "verify_no_delivery_after_disable" in step:
+                try:
+                    webhook_id = _resolve(step["verify_no_delivery_after_disable"], outputs)
+                except (IndexError, KeyError, TypeError, ValueError):
+                    webhook_status, webhook_category = "BLOCKED", "test_webhook_not_found"
+                else:
+                    webhook_status, webhook_category = _webhook_no_delivery_signal(
+                        response.data,
+                        str(webhook_id),
+                        webhook_delivery_baselines.get(str(webhook_id)),
+                    )
+                _record_side_effect_check(
+                    report,
+                    "webhook_delivery_after_disable",
+                    webhook_status,
+                    webhook_category,
                 )
             report["requests_used"] = client.requests_sent
         report["requests_used"] = client.requests_sent
@@ -957,6 +1071,12 @@ def _print_report(report: dict[str, Any]) -> None:
             f"webhook state signal: {check['status']} {check['category']} "
             f"observations={len(check['observations'])}"
         )
+    if "webhook_delivery_after_disable" in report["side_effect_checks"]:
+        check = report["side_effect_checks"]["webhook_delivery_after_disable"]
+        print(
+            "webhook delivery after disable: "
+            f"{check['status']} {check['category']}"
+        )
     print("operationId\tmethod\tpath\teffect\tplanned\tstatus\tdetail")
     for row in report["operations"]:
         detail = row["category"] or ""
@@ -967,6 +1087,10 @@ def _print_report(report: dict[str, Any]) -> None:
         if row["schema"]:
             item = row["schema"]
             detail += f" {item['path']} {item['rule']} expected={item['expected_type']} actual={item['actual_type']}"
+        if row.get("upstream_code"):
+            detail += f" vendor_code={row['upstream_code']}"
+        if row.get("upstream_reason"):
+            detail += f" vendor_reason={row['upstream_reason']}"
         print(f"{row['operationId']}\t{row['method']}\t{row['path']}\t{row['effect']}\t{str(row['planned']).lower()}\t{row['status']}\t{detail}")
 
 

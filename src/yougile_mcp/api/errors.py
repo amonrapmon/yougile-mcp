@@ -18,7 +18,7 @@ class SchemaDiagnostic:
 
 
 class ApiError(Exception):
-    """A normalized failure; vendor response bodies are intentionally omitted."""
+    """A normalized failure with optional allowlisted vendor diagnostics only."""
 
     category = "upstream_failure"
 
@@ -28,11 +28,15 @@ class ApiError(Exception):
         status_code: int | None = None,
         retry_after: float | None = None,
         diagnostic: SchemaDiagnostic | None = None,
+        upstream_code: str | None = None,
+        upstream_reason: str | None = None,
     ):
         super().__init__(self.category)
         self.status_code = status_code
         self.retry_after = retry_after
         self.diagnostic = diagnostic
+        self.upstream_code = upstream_code
+        self.upstream_reason = upstream_reason
 
 
 class InvalidInputError(ApiError, ValueError):
