@@ -104,7 +104,9 @@ a live read through HTTPX received HTTP 200 but failed while decoding the
 response body (`httpx.DecodingError`); requesting an uncompressed response
 allowed that same SDK call to succeed. The exact vendor-side compression
 problem remains unconfirmed. Uncompressed responses may use more bandwidth,
-but this avoids the reproduced failure on the affected YouGile endpoint. Multiple server replicas need a distributed limiter. `list_all` uses
+but this avoids the reproduced failure on the affected YouGile endpoint.
+
+Multiple server replicas need a distributed limiter. `list_all` uses
 bounded offset pagination and the task-log timestamp cursor (100 pages and
 10,000 items); it raises on a stalled cursor or budget overflow instead of
 returning a partial result.
