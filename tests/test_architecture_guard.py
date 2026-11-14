@@ -75,6 +75,25 @@ class ArchitectureGuardTests(unittest.TestCase):
             failures = guard.standards_violations(root)
             self.assertTrue(any("mcp_protocol" in msg for msg in failures))
 
+    def test_detect_vendor_openapi_source_drift(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            refs = root / "docs/references"
+            refs.mkdir(parents=True)
+            base = json.loads(
+                (ROOT / "docs/references/standards.json").read_text(encoding="utf-8")
+            )
+            base["pins"]["yougile_api"]["snapshot_file"] = "catalog/openapi-operations.json"
+            (refs / "standards.json").write_text(json.dumps(base), encoding="utf-8")
+            catalog = root / "catalog"
+            catalog.mkdir()
+            (catalog / "openapi-operations.json").write_text(
+                (ROOT / "catalog/openapi-operations.json").read_text(encoding="utf-8"),
+                encoding="utf-8",
+            )
+            failures = guard.standards_violations(root)
+            self.assertTrue(any("invalid vendor catalog source" in msg for msg in failures))
+
 
 if __name__ == "__main__":
     unittest.main()

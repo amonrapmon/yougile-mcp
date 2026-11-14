@@ -10,3 +10,10 @@ foundation commit:
 The factual inventories in catalog/ list tool names and public API operations,
 not implementations. When importing third-party code, update this NOTICE and
 docs/PROVENANCE.md with attribution and license requirements.
+
+Official YouGile REST API v2 OpenAPI document:
+- Source: https://ru.yougile.com/api-json
+- Retrieved 2026-11-14; SHA-256 is recorded in docs/PROVENANCE.md.
+- Copyright attribution: YouGile LLC, as shown by the official documentation.
+- The OpenAPI document does not specify a license; this repository does not
+  claim that the document is covered by AGPL-3.0-only.

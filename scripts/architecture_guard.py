@@ -66,7 +66,7 @@ def standards_violations(root: Path = ROOT) -> list[str]:
                 f"version pin changed: {section}.{field} {actual!r} != {expected!r}; "
                 "explicit contract and guard revision required"
             )
-    if pins["yougile_api"]["snapshot_file"] != "catalog/openapi-operations.json":
+    if pins["yougile_api"]["snapshot_file"] != "src/yougile_mcp/api/openapi-v2.json":
         failures.append("invalid vendor catalog source")
     operations = json.loads(
         (root / "catalog/openapi-operations.json").read_text(encoding="utf-8")

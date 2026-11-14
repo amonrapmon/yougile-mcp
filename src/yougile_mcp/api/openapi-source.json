@@ -1,0 +1,11 @@
+{
+  "source": "https://ru.yougile.com/api-json",
+  "retrieved_at": "2026-11-14",
+  "api_specification": "YouGile REST API v2.0",
+  "api_version": "2.0",
+  "openapi_version": "3.0.0",
+  "sha256": "9452cba3571607848de77fc12e68104cb454e403c35c7a6b97521ea6e0d1d406",
+  "author": "YouGile LLC (official documentation site copyright)",
+  "license": null,
+  "license_status": "not specified by the OpenAPI document"
+}

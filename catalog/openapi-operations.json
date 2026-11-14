@@ -1,357 +1,3728 @@
 {
-  "source": "https://github.com/indalo-tech/yougile-mcp/blob/main/src/yougile_mcp/data/openapi.json",
-  "specification": "YouGile REST API v2",
-  "note": "Pinned snapshot only, not a live API probe",
+  "source": {
+    "source": "https://ru.yougile.com/api-json",
+    "retrieved_at": "2026-11-14",
+    "api_specification": "YouGile REST API v2.0",
+    "api_version": "2.0",
+    "openapi_version": "3.0.0",
+    "sha256": "9452cba3571607848de77fc12e68104cb454e403c35c7a6b97521ea6e0d1d406",
+    "author": "YouGile LLC (official documentation site copyright)",
+    "license": null,
+    "license_status": "not specified by the OpenAPI document",
+    "spec_file": "src/yougile_mcp/api/openapi-v2.json"
+  },
   "operations": [
-    {
-      "operationId": "getCompanies",
-      "method": "POST",
-      "path": "/api-v2/auth/companies"
-    },
     {
       "operationId": "AuthKeyController_create",
       "method": "POST",
-      "path": "/api-v2/auth/keys"
+      "path": "/api-v2/auth/keys",
+      "category": "Авторизация",
+      "parameters": [],
+      "request_schemas": {
+        "application/json": [
+          "#/components/schemas/CredentialsWithCompanyDto"
+        ]
+      },
+      "response_schemas": {
+        "201": {
+          "application/json": [
+            "#/components/schemas/AuthKeyDto"
+          ]
+        },
+        "400": {},
+        "401": {},
+        "403": {},
+        "429": {}
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": []
+      },
+      "effect": "write",
+      "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
+          "client_call": "request",
+          "kwargs": {
+            "operation_id": "AuthKeyController_create"
+          }
+        }
+      ],
+      "notes": null
     },
     {
       "operationId": "AuthKeyController_delete",
       "method": "DELETE",
-      "path": "/api-v2/auth/keys/{key}"
+      "path": "/api-v2/auth/keys/{key}",
+      "category": "Авторизация",
+      "parameters": [
+        {
+          "name": "key",
+          "in": "path",
+          "required": true,
+          "type": "string",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {},
+      "response_schemas": {
+        "200": {},
+        "429": {}
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": []
+      },
+      "effect": "destructive",
+      "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
+          "client_call": "request",
+          "kwargs": {
+            "operation_id": "AuthKeyController_delete"
+          }
+        }
+      ],
+      "notes": null
     },
     {
       "operationId": "AuthKeyController_search",
       "method": "POST",
-      "path": "/api-v2/auth/keys/get"
-    },
-    {
-      "operationId": "BoardController_search",
-      "method": "GET",
-      "path": "/api-v2/boards"
+      "path": "/api-v2/auth/keys/get",
+      "category": "Авторизация",
+      "parameters": [],
+      "request_schemas": {
+        "application/json": [
+          "#/components/schemas/CredentialsWithCompanyOptionalDto"
+        ]
+      },
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/AuthKeyWithDetailsDto"
+          ]
+        },
+        "400": {},
+        "401": {},
+        "403": {},
+        "429": {}
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": []
+      },
+      "effect": "read",
+      "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
+          "client_call": "request",
+          "kwargs": {
+            "operation_id": "AuthKeyController_search"
+          }
+        }
+      ],
+      "notes": null
     },
     {
       "operationId": "BoardController_create",
       "method": "POST",
-      "path": "/api-v2/boards"
+      "path": "/api-v2/boards",
+      "category": "Доски",
+      "parameters": [],
+      "request_schemas": {
+        "application/json": [
+          "#/components/schemas/CreateBoardDto"
+        ]
+      },
+      "response_schemas": {
+        "201": {
+          "application/json": [
+            "#/components/schemas/WithIdDto"
+          ]
+        }
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "write",
+      "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
+          "client_call": "request",
+          "kwargs": {
+            "operation_id": "BoardController_create"
+          }
+        }
+      ],
+      "notes": null
     },
     {
       "operationId": "BoardController_get",
       "method": "GET",
-      "path": "/api-v2/boards/{id}"
+      "path": "/api-v2/boards/{id}",
+      "category": "Доски",
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "type": "string",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {},
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/BoardDto"
+          ]
+        },
+        "404": {}
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "read",
+      "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_board_detail_and_column_list_schemas",
+          "client_call": "get_board",
+          "kwargs": {}
+        }
+      ],
+      "notes": null
+    },
+    {
+      "operationId": "BoardController_search",
+      "method": "GET",
+      "path": "/api-v2/boards",
+      "category": "Доски",
+      "parameters": [
+        {
+          "name": "includeDeleted",
+          "in": "query",
+          "required": false,
+          "type": "boolean",
+          "schema_sources": []
+        },
+        {
+          "name": "limit",
+          "in": "query",
+          "required": false,
+          "type": "number",
+          "schema_sources": []
+        },
+        {
+          "name": "offset",
+          "in": "query",
+          "required": false,
+          "type": "number",
+          "schema_sources": []
+        },
+        {
+          "name": "title",
+          "in": "query",
+          "required": false,
+          "type": "string",
+          "schema_sources": []
+        },
+        {
+          "name": "projectId",
+          "in": "query",
+          "required": false,
+          "type": "string",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {},
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/BoardListDto"
+          ]
+        },
+        "404": {}
+      },
+      "pagination": {
+        "kind": "offset",
+        "parameters": [
+          "limit",
+          "offset"
+        ]
+      },
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "read",
+      "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_headers_query_and_response_dto",
+          "client_call": "search_boards",
+          "kwargs": {}
+        }
+      ],
+      "notes": null
     },
     {
       "operationId": "BoardController_update",
       "method": "PUT",
-      "path": "/api-v2/boards/{id}"
-    },
-    {
-      "operationId": "ChatMessageController_search",
-      "method": "GET",
-      "path": "/api-v2/chats/{chatId}/messages"
-    },
-    {
-      "operationId": "ChatMessageController_sendMessage",
-      "method": "POST",
-      "path": "/api-v2/chats/{chatId}/messages"
+      "path": "/api-v2/boards/{id}",
+      "category": "Доски",
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "type": "string",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {
+        "application/json": [
+          "#/components/schemas/UpdateBoardDto"
+        ]
+      },
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/WithIdDto"
+          ]
+        },
+        "404": {}
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "write",
+      "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
+          "client_call": "request",
+          "kwargs": {
+            "operation_id": "BoardController_update"
+          }
+        }
+      ],
+      "notes": null
     },
     {
       "operationId": "ChatMessageController_get",
       "method": "GET",
-      "path": "/api-v2/chats/{chatId}/messages/{id}"
+      "path": "/api-v2/chats/{chatId}/messages/{id}",
+      "category": "Сообщения чатов",
+      "parameters": [
+        {
+          "name": "chatId",
+          "in": "path",
+          "required": true,
+          "type": "string",
+          "schema_sources": []
+        },
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "type": "number",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {},
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/ChatMessageDto"
+          ]
+        },
+        "404": {}
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "read",
+      "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
+          "client_call": "request",
+          "kwargs": {
+            "operation_id": "ChatMessageController_get"
+          }
+        }
+      ],
+      "notes": null
     },
     {
-      "operationId": "ChatMessageController_update",
-      "method": "PUT",
-      "path": "/api-v2/chats/{chatId}/messages/{id}"
+      "operationId": "ChatMessageController_search",
+      "method": "GET",
+      "path": "/api-v2/chats/{chatId}/messages",
+      "category": "Сообщения чатов",
+      "parameters": [
+        {
+          "name": "chatId",
+          "in": "path",
+          "required": true,
+          "type": "string",
+          "schema_sources": []
+        },
+        {
+          "name": "includeDeleted",
+          "in": "query",
+          "required": false,
+          "type": "boolean",
+          "schema_sources": []
+        },
+        {
+          "name": "limit",
+          "in": "query",
+          "required": false,
+          "type": "number",
+          "schema_sources": []
+        },
+        {
+          "name": "offset",
+          "in": "query",
+          "required": false,
+          "type": "number",
+          "schema_sources": []
+        },
+        {
+          "name": "fromUserId",
+          "in": "query",
+          "required": false,
+          "type": "string",
+          "schema_sources": []
+        },
+        {
+          "name": "text",
+          "in": "query",
+          "required": false,
+          "type": "string",
+          "schema_sources": []
+        },
+        {
+          "name": "label",
+          "in": "query",
+          "required": false,
+          "type": "string",
+          "schema_sources": []
+        },
+        {
+          "name": "since",
+          "in": "query",
+          "required": false,
+          "type": "number",
+          "schema_sources": []
+        },
+        {
+          "name": "includeSystem",
+          "in": "query",
+          "required": false,
+          "type": "boolean",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {},
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/ChatMessageListDto"
+          ]
+        },
+        "404": {}
+      },
+      "pagination": {
+        "kind": "offset",
+        "parameters": [
+          "limit",
+          "offset"
+        ]
+      },
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "read",
+      "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
+          "client_call": "request",
+          "kwargs": {
+            "operation_id": "ChatMessageController_search"
+          }
+        }
+      ],
+      "notes": null
+    },
+    {
+      "operationId": "ChatMessageController_sendMessage",
+      "method": "POST",
+      "path": "/api-v2/chats/{chatId}/messages",
+      "category": "Сообщения чатов",
+      "parameters": [
+        {
+          "name": "chatId",
+          "in": "path",
+          "required": true,
+          "type": "string",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {
+        "application/json": [
+          "#/components/schemas/CreateChatMessageDto"
+        ]
+      },
+      "response_schemas": {
+        "201": {
+          "application/json": [
+            "#/components/schemas/ChatIdDto"
+          ]
+        }
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "write",
+      "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
+          "client_call": "request",
+          "kwargs": {
+            "operation_id": "ChatMessageController_sendMessage"
+          }
+        }
+      ],
+      "notes": null
     },
     {
       "operationId": "ChatMessageController_typing",
       "method": "POST",
-      "path": "/api-v2/chats/{chatId}/typing"
+      "path": "/api-v2/chats/{chatId}/typing",
+      "category": "Сообщения чатов",
+      "parameters": [
+        {
+          "name": "chatId",
+          "in": "path",
+          "required": true,
+          "type": "string",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {},
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/ChatTypingDto"
+          ]
+        }
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "write",
+      "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
+          "client_call": "request",
+          "kwargs": {
+            "operation_id": "ChatMessageController_typing"
+          }
+        }
+      ],
+      "notes": null
     },
     {
-      "operationId": "ColumnController_search",
-      "method": "GET",
-      "path": "/api-v2/columns"
+      "operationId": "ChatMessageController_update",
+      "method": "PUT",
+      "path": "/api-v2/chats/{chatId}/messages/{id}",
+      "category": "Сообщения чатов",
+      "parameters": [
+        {
+          "name": "chatId",
+          "in": "path",
+          "required": true,
+          "type": "string",
+          "schema_sources": []
+        },
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "type": "number",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {
+        "application/json": [
+          "#/components/schemas/UpdateChatMessageDto"
+        ]
+      },
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/ChatIdDto"
+          ]
+        },
+        "404": {}
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "write",
+      "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
+          "client_call": "request",
+          "kwargs": {
+            "operation_id": "ChatMessageController_update"
+          }
+        }
+      ],
+      "notes": null
     },
     {
       "operationId": "ColumnController_create",
       "method": "POST",
-      "path": "/api-v2/columns"
+      "path": "/api-v2/columns",
+      "category": "Колонки",
+      "parameters": [],
+      "request_schemas": {
+        "application/json": [
+          "#/components/schemas/CreateColumnDto"
+        ]
+      },
+      "response_schemas": {
+        "201": {
+          "application/json": [
+            "#/components/schemas/WithIdDto"
+          ]
+        }
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "write",
+      "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_write_sends_json_body_and_returns_created_dto",
+          "client_call": "create_column",
+          "kwargs": {}
+        }
+      ],
+      "notes": null
     },
     {
       "operationId": "ColumnController_get",
       "method": "GET",
-      "path": "/api-v2/columns/{id}"
+      "path": "/api-v2/columns/{id}",
+      "category": "Колонки",
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "type": "string",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {},
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/ColumnDto"
+          ]
+        },
+        "404": {}
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "read",
+      "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
+          "client_call": "request",
+          "kwargs": {
+            "operation_id": "ColumnController_get"
+          }
+        }
+      ],
+      "notes": null
+    },
+    {
+      "operationId": "ColumnController_search",
+      "method": "GET",
+      "path": "/api-v2/columns",
+      "category": "Колонки",
+      "parameters": [
+        {
+          "name": "includeDeleted",
+          "in": "query",
+          "required": false,
+          "type": "boolean",
+          "schema_sources": []
+        },
+        {
+          "name": "limit",
+          "in": "query",
+          "required": false,
+          "type": "number",
+          "schema_sources": []
+        },
+        {
+          "name": "offset",
+          "in": "query",
+          "required": false,
+          "type": "number",
+          "schema_sources": []
+        },
+        {
+          "name": "title",
+          "in": "query",
+          "required": false,
+          "type": "string",
+          "schema_sources": []
+        },
+        {
+          "name": "boardId",
+          "in": "query",
+          "required": false,
+          "type": "string",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {},
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/ColumnListDto"
+          ]
+        },
+        "404": {}
+      },
+      "pagination": {
+        "kind": "offset",
+        "parameters": [
+          "limit",
+          "offset"
+        ]
+      },
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "read",
+      "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_board_detail_and_column_list_schemas",
+          "client_call": "search_columns",
+          "kwargs": {}
+        }
+      ],
+      "notes": null
     },
     {
       "operationId": "ColumnController_update",
       "method": "PUT",
-      "path": "/api-v2/columns/{id}"
+      "path": "/api-v2/columns/{id}",
+      "category": "Колонки",
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "type": "string",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {
+        "application/json": [
+          "#/components/schemas/UpdateColumnDto"
+        ]
+      },
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/WithIdDto"
+          ]
+        },
+        "404": {}
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "write",
+      "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
+          "client_call": "request",
+          "kwargs": {
+            "operation_id": "ColumnController_update"
+          }
+        }
+      ],
+      "notes": null
     },
     {
       "operationId": "CompanyController_get",
       "method": "GET",
-      "path": "/api-v2/companies{*companyId}"
+      "path": "/api-v2/companies{*companyId}",
+      "category": "Компания",
+      "parameters": [],
+      "request_schemas": {},
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/CompanyDto"
+          ]
+        },
+        "404": {}
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "read",
+      "status": "mock_tested",
+      "live_evidence": "curl_observed",
+      "compatibility_overlay": {
+        "version": "2026-11-14.2",
+        "source_sha256": "9452cba3571607848de77fc12e68104cb454e403c35c7a6b97521ea6e0d1d406"
+      },
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
+          "client_call": "request",
+          "kwargs": {
+            "operation_id": "CompanyController_get"
+          }
+        }
+      ],
+      "notes": "Overlay uses the curl-observed no-ID current-company route and permits deleted=null; evidence is manual curl, not Python-client live verification."
     },
     {
       "operationId": "CompanyController_update",
       "method": "PUT",
-      "path": "/api-v2/companies{*companyId}"
+      "path": "/api-v2/companies{*companyId}",
+      "category": "Компания",
+      "parameters": [],
+      "request_schemas": {
+        "application/json": [
+          "#/components/schemas/UpdateCompanyDto"
+        ]
+      },
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/WithIdDto"
+          ]
+        },
+        "404": {}
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "write",
+      "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": {
+        "version": "2026-11-14.2",
+        "source_sha256": "9452cba3571607848de77fc12e68104cb454e403c35c7a6b97521ea6e0d1d406"
+      },
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
+          "client_call": "request",
+          "kwargs": {
+            "operation_id": "CompanyController_update"
+          }
+        }
+      ],
+      "notes": "Mock-only PUT uses the canonical current-company route and pinned UpdateCompanyDto; no live company update was performed."
     },
     {
       "operationId": "CrmContactPersonsController_create",
       "method": "POST",
-      "path": "/api-v2/crm/contact-persons"
+      "path": "/api-v2/crm/contact-persons",
+      "category": "CRM справочники",
+      "parameters": [],
+      "request_schemas": {
+        "application/json": [
+          "#/components/schemas/CreateContactPersonDto"
+        ]
+      },
+      "response_schemas": {
+        "201": {
+          "application/json": [
+            "#/components/schemas/ContactPersonEntryDto"
+          ]
+        }
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "write",
+      "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
+          "client_call": "request",
+          "kwargs": {
+            "operation_id": "CrmContactPersonsController_create"
+          }
+        }
+      ],
+      "notes": null
     },
     {
       "operationId": "CrmExternalIdController_findContactByExternalId",
       "method": "GET",
-      "path": "/api-v2/crm/contacts/by-external-id"
-    },
-    {
-      "operationId": "DepartmentController_search",
-      "method": "GET",
-      "path": "/api-v2/departments"
+      "path": "/api-v2/crm/contacts/by-external-id",
+      "category": "CRM внешние идентификаторы",
+      "parameters": [
+        {
+          "name": "provider",
+          "in": "query",
+          "required": true,
+          "type": "string",
+          "schema_sources": []
+        },
+        {
+          "name": "chatId",
+          "in": "query",
+          "required": true,
+          "type": "string",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {},
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/CrmDirectoryEntryDto"
+          ]
+        }
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "read",
+      "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
+          "client_call": "request",
+          "kwargs": {
+            "operation_id": "CrmExternalIdController_findContactByExternalId"
+          }
+        }
+      ],
+      "notes": null
     },
     {
       "operationId": "DepartmentController_create",
       "method": "POST",
-      "path": "/api-v2/departments"
+      "path": "/api-v2/departments",
+      "category": "Отделы",
+      "parameters": [],
+      "request_schemas": {
+        "application/json": [
+          "#/components/schemas/CreateDepartmentDto"
+        ]
+      },
+      "response_schemas": {
+        "201": {
+          "application/json": [
+            "#/components/schemas/WithIdDto"
+          ]
+        }
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "write",
+      "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
+          "client_call": "request",
+          "kwargs": {
+            "operation_id": "DepartmentController_create"
+          }
+        }
+      ],
+      "notes": null
     },
     {
       "operationId": "DepartmentController_get",
       "method": "GET",
-      "path": "/api-v2/departments/{id}"
+      "path": "/api-v2/departments/{id}",
+      "category": "Отделы",
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "type": "string",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {},
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/DepartmentDto"
+          ]
+        },
+        "404": {}
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "read",
+      "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
+          "client_call": "request",
+          "kwargs": {
+            "operation_id": "DepartmentController_get"
+          }
+        }
+      ],
+      "notes": null
+    },
+    {
+      "operationId": "DepartmentController_search",
+      "method": "GET",
+      "path": "/api-v2/departments",
+      "category": "Отделы",
+      "parameters": [
+        {
+          "name": "includeDeleted",
+          "in": "query",
+          "required": false,
+          "type": "boolean",
+          "schema_sources": []
+        },
+        {
+          "name": "limit",
+          "in": "query",
+          "required": false,
+          "type": "number",
+          "schema_sources": []
+        },
+        {
+          "name": "offset",
+          "in": "query",
+          "required": false,
+          "type": "number",
+          "schema_sources": []
+        },
+        {
+          "name": "title",
+          "in": "query",
+          "required": false,
+          "type": "string",
+          "schema_sources": []
+        },
+        {
+          "name": "parentId",
+          "in": "query",
+          "required": false,
+          "type": "string",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {},
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/DepartmentListDto"
+          ]
+        },
+        "404": {}
+      },
+      "pagination": {
+        "kind": "offset",
+        "parameters": [
+          "limit",
+          "offset"
+        ]
+      },
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "read",
+      "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
+          "client_call": "request",
+          "kwargs": {
+            "operation_id": "DepartmentController_search"
+          }
+        }
+      ],
+      "notes": null
     },
     {
       "operationId": "DepartmentController_update",
       "method": "PUT",
-      "path": "/api-v2/departments/{id}"
-    },
-    {
-      "operationId": "GroupChatController_search",
-      "method": "GET",
-      "path": "/api-v2/group-chats"
-    },
-    {
-      "operationId": "GroupChatController_create",
-      "method": "POST",
-      "path": "/api-v2/group-chats"
-    },
-    {
-      "operationId": "GroupChatController_get",
-      "method": "GET",
-      "path": "/api-v2/group-chats/{id}"
-    },
-    {
-      "operationId": "GroupChatController_update",
-      "method": "PUT",
-      "path": "/api-v2/group-chats/{id}"
-    },
-    {
-      "operationId": "ProjectController_search",
-      "method": "GET",
-      "path": "/api-v2/projects"
-    },
-    {
-      "operationId": "ProjectController_create",
-      "method": "POST",
-      "path": "/api-v2/projects"
-    },
-    {
-      "operationId": "ProjectController_get",
-      "method": "GET",
-      "path": "/api-v2/projects/{id}"
-    },
-    {
-      "operationId": "ProjectController_update",
-      "method": "PUT",
-      "path": "/api-v2/projects/{id}"
-    },
-    {
-      "operationId": "ProjectRolesController_search",
-      "method": "GET",
-      "path": "/api-v2/projects/{projectId}/roles"
-    },
-    {
-      "operationId": "ProjectRolesController_create",
-      "method": "POST",
-      "path": "/api-v2/projects/{projectId}/roles"
-    },
-    {
-      "operationId": "ProjectRolesController_delete",
-      "method": "DELETE",
-      "path": "/api-v2/projects/{projectId}/roles/{id}"
-    },
-    {
-      "operationId": "ProjectRolesController_get",
-      "method": "GET",
-      "path": "/api-v2/projects/{projectId}/roles/{id}"
-    },
-    {
-      "operationId": "ProjectRolesController_update",
-      "method": "PUT",
-      "path": "/api-v2/projects/{projectId}/roles/{id}"
-    },
-    {
-      "operationId": "SprintStickerController_search",
-      "method": "GET",
-      "path": "/api-v2/sprint-stickers"
-    },
-    {
-      "operationId": "SprintStickerController_create",
-      "method": "POST",
-      "path": "/api-v2/sprint-stickers"
-    },
-    {
-      "operationId": "SprintStickerController_getSticker",
-      "method": "GET",
-      "path": "/api-v2/sprint-stickers/{id}"
-    },
-    {
-      "operationId": "SprintStickerController_update",
-      "method": "PUT",
-      "path": "/api-v2/sprint-stickers/{id}"
-    },
-    {
-      "operationId": "SprintStickerStateController_create",
-      "method": "POST",
-      "path": "/api-v2/sprint-stickers/{stickerId}/states"
-    },
-    {
-      "operationId": "SprintStickerStateController_get",
-      "method": "GET",
-      "path": "/api-v2/sprint-stickers/{stickerId}/states/{stickerStateId}"
-    },
-    {
-      "operationId": "SprintStickerStateController_update",
-      "method": "PUT",
-      "path": "/api-v2/sprint-stickers/{stickerId}/states/{stickerStateId}"
-    },
-    {
-      "operationId": "StringStickerController_search",
-      "method": "GET",
-      "path": "/api-v2/string-stickers"
-    },
-    {
-      "operationId": "StringStickerController_create",
-      "method": "POST",
-      "path": "/api-v2/string-stickers"
-    },
-    {
-      "operationId": "StringStickerController_get",
-      "method": "GET",
-      "path": "/api-v2/string-stickers/{id}"
-    },
-    {
-      "operationId": "StringStickerController_update",
-      "method": "PUT",
-      "path": "/api-v2/string-stickers/{id}"
-    },
-    {
-      "operationId": "StringStickerStateController_create",
-      "method": "POST",
-      "path": "/api-v2/string-stickers/{stickerId}/states"
-    },
-    {
-      "operationId": "StringStickerStateController_get",
-      "method": "GET",
-      "path": "/api-v2/string-stickers/{stickerId}/states/{stickerStateId}"
-    },
-    {
-      "operationId": "StringStickerStateController_update",
-      "method": "PUT",
-      "path": "/api-v2/string-stickers/{stickerId}/states/{stickerStateId}"
-    },
-    {
-      "operationId": "TaskController_search",
-      "method": "GET",
-      "path": "/api-v2/task-list"
-    },
-    {
-      "operationId": "TaskController_searchReversed",
-      "method": "GET",
-      "path": "/api-v2/tasks"
-    },
-    {
-      "operationId": "TaskController_create",
-      "method": "POST",
-      "path": "/api-v2/tasks"
-    },
-    {
-      "operationId": "TaskController_get",
-      "method": "GET",
-      "path": "/api-v2/tasks/{id}"
-    },
-    {
-      "operationId": "TaskController_update",
-      "method": "PUT",
-      "path": "/api-v2/tasks/{id}"
-    },
-    {
-      "operationId": "TaskController_getChatSubscribers",
-      "method": "GET",
-      "path": "/api-v2/tasks/{id}/chat-subscribers"
-    },
-    {
-      "operationId": "TaskController_updateChatSubscribers",
-      "method": "PUT",
-      "path": "/api-v2/tasks/{id}/chat-subscribers"
-    },
-    {
-      "operationId": "TaskController_getLog",
-      "method": "GET",
-      "path": "/api-v2/tasks/{id}/log"
+      "path": "/api-v2/departments/{id}",
+      "category": "Отделы",
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "type": "string",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {
+        "application/json": [
+          "#/components/schemas/UpdateDepartmentDto"
+        ]
+      },
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/WithIdDto"
+          ]
+        },
+        "404": {}
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "write",
+      "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
+          "client_call": "request",
+          "kwargs": {
+            "operation_id": "DepartmentController_update"
+          }
+        }
+      ],
+      "notes": null
     },
     {
       "operationId": "FileController_uploadFile",
       "method": "POST",
-      "path": "/api-v2/upload-file"
+      "path": "/api-v2/upload-file",
+      "category": "Файлы",
+      "parameters": [],
+      "request_schemas": {
+        "multipart/form-data": [
+          "#/components/schemas/"
+        ]
+      },
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/FileUploadDto"
+          ]
+        },
+        "400": {},
+        "404": {}
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "write",
+      "status": "mock_tested",
+      "live_evidence": "curl_observed",
+      "compatibility_overlay": {
+        "version": "2026-11-14.2",
+        "source_sha256": "9452cba3571607848de77fc12e68104cb454e403c35c7a6b97521ea6e0d1d406"
+      },
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
+          "client_call": "request",
+          "kwargs": {
+            "operation_id": "FileController_uploadFile"
+          }
+        }
+      ],
+      "notes": "Overlay removes the malformed multipart ref and accepts the curl-observed 201 FileUploadDto; size and MIME limits are configurable client policy."
     },
     {
-      "operationId": "UserController_search",
+      "operationId": "GroupChatController_create",
+      "method": "POST",
+      "path": "/api-v2/group-chats",
+      "category": "Групповые чаты",
+      "parameters": [],
+      "request_schemas": {
+        "application/json": [
+          "#/components/schemas/CreateGroupChatDto"
+        ]
+      },
+      "response_schemas": {
+        "201": {
+          "application/json": [
+            "#/components/schemas/WithIdDto"
+          ]
+        }
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "write",
+      "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
+          "client_call": "request",
+          "kwargs": {
+            "operation_id": "GroupChatController_create"
+          }
+        }
+      ],
+      "notes": null
+    },
+    {
+      "operationId": "GroupChatController_get",
       "method": "GET",
-      "path": "/api-v2/users"
+      "path": "/api-v2/group-chats/{id}",
+      "category": "Групповые чаты",
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "type": "string",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {},
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/GroupChatDto"
+          ]
+        },
+        "404": {}
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "read",
+      "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
+          "client_call": "request",
+          "kwargs": {
+            "operation_id": "GroupChatController_get"
+          }
+        }
+      ],
+      "notes": null
+    },
+    {
+      "operationId": "GroupChatController_search",
+      "method": "GET",
+      "path": "/api-v2/group-chats",
+      "category": "Групповые чаты",
+      "parameters": [
+        {
+          "name": "includeDeleted",
+          "in": "query",
+          "required": false,
+          "type": "boolean",
+          "schema_sources": []
+        },
+        {
+          "name": "limit",
+          "in": "query",
+          "required": false,
+          "type": "number",
+          "schema_sources": []
+        },
+        {
+          "name": "offset",
+          "in": "query",
+          "required": false,
+          "type": "number",
+          "schema_sources": []
+        },
+        {
+          "name": "title",
+          "in": "query",
+          "required": false,
+          "type": "string",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {},
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/GroupChatListDto"
+          ]
+        },
+        "404": {}
+      },
+      "pagination": {
+        "kind": "offset",
+        "parameters": [
+          "limit",
+          "offset"
+        ]
+      },
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "read",
+      "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
+          "client_call": "request",
+          "kwargs": {
+            "operation_id": "GroupChatController_search"
+          }
+        }
+      ],
+      "notes": null
+    },
+    {
+      "operationId": "GroupChatController_update",
+      "method": "PUT",
+      "path": "/api-v2/group-chats/{id}",
+      "category": "Групповые чаты",
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "type": "string",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {
+        "application/json": [
+          "#/components/schemas/UpdateGroupChatDto"
+        ]
+      },
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/WithIdDto"
+          ]
+        },
+        "404": {}
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "write",
+      "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
+          "client_call": "request",
+          "kwargs": {
+            "operation_id": "GroupChatController_update"
+          }
+        }
+      ],
+      "notes": null
+    },
+    {
+      "operationId": "ProjectController_create",
+      "method": "POST",
+      "path": "/api-v2/projects",
+      "category": "Проекты",
+      "parameters": [],
+      "request_schemas": {
+        "application/json": [
+          "#/components/schemas/CreateProjectDto"
+        ]
+      },
+      "response_schemas": {
+        "201": {
+          "application/json": [
+            "#/components/schemas/WithIdDto"
+          ]
+        }
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "write",
+      "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
+          "client_call": "request",
+          "kwargs": {
+            "operation_id": "ProjectController_create"
+          }
+        }
+      ],
+      "notes": null
+    },
+    {
+      "operationId": "ProjectController_get",
+      "method": "GET",
+      "path": "/api-v2/projects/{id}",
+      "category": "Проекты",
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "type": "string",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {},
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/ProjectDto"
+          ]
+        },
+        "404": {}
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "read",
+      "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
+          "client_call": "request",
+          "kwargs": {
+            "operation_id": "ProjectController_get"
+          }
+        }
+      ],
+      "notes": null
+    },
+    {
+      "operationId": "ProjectController_search",
+      "method": "GET",
+      "path": "/api-v2/projects",
+      "category": "Проекты",
+      "parameters": [
+        {
+          "name": "includeDeleted",
+          "in": "query",
+          "required": false,
+          "type": "boolean",
+          "schema_sources": []
+        },
+        {
+          "name": "limit",
+          "in": "query",
+          "required": false,
+          "type": "number",
+          "schema_sources": []
+        },
+        {
+          "name": "offset",
+          "in": "query",
+          "required": false,
+          "type": "number",
+          "schema_sources": []
+        },
+        {
+          "name": "title",
+          "in": "query",
+          "required": false,
+          "type": "string",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {},
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/ProjectListDto"
+          ]
+        },
+        "404": {}
+      },
+      "pagination": {
+        "kind": "offset",
+        "parameters": [
+          "limit",
+          "offset"
+        ]
+      },
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "read",
+      "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
+          "client_call": "request",
+          "kwargs": {
+            "operation_id": "ProjectController_search"
+          }
+        }
+      ],
+      "notes": null
+    },
+    {
+      "operationId": "ProjectController_update",
+      "method": "PUT",
+      "path": "/api-v2/projects/{id}",
+      "category": "Проекты",
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "type": "string",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {
+        "application/json": [
+          "#/components/schemas/UpdateProjectDto"
+        ]
+      },
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/WithIdDto"
+          ]
+        },
+        "404": {}
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "write",
+      "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
+          "client_call": "request",
+          "kwargs": {
+            "operation_id": "ProjectController_update"
+          }
+        }
+      ],
+      "notes": null
+    },
+    {
+      "operationId": "ProjectRolesController_create",
+      "method": "POST",
+      "path": "/api-v2/projects/{projectId}/roles",
+      "category": "Роли проекта",
+      "parameters": [
+        {
+          "name": "projectId",
+          "in": "path",
+          "required": true,
+          "type": "string",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {
+        "application/json": [
+          "#/components/schemas/CreateProjectRoleDto"
+        ]
+      },
+      "response_schemas": {
+        "201": {
+          "application/json": [
+            "#/components/schemas/WithIdDto"
+          ]
+        }
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "write",
+      "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
+          "client_call": "request",
+          "kwargs": {
+            "operation_id": "ProjectRolesController_create"
+          }
+        }
+      ],
+      "notes": null
+    },
+    {
+      "operationId": "ProjectRolesController_delete",
+      "method": "DELETE",
+      "path": "/api-v2/projects/{projectId}/roles/{id}",
+      "category": "Роли проекта",
+      "parameters": [
+        {
+          "name": "projectId",
+          "in": "path",
+          "required": true,
+          "type": "string",
+          "schema_sources": []
+        },
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "type": "string",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {},
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/ProjectRoleDto"
+          ]
+        },
+        "404": {}
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "destructive",
+      "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
+          "client_call": "request",
+          "kwargs": {
+            "operation_id": "ProjectRolesController_delete"
+          }
+        }
+      ],
+      "notes": null
+    },
+    {
+      "operationId": "ProjectRolesController_get",
+      "method": "GET",
+      "path": "/api-v2/projects/{projectId}/roles/{id}",
+      "category": "Роли проекта",
+      "parameters": [
+        {
+          "name": "projectId",
+          "in": "path",
+          "required": true,
+          "type": "string",
+          "schema_sources": []
+        },
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "type": "string",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {},
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/ProjectRoleDto"
+          ]
+        },
+        "404": {}
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "read",
+      "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
+          "client_call": "request",
+          "kwargs": {
+            "operation_id": "ProjectRolesController_get"
+          }
+        }
+      ],
+      "notes": null
+    },
+    {
+      "operationId": "ProjectRolesController_search",
+      "method": "GET",
+      "path": "/api-v2/projects/{projectId}/roles",
+      "category": "Роли проекта",
+      "parameters": [
+        {
+          "name": "projectId",
+          "in": "path",
+          "required": true,
+          "type": "string",
+          "schema_sources": []
+        },
+        {
+          "name": "limit",
+          "in": "query",
+          "required": false,
+          "type": "number",
+          "schema_sources": []
+        },
+        {
+          "name": "offset",
+          "in": "query",
+          "required": false,
+          "type": "number",
+          "schema_sources": []
+        },
+        {
+          "name": "name",
+          "in": "query",
+          "required": false,
+          "type": "string",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {},
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/ProjectRoleListDto"
+          ]
+        },
+        "404": {}
+      },
+      "pagination": {
+        "kind": "offset",
+        "parameters": [
+          "limit",
+          "offset"
+        ]
+      },
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "read",
+      "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
+          "client_call": "request",
+          "kwargs": {
+            "operation_id": "ProjectRolesController_search"
+          }
+        }
+      ],
+      "notes": null
+    },
+    {
+      "operationId": "ProjectRolesController_update",
+      "method": "PUT",
+      "path": "/api-v2/projects/{projectId}/roles/{id}",
+      "category": "Роли проекта",
+      "parameters": [
+        {
+          "name": "projectId",
+          "in": "path",
+          "required": true,
+          "type": "string",
+          "schema_sources": []
+        },
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "type": "string",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {
+        "application/json": [
+          "#/components/schemas/UpdateProjectRoleDto"
+        ]
+      },
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/WithIdDto"
+          ]
+        },
+        "404": {}
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "write",
+      "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
+          "client_call": "request",
+          "kwargs": {
+            "operation_id": "ProjectRolesController_update"
+          }
+        }
+      ],
+      "notes": null
+    },
+    {
+      "operationId": "SprintStickerController_create",
+      "method": "POST",
+      "path": "/api-v2/sprint-stickers",
+      "category": "Стикер спринта",
+      "parameters": [],
+      "request_schemas": {
+        "application/json": [
+          "#/components/schemas/CreateSprintStickerDto"
+        ]
+      },
+      "response_schemas": {
+        "201": {
+          "application/json": [
+            "#/components/schemas/WithIdDto"
+          ]
+        }
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "write",
+      "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
+          "client_call": "request",
+          "kwargs": {
+            "operation_id": "SprintStickerController_create"
+          }
+        }
+      ],
+      "notes": null
+    },
+    {
+      "operationId": "SprintStickerController_getSticker",
+      "method": "GET",
+      "path": "/api-v2/sprint-stickers/{id}",
+      "category": "Стикер спринта",
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "type": "string",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {},
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/SprintStickerWithStatesDto"
+          ]
+        },
+        "404": {}
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "read",
+      "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
+          "client_call": "request",
+          "kwargs": {
+            "operation_id": "SprintStickerController_getSticker"
+          }
+        }
+      ],
+      "notes": null
+    },
+    {
+      "operationId": "SprintStickerController_search",
+      "method": "GET",
+      "path": "/api-v2/sprint-stickers",
+      "category": "Стикер спринта",
+      "parameters": [
+        {
+          "name": "includeDeleted",
+          "in": "query",
+          "required": false,
+          "type": "boolean",
+          "schema_sources": []
+        },
+        {
+          "name": "limit",
+          "in": "query",
+          "required": false,
+          "type": "number",
+          "schema_sources": []
+        },
+        {
+          "name": "offset",
+          "in": "query",
+          "required": false,
+          "type": "number",
+          "schema_sources": []
+        },
+        {
+          "name": "name",
+          "in": "query",
+          "required": false,
+          "type": "string",
+          "schema_sources": []
+        },
+        {
+          "name": "boardId",
+          "in": "query",
+          "required": false,
+          "type": "string",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {},
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/SprintStickerWithStatesListDto"
+          ]
+        },
+        "404": {}
+      },
+      "pagination": {
+        "kind": "offset",
+        "parameters": [
+          "limit",
+          "offset"
+        ]
+      },
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "read",
+      "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
+          "client_call": "request",
+          "kwargs": {
+            "operation_id": "SprintStickerController_search"
+          }
+        }
+      ],
+      "notes": null
+    },
+    {
+      "operationId": "SprintStickerController_update",
+      "method": "PUT",
+      "path": "/api-v2/sprint-stickers/{id}",
+      "category": "Стикер спринта",
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "type": "string",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {
+        "application/json": [
+          "#/components/schemas/UpdateSprintStickerDto"
+        ]
+      },
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/WithIdDto"
+          ]
+        },
+        "404": {}
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "write",
+      "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
+          "client_call": "request",
+          "kwargs": {
+            "operation_id": "SprintStickerController_update"
+          }
+        }
+      ],
+      "notes": null
+    },
+    {
+      "operationId": "SprintStickerStateController_create",
+      "method": "POST",
+      "path": "/api-v2/sprint-stickers/{stickerId}/states",
+      "category": "Состояния стикера спринта",
+      "parameters": [
+        {
+          "name": "stickerId",
+          "in": "path",
+          "required": true,
+          "type": "string",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {
+        "application/json": [
+          "#/components/schemas/CreateSprintStickerStateDto"
+        ]
+      },
+      "response_schemas": {
+        "201": {
+          "application/json": [
+            "#/components/schemas/WithStickerStateIdDto"
+          ]
+        },
+        "404": {}
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "write",
+      "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
+          "client_call": "request",
+          "kwargs": {
+            "operation_id": "SprintStickerStateController_create"
+          }
+        }
+      ],
+      "notes": null
+    },
+    {
+      "operationId": "SprintStickerStateController_get",
+      "method": "GET",
+      "path": "/api-v2/sprint-stickers/{stickerId}/states/{stickerStateId}",
+      "category": "Состояния стикера спринта",
+      "parameters": [
+        {
+          "name": "stickerId",
+          "in": "path",
+          "required": true,
+          "type": "string",
+          "schema_sources": []
+        },
+        {
+          "name": "stickerStateId",
+          "in": "path",
+          "required": true,
+          "type": "string",
+          "schema_sources": []
+        },
+        {
+          "name": "includeDeleted",
+          "in": "query",
+          "required": false,
+          "type": "boolean",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {},
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/SprintStickerStateDto"
+          ]
+        },
+        "404": {}
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "read",
+      "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
+          "client_call": "request",
+          "kwargs": {
+            "operation_id": "SprintStickerStateController_get"
+          }
+        }
+      ],
+      "notes": null
+    },
+    {
+      "operationId": "SprintStickerStateController_update",
+      "method": "PUT",
+      "path": "/api-v2/sprint-stickers/{stickerId}/states/{stickerStateId}",
+      "category": "Состояния стикера спринта",
+      "parameters": [
+        {
+          "name": "stickerId",
+          "in": "path",
+          "required": true,
+          "type": "string",
+          "schema_sources": []
+        },
+        {
+          "name": "stickerStateId",
+          "in": "path",
+          "required": true,
+          "type": "string",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {
+        "application/json": [
+          "#/components/schemas/UpdateSprintStickerStateDto"
+        ]
+      },
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/WithStickerStateIdDto"
+          ]
+        },
+        "404": {}
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "write",
+      "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
+          "client_call": "request",
+          "kwargs": {
+            "operation_id": "SprintStickerStateController_update"
+          }
+        }
+      ],
+      "notes": null
+    },
+    {
+      "operationId": "StringStickerController_create",
+      "method": "POST",
+      "path": "/api-v2/string-stickers",
+      "category": "Стикер с набором состояний",
+      "parameters": [],
+      "request_schemas": {
+        "application/json": [
+          "#/components/schemas/CreateStringStickerDto"
+        ]
+      },
+      "response_schemas": {
+        "201": {
+          "application/json": [
+            "#/components/schemas/WithIdDto"
+          ]
+        }
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "write",
+      "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
+          "client_call": "request",
+          "kwargs": {
+            "operation_id": "StringStickerController_create"
+          }
+        }
+      ],
+      "notes": null
+    },
+    {
+      "operationId": "StringStickerController_get",
+      "method": "GET",
+      "path": "/api-v2/string-stickers/{id}",
+      "category": "Стикер с набором состояний",
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "type": "string",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {},
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/StringStickerWithStatesDto"
+          ]
+        },
+        "404": {}
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "read",
+      "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
+          "client_call": "request",
+          "kwargs": {
+            "operation_id": "StringStickerController_get"
+          }
+        }
+      ],
+      "notes": null
+    },
+    {
+      "operationId": "StringStickerController_search",
+      "method": "GET",
+      "path": "/api-v2/string-stickers",
+      "category": "Стикер с набором состояний",
+      "parameters": [
+        {
+          "name": "includeDeleted",
+          "in": "query",
+          "required": false,
+          "type": "boolean",
+          "schema_sources": []
+        },
+        {
+          "name": "limit",
+          "in": "query",
+          "required": false,
+          "type": "number",
+          "schema_sources": []
+        },
+        {
+          "name": "offset",
+          "in": "query",
+          "required": false,
+          "type": "number",
+          "schema_sources": []
+        },
+        {
+          "name": "name",
+          "in": "query",
+          "required": false,
+          "type": "string",
+          "schema_sources": []
+        },
+        {
+          "name": "boardId",
+          "in": "query",
+          "required": false,
+          "type": "string",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {},
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/StringStickerWithStatesListDto"
+          ]
+        },
+        "404": {}
+      },
+      "pagination": {
+        "kind": "offset",
+        "parameters": [
+          "limit",
+          "offset"
+        ]
+      },
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "read",
+      "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
+          "client_call": "request",
+          "kwargs": {
+            "operation_id": "StringStickerController_search"
+          }
+        }
+      ],
+      "notes": null
+    },
+    {
+      "operationId": "StringStickerController_update",
+      "method": "PUT",
+      "path": "/api-v2/string-stickers/{id}",
+      "category": "Стикер с набором состояний",
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "type": "string",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {
+        "application/json": [
+          "#/components/schemas/UpdateStringStickerDto"
+        ]
+      },
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/WithIdDto"
+          ]
+        },
+        "404": {}
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "write",
+      "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
+          "client_call": "request",
+          "kwargs": {
+            "operation_id": "StringStickerController_update"
+          }
+        }
+      ],
+      "notes": null
+    },
+    {
+      "operationId": "StringStickerStateController_create",
+      "method": "POST",
+      "path": "/api-v2/string-stickers/{stickerId}/states",
+      "category": "Состояния стикера с набором состояний",
+      "parameters": [
+        {
+          "name": "stickerId",
+          "in": "path",
+          "required": true,
+          "type": "string",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {
+        "application/json": [
+          "#/components/schemas/CreateStringStickerStateDto"
+        ]
+      },
+      "response_schemas": {
+        "201": {
+          "application/json": [
+            "#/components/schemas/WithStickerStateIdDto"
+          ]
+        },
+        "404": {}
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "write",
+      "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
+          "client_call": "request",
+          "kwargs": {
+            "operation_id": "StringStickerStateController_create"
+          }
+        }
+      ],
+      "notes": null
+    },
+    {
+      "operationId": "StringStickerStateController_get",
+      "method": "GET",
+      "path": "/api-v2/string-stickers/{stickerId}/states/{stickerStateId}",
+      "category": "Состояния стикера с набором состояний",
+      "parameters": [
+        {
+          "name": "stickerId",
+          "in": "path",
+          "required": true,
+          "type": "string",
+          "schema_sources": []
+        },
+        {
+          "name": "stickerStateId",
+          "in": "path",
+          "required": true,
+          "type": "string",
+          "schema_sources": []
+        },
+        {
+          "name": "includeDeleted",
+          "in": "query",
+          "required": false,
+          "type": "boolean",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {},
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/StringStickerStateDto"
+          ]
+        },
+        "404": {}
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "read",
+      "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
+          "client_call": "request",
+          "kwargs": {
+            "operation_id": "StringStickerStateController_get"
+          }
+        }
+      ],
+      "notes": null
+    },
+    {
+      "operationId": "StringStickerStateController_update",
+      "method": "PUT",
+      "path": "/api-v2/string-stickers/{stickerId}/states/{stickerStateId}",
+      "category": "Состояния стикера с набором состояний",
+      "parameters": [
+        {
+          "name": "stickerId",
+          "in": "path",
+          "required": true,
+          "type": "string",
+          "schema_sources": []
+        },
+        {
+          "name": "stickerStateId",
+          "in": "path",
+          "required": true,
+          "type": "string",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {
+        "application/json": [
+          "#/components/schemas/UpdateStringStickerStateDto"
+        ]
+      },
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/WithStickerStateIdDto"
+          ]
+        },
+        "404": {}
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "write",
+      "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
+          "client_call": "request",
+          "kwargs": {
+            "operation_id": "StringStickerStateController_update"
+          }
+        }
+      ],
+      "notes": null
+    },
+    {
+      "operationId": "TaskController_create",
+      "method": "POST",
+      "path": "/api-v2/tasks",
+      "category": "Задачи",
+      "parameters": [],
+      "request_schemas": {
+        "application/json": [
+          "#/components/schemas/CreateTaskDto"
+        ]
+      },
+      "response_schemas": {
+        "201": {
+          "application/json": [
+            "#/components/schemas/WithIdDto"
+          ]
+        }
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "write",
+      "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
+          "client_call": "request",
+          "kwargs": {
+            "operation_id": "TaskController_create"
+          }
+        }
+      ],
+      "notes": null
+    },
+    {
+      "operationId": "TaskController_get",
+      "method": "GET",
+      "path": "/api-v2/tasks/{id}",
+      "category": "Задачи",
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "type": "string",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {},
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/TaskDto"
+          ]
+        },
+        "404": {}
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "read",
+      "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_path_value_is_percent_encoded",
+          "client_call": "get_task",
+          "kwargs": {}
+        }
+      ],
+      "notes": null
+    },
+    {
+      "operationId": "TaskController_getChatSubscribers",
+      "method": "GET",
+      "path": "/api-v2/tasks/{id}/chat-subscribers",
+      "category": "Задачи",
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "type": "string",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {},
+      "response_schemas": {
+        "200": {
+          "application/json": []
+        },
+        "404": {}
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "read",
+      "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
+          "client_call": "request",
+          "kwargs": {
+            "operation_id": "TaskController_getChatSubscribers"
+          }
+        }
+      ],
+      "notes": null
+    },
+    {
+      "operationId": "TaskController_getLog",
+      "method": "GET",
+      "path": "/api-v2/tasks/{id}/log",
+      "category": "Задачи",
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "type": "string",
+          "schema_sources": []
+        },
+        {
+          "name": "limit",
+          "in": "query",
+          "required": false,
+          "type": "number",
+          "schema_sources": []
+        },
+        {
+          "name": "before",
+          "in": "query",
+          "required": false,
+          "type": "number",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {},
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/TaskLogListDto"
+          ]
+        },
+        "404": {}
+      },
+      "pagination": {
+        "kind": "timestamp_cursor",
+        "parameters": [
+          "limit",
+          "before"
+        ]
+      },
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "read",
+      "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
+          "client_call": "request",
+          "kwargs": {
+            "operation_id": "TaskController_getLog"
+          }
+        }
+      ],
+      "notes": null
+    },
+    {
+      "operationId": "TaskController_search",
+      "method": "GET",
+      "path": "/api-v2/task-list",
+      "category": "Задачи",
+      "parameters": [
+        {
+          "name": "includeDeleted",
+          "in": "query",
+          "required": false,
+          "type": "boolean",
+          "schema_sources": []
+        },
+        {
+          "name": "limit",
+          "in": "query",
+          "required": false,
+          "type": "number",
+          "schema_sources": []
+        },
+        {
+          "name": "offset",
+          "in": "query",
+          "required": false,
+          "type": "number",
+          "schema_sources": []
+        },
+        {
+          "name": "title",
+          "in": "query",
+          "required": false,
+          "type": "string",
+          "schema_sources": []
+        },
+        {
+          "name": "columnId",
+          "in": "query",
+          "required": false,
+          "type": "string",
+          "schema_sources": []
+        },
+        {
+          "name": "assignedTo",
+          "in": "query",
+          "required": false,
+          "type": "string",
+          "schema_sources": []
+        },
+        {
+          "name": "stickerId",
+          "in": "query",
+          "required": false,
+          "type": "string",
+          "schema_sources": []
+        },
+        {
+          "name": "stickerStateId",
+          "in": "query",
+          "required": false,
+          "type": "string",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {},
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/TaskListDto"
+          ]
+        },
+        "404": {}
+      },
+      "pagination": {
+        "kind": "offset",
+        "parameters": [
+          "limit",
+          "offset"
+        ]
+      },
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "read",
+      "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_task_search_maps_both_confirmed_list_operations",
+          "client_call": "search_tasks",
+          "kwargs": {
+            "reversed_order": false
+          }
+        }
+      ],
+      "notes": null
+    },
+    {
+      "operationId": "TaskController_searchReversed",
+      "method": "GET",
+      "path": "/api-v2/tasks",
+      "category": "Задачи",
+      "parameters": [
+        {
+          "name": "includeDeleted",
+          "in": "query",
+          "required": false,
+          "type": "boolean",
+          "schema_sources": []
+        },
+        {
+          "name": "limit",
+          "in": "query",
+          "required": false,
+          "type": "number",
+          "schema_sources": []
+        },
+        {
+          "name": "offset",
+          "in": "query",
+          "required": false,
+          "type": "number",
+          "schema_sources": []
+        },
+        {
+          "name": "title",
+          "in": "query",
+          "required": false,
+          "type": "string",
+          "schema_sources": []
+        },
+        {
+          "name": "columnId",
+          "in": "query",
+          "required": false,
+          "type": "string",
+          "schema_sources": []
+        },
+        {
+          "name": "assignedTo",
+          "in": "query",
+          "required": false,
+          "type": "string",
+          "schema_sources": []
+        },
+        {
+          "name": "stickerId",
+          "in": "query",
+          "required": false,
+          "type": "string",
+          "schema_sources": []
+        },
+        {
+          "name": "stickerStateId",
+          "in": "query",
+          "required": false,
+          "type": "string",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {},
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/TaskListDto"
+          ]
+        },
+        "404": {}
+      },
+      "pagination": {
+        "kind": "offset",
+        "parameters": [
+          "limit",
+          "offset"
+        ]
+      },
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "read",
+      "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_task_search_maps_both_confirmed_list_operations",
+          "client_call": "search_tasks",
+          "kwargs": {
+            "reversed_order": true
+          }
+        }
+      ],
+      "notes": null
+    },
+    {
+      "operationId": "TaskController_update",
+      "method": "PUT",
+      "path": "/api-v2/tasks/{id}",
+      "category": "Задачи",
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "type": "string",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {
+        "application/json": [
+          "#/components/schemas/UpdateTaskDto"
+        ]
+      },
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/WithIdDto"
+          ]
+        },
+        "404": {}
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "write",
+      "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
+          "client_call": "request",
+          "kwargs": {
+            "operation_id": "TaskController_update"
+          }
+        }
+      ],
+      "notes": null
+    },
+    {
+      "operationId": "TaskController_updateChatSubscribers",
+      "method": "PUT",
+      "path": "/api-v2/tasks/{id}/chat-subscribers",
+      "category": "Задачи",
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "type": "string",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {
+        "application/json": [
+          "#/components/schemas/TaskChatSubscribersDto"
+        ]
+      },
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/WithIdDto"
+          ]
+        },
+        "404": {}
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "write",
+      "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
+          "client_call": "request",
+          "kwargs": {
+            "operation_id": "TaskController_updateChatSubscribers"
+          }
+        }
+      ],
+      "notes": null
+    },
+    {
+      "operationId": "UserController_clearCustomStatus",
+      "method": "DELETE",
+      "path": "/api-v2/users/me/custom-status",
+      "category": "Сотрудники",
+      "parameters": [],
+      "request_schemas": {},
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/WithIdDto"
+          ]
+        },
+        "404": {}
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "destructive",
+      "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
+          "client_call": "request",
+          "kwargs": {
+            "operation_id": "UserController_clearCustomStatus"
+          }
+        }
+      ],
+      "notes": null
     },
     {
       "operationId": "UserController_create",
       "method": "POST",
-      "path": "/api-v2/users"
+      "path": "/api-v2/users",
+      "category": "Сотрудники",
+      "parameters": [],
+      "request_schemas": {
+        "application/json": [
+          "#/components/schemas/CreateUserDto"
+        ]
+      },
+      "response_schemas": {
+        "201": {
+          "application/json": [
+            "#/components/schemas/WithIdDto"
+          ]
+        }
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "write",
+      "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
+          "client_call": "request",
+          "kwargs": {
+            "operation_id": "UserController_create"
+          }
+        }
+      ],
+      "notes": null
     },
     {
       "operationId": "UserController_delete",
       "method": "DELETE",
-      "path": "/api-v2/users/{id}"
+      "path": "/api-v2/users/{id}",
+      "category": "Сотрудники",
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "type": "string",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {},
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/WithIdDto"
+          ]
+        },
+        "404": {}
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "destructive",
+      "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
+          "client_call": "request",
+          "kwargs": {
+            "operation_id": "UserController_delete"
+          }
+        }
+      ],
+      "notes": null
     },
     {
       "operationId": "UserController_get",
       "method": "GET",
-      "path": "/api-v2/users/{id}"
-    },
-    {
-      "operationId": "UserController_update",
-      "method": "PUT",
-      "path": "/api-v2/users/{id}"
+      "path": "/api-v2/users/{id}",
+      "category": "Сотрудники",
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "type": "string",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {},
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/UserDto"
+          ]
+        },
+        "404": {}
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "read",
+      "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
+          "client_call": "request",
+          "kwargs": {
+            "operation_id": "UserController_get"
+          }
+        }
+      ],
+      "notes": null
     },
     {
       "operationId": "UserController_getMe",
       "method": "GET",
-      "path": "/api-v2/users/me"
+      "path": "/api-v2/users/me",
+      "category": "Сотрудники",
+      "parameters": [],
+      "request_schemas": {},
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/UserDto"
+          ]
+        },
+        "404": {}
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "read",
+      "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
+          "client_call": "request",
+          "kwargs": {
+            "operation_id": "UserController_getMe"
+          }
+        }
+      ],
+      "notes": null
     },
     {
-      "operationId": "WebhookController_search",
+      "operationId": "UserController_search",
       "method": "GET",
-      "path": "/api-v2/webhooks"
+      "path": "/api-v2/users",
+      "category": "Сотрудники",
+      "parameters": [
+        {
+          "name": "limit",
+          "in": "query",
+          "required": false,
+          "type": "number",
+          "schema_sources": []
+        },
+        {
+          "name": "offset",
+          "in": "query",
+          "required": false,
+          "type": "number",
+          "schema_sources": []
+        },
+        {
+          "name": "email",
+          "in": "query",
+          "required": false,
+          "type": "string",
+          "schema_sources": []
+        },
+        {
+          "name": "projectId",
+          "in": "query",
+          "required": false,
+          "type": "string",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {},
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/UserListDto"
+          ]
+        },
+        "404": {}
+      },
+      "pagination": {
+        "kind": "offset",
+        "parameters": [
+          "limit",
+          "offset"
+        ]
+      },
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "read",
+      "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
+          "client_call": "request",
+          "kwargs": {
+            "operation_id": "UserController_search"
+          }
+        }
+      ],
+      "notes": null
+    },
+    {
+      "operationId": "UserController_setCustomStatus",
+      "method": "PUT",
+      "path": "/api-v2/users/me/custom-status",
+      "category": "Сотрудники",
+      "parameters": [],
+      "request_schemas": {
+        "application/json": [
+          "#/components/schemas/UserCustomStatusDto"
+        ]
+      },
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/WithIdDto"
+          ]
+        },
+        "404": {}
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "write",
+      "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
+          "client_call": "request",
+          "kwargs": {
+            "operation_id": "UserController_setCustomStatus"
+          }
+        }
+      ],
+      "notes": null
+    },
+    {
+      "operationId": "UserController_update",
+      "method": "PUT",
+      "path": "/api-v2/users/{id}",
+      "category": "Сотрудники",
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "type": "string",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {
+        "application/json": [
+          "#/components/schemas/UpdateUserDto"
+        ]
+      },
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/WithIdDto"
+          ]
+        },
+        "404": {}
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "write",
+      "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
+          "client_call": "request",
+          "kwargs": {
+            "operation_id": "UserController_update"
+          }
+        }
+      ],
+      "notes": null
     },
     {
       "operationId": "WebhookController_create",
       "method": "POST",
-      "path": "/api-v2/webhooks"
+      "path": "/api-v2/webhooks",
+      "category": "Подписки на события",
+      "parameters": [],
+      "request_schemas": {
+        "application/json": [
+          "#/components/schemas/CreateWebhookDto"
+        ]
+      },
+      "response_schemas": {
+        "201": {
+          "application/json": [
+            "#/components/schemas/WithIdDto"
+          ]
+        }
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "write",
+      "status": "mock_tested",
+      "live_evidence": "curl_observed",
+      "compatibility_overlay": {
+        "version": "2026-11-14.2",
+        "source_sha256": "9452cba3571607848de77fc12e68104cb454e403c35c7a6b97521ea6e0d1d406"
+      },
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
+          "client_call": "request",
+          "kwargs": {
+            "operation_id": "WebhookController_create"
+          }
+        }
+      ],
+      "notes": "Overlay keeps filter name as a string and accepts string or string-array values per the pinned OAS examples; curl confirmed only the title/string filter and HTTP 201 response."
     },
     {
       "operationId": "WebhookController_put",
       "method": "PUT",
-      "path": "/api-v2/webhooks/{id}"
+      "path": "/api-v2/webhooks/{id}",
+      "category": "Подписки на события",
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "type": "string",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {
+        "application/json": [
+          "#/components/schemas/UpdateWebhookDto"
+        ]
+      },
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/WithIdDto"
+          ]
+        },
+        "404": {}
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "write",
+      "status": "mock_tested",
+      "live_evidence": "curl_observed",
+      "compatibility_overlay": {
+        "version": "2026-11-14.2",
+        "source_sha256": "9452cba3571607848de77fc12e68104cb454e403c35c7a6b97521ea6e0d1d406"
+      },
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
+          "client_call": "request",
+          "kwargs": {
+            "operation_id": "WebhookController_put"
+          }
+        }
+      ],
+      "notes": "Overlay keeps filter name as a string and accepts string or string-array values per the pinned OAS examples; curl confirmed disabled=true persisted after PUT, not the location-array filter."
+    },
+    {
+      "operationId": "WebhookController_search",
+      "method": "GET",
+      "path": "/api-v2/webhooks",
+      "category": "Подписки на события",
+      "parameters": [
+        {
+          "name": "includeDeleted",
+          "in": "query",
+          "required": false,
+          "type": "boolean",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {},
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/WebhookDto"
+          ]
+        }
+      },
+      "pagination": null,
+      "auth": {
+        "schemes": [
+          "bearer"
+        ]
+      },
+      "effect": "read",
+      "status": "mock_tested",
+      "live_evidence": "curl_observed",
+      "compatibility_overlay": {
+        "version": "2026-11-14.2",
+        "source_sha256": "9452cba3571607848de77fc12e68104cb454e403c35c7a6b97521ea6e0d1d406"
+      },
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
+          "client_call": "request",
+          "kwargs": {
+            "operation_id": "WebhookController_search"
+          }
+        }
+      ],
+      "notes": "Overlay decodes the curl-observed response as an array and accepts string or string-array filter values per the pinned OAS examples; curl confirmed only the title/string filter, not location arrays."
+    },
+    {
+      "operationId": "getCompanies",
+      "method": "POST",
+      "path": "/api-v2/auth/companies",
+      "category": "Авторизация",
+      "parameters": [
+        {
+          "name": "limit",
+          "in": "query",
+          "required": false,
+          "type": "number",
+          "schema_sources": []
+        },
+        {
+          "name": "offset",
+          "in": "query",
+          "required": false,
+          "type": "number",
+          "schema_sources": []
+        }
+      ],
+      "request_schemas": {
+        "application/json": [
+          "#/components/schemas/CredentialsWithNameDto"
+        ]
+      },
+      "response_schemas": {
+        "200": {
+          "application/json": [
+            "#/components/schemas/CompanyListDto"
+          ]
+        },
+        "401": {},
+        "403": {},
+        "429": {}
+      },
+      "pagination": {
+        "kind": "offset",
+        "parameters": [
+          "limit",
+          "offset"
+        ]
+      },
+      "auth": {
+        "schemes": []
+      },
+      "effect": "read",
+      "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_company_lookup_keeps_credentials_in_body_without_bearer",
+          "client_call": "get_companies",
+          "kwargs": {}
+        }
+      ],
+      "notes": null
     }
   ]
 }

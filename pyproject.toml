@@ -11,7 +11,11 @@ requires-python = ">=3.11"
 license = "AGPL-3.0-only"
 authors = [{ name = "YouGile MCP contributors" }]
 keywords = ["yougile", "mcp", "self-hosted", "agent"]
-dependencies = []
+dependencies = [
+    "httpx>=0.27,<1",
+    "jsonschema>=4.21,<5",
+    "openapi-schema-validator>=0.6,<1",
+]
 
 [project.optional-dependencies]
 dev = ["ruff>=0.17,<1", "pytest>=9,<10"]
@@ -22,6 +26,9 @@ yougile-mcp = "yougile_mcp.cli:main"
 [tool.setuptools.packages.find]
 where = ["src"]
 include = ["yougile_mcp*"]
+
+[tool.setuptools.package-data]
+yougile_mcp = ["api/*.json"]
 
 [tool.ruff]
 line-length = 100
