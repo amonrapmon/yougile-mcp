@@ -78,15 +78,36 @@ class InventoryTests(unittest.TestCase):
         by_id = {item["operationId"]: item for item in rows}
         self.assertEqual(checker._coverage_metadata_errors(rows, source_meta["sha256"]), [])
         overlay_rows = [item for item in rows if item["compatibility_overlay"] is not None]
-        self.assertEqual(len(overlay_rows), 6)
+        self.assertEqual(len(overlay_rows), 9)
+        self.assertEqual(
+            {item["operationId"] for item in overlay_rows},
+            {
+                "BoardController_search",
+                "CompanyController_get",
+                "CompanyController_update",
+                "FileController_uploadFile",
+                "ProjectController_search",
+                "TaskController_search",
+                "WebhookController_create",
+                "WebhookController_put",
+                "WebhookController_search",
+            },
+        )
+        self.assertEqual(
+            {item["compatibility_overlay"]["version"] for item in overlay_rows},
+            {"2026-11-14.3"},
+        )
         self.assertEqual(
             {item["compatibility_overlay"]["source_sha256"] for item in overlay_rows},
             {source_meta["sha256"]},
         )
         for operation_id in (
+            "BoardController_search",
             "CompanyController_get",
             "CompanyController_update",
             "FileController_uploadFile",
+            "ProjectController_search",
+            "TaskController_search",
             "WebhookController_create",
             "WebhookController_put",
             "WebhookController_search",
