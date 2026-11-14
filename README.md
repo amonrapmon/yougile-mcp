@@ -66,8 +66,9 @@ most 50 requests per minute, matching the
 Read operations may retry a bounded 429 response when `Retry-After` fits the
 wait budget. A write timeout raises an uncertain-write error and is never
 retried. Multiple server replicas need a distributed limiter. `list_all` uses
-bounded offset pagination (100 pages and 10,000 items); it raises on a stalled cursor or
-budget overflow instead of returning a partial result.
+bounded offset pagination and the task-log timestamp cursor (100 pages and
+10,000 items); it raises on a stalled cursor or budget overflow instead of
+returning a partial result.
 
 ## Verify the foundation
 

@@ -906,7 +906,7 @@ class ApiClientTests(unittest.IsolatedAsyncioTestCase):
                 query={"limit": 1},
             )
             with self.assertRaises(UnsupportedOperationError):
-                await client.list_all("TaskController_getLog")
+                await client.list_all("UserController_getMe")
 
         self.assertEqual(roles, page["content"])
         self.assertEqual(len(seen), 1)
@@ -915,6 +915,86 @@ class ApiClientTests(unittest.IsolatedAsyncioTestCase):
             b"/api-v2/projects/project%2F7/roles",
         )
         self.assertEqual(dict(seen[0].url.params), {"limit": "1", "offset": "0"})
+
+    async def test_task_log_cursor_pagination_uses_last_event_timestamp(self):
+        pages = [
+            {
+                "paging": {"count": 2, "limit": 2, "next": True},
+                "content": [
+                    {"timestamp": 30, "type": "add"},
+                    {"timestamp": 20, "type": "rename"},
+                ],
+            },
+            {
+                "paging": {"count": 1, "limit": 2, "next": False},
+                "content": [{"timestamp": 10, "type": "move"}],
+            },
+        ]
+        seen = []
+
+        def handler(request: httpx.Request) -> httpx.Response:
+            seen.append(request)
+            return httpx.Response(200, json=pages.pop(0))
+
+        async with YouGileClient(
+            _settings(), transport=httpx.MockTransport(handler), sleep=_no_sleep
+        ) as client:
+            entries = await client.list_all(
+                "TaskController_getLog",
+                path={"id": "task/5"},
+                query={"limit": 2},
+            )
+
+        self.assertEqual([entry["timestamp"] for entry in entries], [30, 20, 10])
+        self.assertEqual(
+            [request.url.raw_path.split(b"?", 1)[0] for request in seen],
+            [b"/api-v2/tasks/task%2F5/log"] * 2,
+        )
+        self.assertEqual(dict(seen[0].url.params), {"limit": "2"})
+        self.assertEqual(dict(seen[1].url.params), {"limit": "2", "before": "20"})
+
+    async def test_task_log_cursor_rejects_stalls_and_page_budget_overflow(self):
+        calls = 0
+
+        def stalled_handler(_: httpx.Request) -> httpx.Response:
+            nonlocal calls
+            calls += 1
+            return httpx.Response(
+                200,
+                json={
+                    "paging": {"count": 1, "limit": 1, "next": True},
+                    "content": [{"timestamp": 20, "type": "add"}],
+                },
+            )
+
+        async with YouGileClient(
+            _settings(), transport=httpx.MockTransport(stalled_handler), sleep=_no_sleep
+        ) as client:
+            with self.assertRaises(PaginationError):
+                await client.list_all(
+                    "TaskController_getLog", path={"id": "task-1"}, query={"limit": 1}
+                )
+        self.assertEqual(calls, 2)
+
+        def more_pages(_: httpx.Request) -> httpx.Response:
+            return httpx.Response(
+                200,
+                json={
+                    "paging": {"count": 1, "limit": 1, "next": True},
+                    "content": [{"timestamp": 20, "type": "add"}],
+                },
+            )
+
+        async with YouGileClient(
+            _settings(), transport=httpx.MockTransport(more_pages), sleep=_no_sleep
+        ) as client:
+            with self.assertRaises(PaginationLimitError):
+                await client.list_all(
+                    "TaskController_getLog",
+                    path={"id": "task-1"},
+                    query={"limit": 1},
+                    max_pages=1,
+                )
 
     async def test_pagination_rejects_duplicate_offsets_and_unbounded_results(self):
         calls = 0

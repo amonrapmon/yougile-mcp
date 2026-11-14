@@ -5,6 +5,7 @@
 from __future__ import annotations
 
 import asyncio
+import math
 import re
 import threading
 import time
@@ -264,25 +265,42 @@ class YouGileClient:
             for parameter in operation.parameters
             if parameter.get("in") == "query"
         } if operation is not None else set()
-        if operation_id not in IMPLEMENTED_OPERATION_IDS or not {"limit", "offset"}.issubset(
-            query_parameters
+        offset_pagination = {"limit", "offset"}.issubset(query_parameters)
+        cursor_pagination = {"limit", "before"}.issubset(query_parameters)
+        if operation_id not in IMPLEMENTED_OPERATION_IDS or not (
+            offset_pagination or cursor_pagination
         ):
             raise UnsupportedOperationError()
         current_query = dict(query or {})
         page_size = current_query.get("limit", 50)
         if not isinstance(page_size, int) or isinstance(page_size, bool) or not 1 <= page_size <= _PAGE_SIZE_LIMIT:
             raise InvalidInputError()
-        offset_value = current_query.get("offset", 0)
-        if not isinstance(offset_value, int) or isinstance(offset_value, bool) or offset_value < 0:
-            raise InvalidInputError()
+        cursor_pagination = cursor_pagination and not offset_pagination
+        if cursor_pagination:
+            before_value = current_query.get("before")
+            if before_value is not None and not _finite_number(before_value):
+                raise InvalidInputError()
+        else:
+            offset_value = current_query.get("offset", 0)
+            if not isinstance(offset_value, int) or isinstance(offset_value, bool) or offset_value < 0:
+                raise InvalidInputError()
 
         items: list[dict[str, Any]] = []
         seen_offsets: set[int] = set()
+        seen_cursors: set[int | float] = set()
+        if cursor_pagination and before_value is not None:
+            seen_cursors.add(before_value)
         for page_number in range(1, max_pages + 1):
-            if offset_value in seen_offsets:
-                raise PaginationError()
-            seen_offsets.add(offset_value)
-            current_query["offset"] = offset_value
+            if cursor_pagination:
+                if before_value is None:
+                    current_query.pop("before", None)
+                else:
+                    current_query["before"] = before_value
+            else:
+                if offset_value in seen_offsets:
+                    raise PaginationError()
+                seen_offsets.add(offset_value)
+                current_query["offset"] = offset_value
             response = await self.request(operation_id, path=path, query=current_query)
             data = response.data
             if not isinstance(data, dict):
@@ -291,10 +309,13 @@ class YouGileClient:
             content = data.get("content")
             if not isinstance(paging, dict) or not isinstance(content, list):
                 raise PaginationError()
-            response_offset = _whole_number(paging.get("offset"))
             response_limit = _whole_number(paging.get("limit"))
-            if response_offset != offset_value or response_limit < 1:
+            if response_limit < 1:
                 raise PaginationError()
+            if not cursor_pagination:
+                response_offset = _whole_number(paging.get("offset"))
+                if response_offset != offset_value:
+                    raise PaginationError()
             if any(not isinstance(item, dict) for item in content):
                 raise PaginationError()
             if len(items) + len(content) > max_items:
@@ -304,10 +325,23 @@ class YouGileClient:
                 return items
             if page_number == max_pages:
                 raise PaginationLimitError()
-            next_offset = response_offset + response_limit
-            if next_offset <= response_offset or next_offset in seen_offsets:
-                raise PaginationError()
-            offset_value = next_offset
+            if cursor_pagination:
+                if not content:
+                    raise PaginationError()
+                next_before = content[-1].get("timestamp")
+                if not _finite_number(next_before):
+                    raise PaginationError()
+                if before_value is not None and next_before >= before_value:
+                    raise PaginationError()
+                if next_before in seen_cursors:
+                    raise PaginationError()
+                seen_cursors.add(next_before)
+                before_value = next_before
+            else:
+                next_offset = response_offset + response_limit
+                if next_offset <= response_offset or next_offset in seen_offsets:
+                    raise PaginationError()
+                offset_value = next_offset
         raise PaginationLimitError()
 
     async def _send(
@@ -431,6 +465,15 @@ def _whole_number(value: object) -> int:
     if isinstance(value, bool) or not isinstance(value, (int, float)) or int(value) != value:
         raise PaginationError()
     return int(value)
+
+
+def _finite_number(value: object) -> bool:
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return False
+    try:
+        return math.isfinite(value)
+    except OverflowError:
+        return False
 
 
 def _retry_after(value: str | None) -> float | None:
