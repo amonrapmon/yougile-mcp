@@ -265,7 +265,7 @@ class InventoryTests(unittest.TestCase):
             "operationId": "WebhookController_search",
             "status": "mock_tested",
             "live_evidence": "curl_observed",
-            "compatibility_overlay": {"version": "2026-11-14.1", "source_sha256": "pinned"},
+            "compatibility_overlay": {"version": "2026-11-14.2", "source_sha256": "pinned"},
         }
         self.assertEqual(checker._coverage_metadata_errors([row], "pinned"), [])
         row["status"] = "live_verified"

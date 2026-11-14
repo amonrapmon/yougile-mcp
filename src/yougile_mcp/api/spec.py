@@ -19,7 +19,7 @@ from .errors import InvalidInputError, UpstreamError
 
 _SPEC_FILE = "openapi-v2.json"
 _SOURCE_FILE = "openapi-source.json"
-COMPATIBILITY_OVERLAY_VERSION = "2026-11-14.1"
+COMPATIBILITY_OVERLAY_VERSION = "2026-11-14.2"
 COMPATIBILITY_OVERLAY_SOURCE_SHA256 = "9452cba3571607848de77fc12e68104cb454e403c35c7a6b97521ea6e0d1d406"
 _COMPATIBILITY_PATHS = {
     "CompanyController_get": "/api-v2/companies",
@@ -70,7 +70,12 @@ def load_compatible_spec() -> dict[str, Any]:
     webhook_filters = spec["components"]["schemas"]["WebhookFilters"]
     webhook_filters["properties"] = {
         "name": {"type": "string"},
-        "value": {"type": "string"},
+        "value": {
+            "oneOf": [
+                {"type": "string"},
+                {"type": "array", "items": {"type": "string"}},
+            ]
+        },
     }
     webhooks = spec["paths"]["/api-v2/webhooks"]
     webhooks["get"]["responses"]["200"]["content"]["application/json"]["schema"] = {

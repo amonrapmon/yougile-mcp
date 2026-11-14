@@ -161,16 +161,19 @@ COMPATIBILITY_NOTES = {
         "UpdateCompanyDto; no live company update was performed."
     ),
     "WebhookController_create": (
-        "Overlay treats webhook filter name/value as strings; curl confirmed "
-        "the title filter shape and HTTP 201 response."
+        "Overlay keeps filter name as a string and accepts string or string-array "
+        "values per the pinned OAS examples; curl confirmed only the title/string "
+        "filter and HTTP 201 response."
     ),
     "WebhookController_put": (
-        "Overlay treats webhook filter name/value as strings; curl confirmed "
-        "disabled=true persisted after PUT on a disposable test webhook."
+        "Overlay keeps filter name as a string and accepts string or string-array "
+        "values per the pinned OAS examples; curl confirmed disabled=true persisted "
+        "after PUT, not the location-array filter."
     ),
     "WebhookController_search": (
-        "Overlay decodes the curl-observed response as an array and uses string "
-        "filter fields; other filter variants are not live-verified."
+        "Overlay decodes the curl-observed response as an array and accepts string "
+        "or string-array filter values per the pinned OAS examples; curl confirmed "
+        "only the title/string filter, not location arrays."
     ),
     "FileController_uploadFile": (
         "Overlay removes the malformed multipart ref and accepts the curl-observed "

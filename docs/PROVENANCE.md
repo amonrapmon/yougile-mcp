@@ -66,25 +66,28 @@ The sanitized manual evidence is in
 `docs/verification/yougile-live-2026-11-14.md`; curl observations do not prove
 the Python SDK called the live service.
 
-Compatibility overlay `2026-11-14.1` is bound to the pinned OpenAPI SHA-256
+Compatibility overlay `2026-11-14.2` is bound to the pinned OpenAPI SHA-256
 `9452cba3571607848de77fc12e68104cb454e403c35c7a6b97521ea6e0d1d406` and is
 implemented in `src/yougile_mcp/api/spec.py`. It leaves the vendor JSON and
 source checksum untouched. The overlay maps both company operations to the
 no-ID `/api-v2/companies` route, allows the curl-observed `deleted: null`
-company response, validates webhook filter `name`/`value` as strings and the
-search response as an array, removes the malformed multipart schema ref, and
-accepts the observed upload response status 201 with the existing
-`FileUploadDto` schema.
+company response, validates webhook filter `name` as a string and `value` as
+either a string or an array of strings per the pinned OpenAPI examples, and
+decodes the search response as an array. It removes the malformed multipart
+schema ref and accepts the observed upload response status 201 with the
+existing `FileUploadDto` schema.
 
 Only the owner-run curl GET verified the company route. Company PUT is
 implemented against the canonical no-ID path and pinned `UpdateCompanyDto`,
 with positive and negative mock contracts; no real company update was made.
-The webhook string overlay follows the observed `title` filter; other filter
-variants and webhook delivery remain unverified. Upload accepts bytes only,
-uses multipart field `file`, defaults to a 10 MiB maximum and `text/plain`
+Only the webhook `title` filter with a string value was observed via curl.
+The `location` array form follows pinned OpenAPI documentation and is not live
+verified; webhook delivery also remains unverified. Upload uses buffered bytes
+and multipart field `file`, defaults to a 10 MiB maximum and `text/plain`
 allowlist, and supports constructor-level size/MIME policy configuration.
-These upload restrictions are local policy, not vendor limits. Upload writes
-are not retried after uncertain outcomes.
+Streaming is not implemented. These upload restrictions are local policy, not
+vendor limits; unsafe filenames are rejected and writes are not retried after
+uncertain outcomes.
 
 ## Requirements before importing code
 

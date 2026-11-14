@@ -869,7 +869,7 @@
       "status": "mock_tested",
       "live_evidence": "curl_observed",
       "compatibility_overlay": {
-        "version": "2026-11-14.1",
+        "version": "2026-11-14.2",
         "source_sha256": "9452cba3571607848de77fc12e68104cb454e403c35c7a6b97521ea6e0d1d406"
       },
       "test_bindings": [
@@ -912,7 +912,7 @@
       "status": "mock_tested",
       "live_evidence": "not_tested",
       "compatibility_overlay": {
-        "version": "2026-11-14.1",
+        "version": "2026-11-14.2",
         "source_sha256": "9452cba3571607848de77fc12e68104cb454e403c35c7a6b97521ea6e0d1d406"
       },
       "test_bindings": [
@@ -1254,7 +1254,7 @@
       "status": "mock_tested",
       "live_evidence": "curl_observed",
       "compatibility_overlay": {
-        "version": "2026-11-14.1",
+        "version": "2026-11-14.2",
         "source_sha256": "9452cba3571607848de77fc12e68104cb454e403c35c7a6b97521ea6e0d1d406"
       },
       "test_bindings": [
@@ -3554,7 +3554,7 @@
       "status": "mock_tested",
       "live_evidence": "curl_observed",
       "compatibility_overlay": {
-        "version": "2026-11-14.1",
+        "version": "2026-11-14.2",
         "source_sha256": "9452cba3571607848de77fc12e68104cb454e403c35c7a6b97521ea6e0d1d406"
       },
       "test_bindings": [
@@ -3566,7 +3566,7 @@
           }
         }
       ],
-      "notes": "Overlay treats webhook filter name/value as strings; curl confirmed the title filter shape and HTTP 201 response."
+      "notes": "Overlay keeps filter name as a string and accepts string or string-array values per the pinned OAS examples; curl confirmed only the title/string filter and HTTP 201 response."
     },
     {
       "operationId": "WebhookController_put",
@@ -3605,7 +3605,7 @@
       "status": "mock_tested",
       "live_evidence": "curl_observed",
       "compatibility_overlay": {
-        "version": "2026-11-14.1",
+        "version": "2026-11-14.2",
         "source_sha256": "9452cba3571607848de77fc12e68104cb454e403c35c7a6b97521ea6e0d1d406"
       },
       "test_bindings": [
@@ -3617,7 +3617,7 @@
           }
         }
       ],
-      "notes": "Overlay treats webhook filter name/value as strings; curl confirmed disabled=true persisted after PUT on a disposable test webhook."
+      "notes": "Overlay keeps filter name as a string and accepts string or string-array values per the pinned OAS examples; curl confirmed disabled=true persisted after PUT, not the location-array filter."
     },
     {
       "operationId": "WebhookController_search",
@@ -3651,7 +3651,7 @@
       "status": "mock_tested",
       "live_evidence": "curl_observed",
       "compatibility_overlay": {
-        "version": "2026-11-14.1",
+        "version": "2026-11-14.2",
         "source_sha256": "9452cba3571607848de77fc12e68104cb454e403c35c7a6b97521ea6e0d1d406"
       },
       "test_bindings": [
@@ -3663,7 +3663,7 @@
           }
         }
       ],
-      "notes": "Overlay decodes the curl-observed response as an array and uses string filter fields; other filter variants are not live-verified."
+      "notes": "Overlay decodes the curl-observed response as an array and accepts string or string-array filter values per the pinned OAS examples; curl confirmed only the title/string filter, not location arrays."
     },
     {
       "operationId": "getCompanies",

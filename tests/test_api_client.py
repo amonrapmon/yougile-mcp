@@ -1688,6 +1688,136 @@ class ApiClientTests(unittest.IsolatedAsyncioTestCase):
                     self.assertEqual(request.content, b"")
                 print(f"MockTransport contract passed: {operation_id}")
 
+    async def test_webhook_filter_values_accept_strings_and_string_arrays(self):
+        filter_values = (
+            {"name": "title", "value": "^GEN214_TEST_ONLY$"},
+            {
+                "name": "location",
+                "value": [
+                    "858c5d32-dd93-4d2b-9b9c-aa1ec7007c0c",
+                    "432c5d32-dd93-4d2b-9b9c-aa1ec7007c0c",
+                ],
+            },
+        )
+        for filter_value in filter_values:
+            for operation_id in (
+                "WebhookController_create",
+                "WebhookController_put",
+                "WebhookController_search",
+            ):
+                with self.subTest(operation_id=operation_id, value=filter_value["value"]):
+                    webhook = {
+                        "id": "webhook-test",
+                        "event": "task-created",
+                        "url": "https://receiver.example.test",
+                        "filters": [filter_value],
+                        "failuresSinceLastSuccess": 0,
+                    }
+                    if operation_id == "WebhookController_create":
+                        path = {}
+                        body = {
+                            "url": webhook["url"],
+                            "event": webhook["event"],
+                            "filters": [filter_value],
+                        }
+                        status_code = 201
+                        response_body = {"id": webhook["id"]}
+                    elif operation_id == "WebhookController_put":
+                        path = {"id": webhook["id"]}
+                        body = {"filters": [filter_value]}
+                        status_code = 200
+                        response_body = {"id": webhook["id"]}
+                    else:
+                        path = {}
+                        body = None
+                        status_code = 200
+                        response_body = [webhook]
+
+                    seen = []
+
+                    def handler(request: httpx.Request) -> httpx.Response:
+                        seen.append(request)
+                        return httpx.Response(status_code, json=response_body)
+
+                    async with YouGileClient(
+                        _settings(), transport=httpx.MockTransport(handler), sleep=_no_sleep
+                    ) as client:
+                        result = await client.request(
+                            operation_id=operation_id,
+                            path=path,
+                            query={},
+                            body=body,
+                        )
+
+                    self.assertEqual(result.status_code, status_code)
+                    self.assertEqual(len(seen), 1)
+                    if operation_id == "WebhookController_search":
+                        self.assertEqual(result.data[0]["filters"][0], filter_value)
+                    else:
+                        self.assertEqual(json.loads(seen[0].content), body)
+
+    async def test_webhook_filter_schemas_reject_invalid_names_and_values(self):
+        invalid_filters = (
+            {"name": ["location"], "value": "^GEN214_TEST_ONLY$"},
+            {"name": "location", "value": 42},
+            {"name": "location", "value": ["858c5d32-dd93-4d2b-9b9c-aa1ec7007c0c", 42]},
+            {"name": "location", "value": {"id": "858c5d32-dd93-4d2b-9b9c-aa1ec7007c0c"}},
+        )
+        for operation_id in ("WebhookController_create", "WebhookController_put"):
+            for invalid_filter in invalid_filters:
+                with self.subTest(operation_id=operation_id, filter=invalid_filter):
+                    calls = 0
+
+                    def handler(_: httpx.Request) -> httpx.Response:
+                        nonlocal calls
+                        calls += 1
+                        return httpx.Response(200, json={"id": "webhook-test"})
+
+                    path = {"id": "webhook-test"} if operation_id == "WebhookController_put" else {}
+                    body = {"filters": [invalid_filter]}
+                    if operation_id == "WebhookController_create":
+                        body.update(
+                            url="https://receiver.example.test",
+                            event="task-created",
+                        )
+
+                    async with YouGileClient(
+                        _settings(), transport=httpx.MockTransport(handler), sleep=_no_sleep
+                    ) as client:
+                        with self.assertRaises(InvalidInputError):
+                            await client.request(
+                                operation_id=operation_id,
+                                path=path,
+                                query={},
+                                body=body,
+                            )
+                    self.assertEqual(calls, 0)
+
+        for invalid_filter in invalid_filters:
+            with self.subTest(operation_id="WebhookController_search", filter=invalid_filter):
+                calls = 0
+                webhook = {
+                    "id": "webhook-test",
+                    "event": "task-created",
+                    "url": "https://receiver.example.test",
+                    "filters": [invalid_filter],
+                    "failuresSinceLastSuccess": 0,
+                }
+
+                def handler(_: httpx.Request) -> httpx.Response:
+                    nonlocal calls
+                    calls += 1
+                    return httpx.Response(200, json=[webhook])
+
+                async with YouGileClient(
+                    _settings(), transport=httpx.MockTransport(handler), sleep=_no_sleep
+                ) as client:
+                    with self.assertRaises(UpstreamError):
+                        await client.request(
+                            operation_id="WebhookController_search", path={}, query={}
+                        )
+                self.assertEqual(calls, 1)
+
     async def test_compatibility_overlay_uses_canonical_routes_without_mutating_vendor_spec(self):
         spec = load_spec()
         compatible = load_compatible_spec()
@@ -1705,8 +1835,17 @@ class ApiClientTests(unittest.IsolatedAsyncioTestCase):
             compatible["components"]["schemas"]["CompanyDto"]["properties"]["deleted"]["nullable"]
         )
         self.assertEqual(
-            compatible["components"]["schemas"]["WebhookFilters"]["properties"],
-            {"name": {"type": "string"}, "value": {"type": "string"}},
+            compatible["components"]["schemas"]["WebhookFilters"]["properties"]["name"],
+            {"type": "string"},
+        )
+        self.assertEqual(
+            compatible["components"]["schemas"]["WebhookFilters"]["properties"]["value"],
+            {
+                "oneOf": [
+                    {"type": "string"},
+                    {"type": "array", "items": {"type": "string"}},
+                ]
+            },
         )
         upload_schema = compatible["paths"]["/api-v2/upload-file"]["post"]["requestBody"]["content"]["multipart/form-data"]["schema"]
         self.assertNotIn("$ref", upload_schema)

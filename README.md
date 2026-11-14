@@ -66,11 +66,31 @@ only through a fake HTTP transport. Do not use it against a real company
 without separate authorization. See `tests/test_api_client.py` for the mocked
 write examples.
 
-File uploads accept bytes rather than local paths. The default local policy is
-10 MiB and `text/plain`; callers can set `max_upload_bytes` and
-`allowed_upload_content_types` when constructing `YouGileClient`. Those limits
-are client policy, not verified YouGile limits. Upload timeout results are
-uncertain and are never retried.
+File uploads use buffered `bytes`, not local paths or streaming input. The
+default local policy is 10 MiB and a `text/plain` allowlist; these are client
+limits, not verified YouGile limits. Set the constructor options to allow PDF,
+image and other MIME types, for example:
+
+```python
+async with YouGileClient(
+    Settings.from_env(),
+    max_upload_bytes=25 * 1024 * 1024,
+    allowed_upload_content_types={
+        "application/pdf",
+        "image/jpeg",
+        "image/png",
+        "image/webp",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    },
+) as api:
+    await api.upload_file(
+        filename="report.pdf", content=pdf_bytes, content_type="application/pdf"
+    )
+```
+
+Uploads reject unsafe filenames, content over the configured limit and MIME
+types outside the allowlist. A timeout has an uncertain result and is never
+retried.
 
 Clients with the same `YOUGILE_COMPANY_ID` share a process-local budget of at
 most 50 requests per minute, matching the
