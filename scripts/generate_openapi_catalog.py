@@ -143,36 +143,68 @@ CURL_OBSERVED_OPERATION_IDS = {
     "WebhookController_search",
     "FileController_uploadFile",
 }
-COMPATIBILITY_OVERLAY_OPERATION_IDS = {
+SDK_PASS_OPERATION_IDS = {
+    "BoardController_get",
     "BoardController_search",
+    "ChatMessageController_search",
+    "ColumnController_get",
+    "ColumnController_search",
+    "CompanyController_get",
+    "DepartmentController_search",
+    "GroupChatController_get",
+    "GroupChatController_search",
     "ProjectController_search",
+    "ProjectRolesController_search",
+    "SprintStickerController_search",
+    "StringStickerController_search",
+    "TaskController_getChatSubscribers",
+    "TaskController_getLog",
+    "TaskController_search",
+    "TaskController_searchReversed",
+    "ProjectController_get",
+    "UserController_get",
+    "UserController_getMe",
+    "UserController_search",
+    "WebhookController_search",
+    "TaskController_get",
+}
+SDK_MISMATCH_OPERATION_IDS: set[str] = set()
+COMPATIBILITY_OVERLAY_OPERATION_IDS = {
+    "BoardController_get",
+    "BoardController_search",
     "TaskController_search",
     "CompanyController_get",
     "CompanyController_update",
+    "GroupChatController_search",
+    "GroupChatController_get",
+    "ProjectController_get",
+    "ProjectController_search",
+    "TaskController_get",
     "WebhookController_create",
     "WebhookController_put",
     "WebhookController_search",
     "FileController_uploadFile",
 }
 COMPATIBILITY_NOTES = {
+    "BoardController_get": (
+        "GEN-229 first live SDK GET returned deleted=null; the narrow BoardDto "
+        "overlay was followed by a successful SDK GET. Invalid types remain rejected."
+    ),
     "BoardController_search": (
-        "Owner-observed live SDK GET: HTTP 200 list response with deleted=null. "
-        "Overlay permits nullable deleted only in BoardListDtoBase; repeat "
-        "SDK verification after the fix before declaring the call live-verified."
+        "GEN-229 repeated the live SDK GET successfully after the list DTO overlay "
+        "for deleted=null; invalid non-boolean values remain rejected."
     ),
     "ProjectController_search": (
-        "Owner-observed live SDK GET: HTTP 200 list response with deleted=null. "
-        "Overlay permits nullable deleted only in ProjectListDtoBase; repeat "
-        "SDK verification after the fix before declaring the call live-verified."
+        "GEN-229 repeated the live SDK GET successfully after the list DTO overlay "
+        "for deleted=null; invalid non-boolean values remain rejected."
     ),
     "TaskController_search": (
-        "Owner-observed live SDK GET: HTTP 200 list response with deleted=null. "
-        "Overlay permits nullable deleted only in TaskListDtoBase; repeat "
-        "SDK verification after the fix before declaring the call live-verified."
+        "GEN-229 repeated the live SDK GET successfully after the list DTO overlay "
+        "for deleted=null; invalid non-boolean values remain rejected."
     ),
     "CompanyController_get": (
-        "Overlay uses the curl-observed no-ID current-company route and permits "
-        "deleted=null; evidence is manual curl, not Python-client live verification."
+        "The no-ID current-company route and deleted=null compatibility were "
+        "confirmed by both owner-supplied curl evidence and GEN-229 SDK GET."
     ),
     "CompanyController_update": (
         "Mock-only PUT uses the canonical current-company route and pinned "
@@ -196,6 +228,23 @@ COMPATIBILITY_NOTES = {
     "FileController_uploadFile": (
         "Overlay removes the malformed multipart ref and accepts the curl-observed "
         "201 FileUploadDto; size and MIME limits are configurable client policy."
+    ),
+    "GroupChatController_search": (
+        "GEN-229 first live SDK GET returned deleted=null in list items; the "
+        "narrow GroupChatListDtoBase overlay was followed by a successful SDK GET."
+    ),
+    "GroupChatController_get": (
+        "GEN-229 follow-up SDK GET found deleted=null after the group-chat list "
+        "overlay; the narrow GroupChatDto overlay was followed by a successful GET. "
+        "Invalid values remain rejected."
+    ),
+    "ProjectController_get": (
+        "GEN-229 first live SDK GET returned deleted=null; the narrow ProjectDto "
+        "overlay was followed by a successful SDK GET. Invalid types remain rejected."
+    ),
+    "TaskController_get": (
+        "GEN-229 first live SDK GET returned deleted=null; the narrow TaskDto "
+        "overlay was followed by a successful SDK GET. Invalid types remain rejected."
     ),
 }
 
@@ -271,11 +320,7 @@ def build_catalog(spec: dict[str, Any], source: dict[str, Any]) -> dict[str, Any
                     "auth": {"schemes": auth_schemes},
                     "effect": operation_effect(operation_id, method),
                     "status": "mock_tested" if operation_id in MOCK_TESTS else "discovered",
-                    "live_evidence": (
-                        "curl_observed"
-                        if operation_id in CURL_OBSERVED_OPERATION_IDS
-                        else "not_tested"
-                    ),
+                    "live_evidence": _live_evidence(operation_id),
                     "compatibility_overlay": {
                         "version": COMPATIBILITY_OVERLAY_VERSION,
                         "source_sha256": COMPATIBILITY_OVERLAY_SOURCE_SHA256,
@@ -327,6 +372,16 @@ def _note(operation_id: str) -> str | None:
             "need an approved client policy."
         )
     return "Not yet covered by a MockTransport contract."
+
+
+def _live_evidence(operation_id: str) -> str:
+    if operation_id in SDK_MISMATCH_OPERATION_IDS:
+        return "live_mismatch_via_client"
+    if operation_id in SDK_PASS_OPERATION_IDS:
+        return "live_verified_via_client"
+    if operation_id in CURL_OBSERVED_OPERATION_IDS:
+        return "curl_observed"
+    return "not_tested"
 
 
 def main() -> int:

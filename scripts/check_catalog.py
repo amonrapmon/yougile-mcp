@@ -233,7 +233,12 @@ def _test_binding_errors(operations: list[dict], test_methods: dict[str, ast.AST
 
 def _coverage_metadata_errors(operations: list[dict], source_sha256: str) -> list[str]:
     errors = []
-    live_evidence = {"not_tested", "curl_observed", "live_verified_via_client"}
+    live_evidence = {
+        "not_tested",
+        "curl_observed",
+        "live_verified_via_client",
+        "live_mismatch_via_client",
+    }
     for item in operations:
         operation_id = item.get("operationId", "<unknown>")
         evidence = item.get("live_evidence")

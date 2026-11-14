@@ -22,6 +22,7 @@ from yougile_mcp.api import (
     PaginationLimitError,
     PermissionDeniedError,
     RateLimitError,
+    RequestBudgetError,
     RequestTimeoutError,
     UncertainWriteError,
     UnsupportedOperationError,
@@ -30,7 +31,13 @@ from yougile_mcp.api import (
     YouGileClient,
 )
 from yougile_mcp.api.client import _decode_response
-from yougile_mcp.api.spec import Operation, load_compatible_spec, load_spec, operations
+from yougile_mcp.api.spec import (
+    Operation,
+    load_compatible_spec,
+    load_spec,
+    operations,
+    validate_schema,
+)
 from yougile_mcp.config import Settings
 
 
@@ -1240,6 +1247,25 @@ class ApiClientTests(unittest.IsolatedAsyncioTestCase):
                 await client.create_column({"title": "To do", "boardId": "board-1"})
         self.assertEqual(calls, 1)
 
+    async def test_request_budget_counts_retry_attempts(self):
+        calls = 0
+
+        def handler(_: httpx.Request) -> httpx.Response:
+            nonlocal calls
+            calls += 1
+            return httpx.Response(429, headers={"Retry-After": "0"})
+
+        async with YouGileClient(
+            _settings(),
+            transport=httpx.MockTransport(handler),
+            sleep=_no_sleep,
+            max_requests=1,
+        ) as client:
+            with self.assertRaises(RequestBudgetError):
+                await client.search_boards()
+            self.assertEqual(client.requests_sent, 1)
+        self.assertEqual(calls, 1)
+
     async def test_post_timeout_is_uncertain_and_never_retried(self):
         calls = 0
 
@@ -1385,6 +1411,53 @@ class ApiClientTests(unittest.IsolatedAsyncioTestCase):
                 await client.search_boards()
             with self.assertRaises(UpstreamError):
                 await client.get_board("board-1")
+
+    async def test_response_schema_diagnostics_redact_values_and_dynamic_keys(self):
+        schema = operations()["ProjectController_search"].responses["200"]["content"][
+            "application/json"
+        ]["schema"]
+        response = _page(
+            0,
+            [
+                {
+                    "id": "safe-id",
+                    "title": "Sample",
+                    "timestamp": 123,
+                    "deleted": "PRIVATE_VALUE",
+                }
+            ],
+            next_page=False,
+        )
+        with self.assertRaises(UpstreamError) as raised:
+            validate_schema(response, schema, request=False)
+        diagnostic = raised.exception.diagnostic
+        self.assertIsNotNone(diagnostic)
+        self.assertEqual(diagnostic.path, "content.[item].deleted")
+        self.assertEqual(diagnostic.rule, "type")
+        self.assertEqual(diagnostic.expected_type, "boolean")
+        self.assertEqual(diagnostic.actual_type, "string")
+        self.assertNotIn("PRIVATE_VALUE", repr(diagnostic))
+
+        with self.assertRaises(UpstreamError) as raised:
+            validate_schema(
+                {"metadata": {"private@example.test": "PRIVATE_VALUE"}},
+                {
+                    "type": "object",
+                    "properties": {
+                        "metadata": {
+                            "type": "object",
+                            "additionalProperties": {"type": "boolean"},
+                        }
+                    },
+                },
+                request=False,
+            )
+        diagnostic = raised.exception.diagnostic
+        self.assertEqual(diagnostic.path, "metadata.[key]")
+        self.assertEqual(diagnostic.expected_type, "boolean")
+        self.assertEqual(diagnostic.actual_type, "string")
+        self.assertNotIn("private@example.test", repr(diagnostic))
+        self.assertNotIn("PRIVATE_VALUE", repr(diagnostic))
 
     async def test_empty_success_response_is_rejected_when_dto_is_declared(self):
         def handler(_: httpx.Request) -> httpx.Response:
@@ -1923,6 +1996,50 @@ class ApiClientTests(unittest.IsolatedAsyncioTestCase):
                     with self.assertRaises(UpstreamError):
                         await client.request(operation_id, query={"limit": 1, "offset": 0})
 
+    async def test_gen229_nullable_deleted_overlay_covers_confirmed_detail_and_chat_list_dtos(self):
+        cases = {
+            "BoardController_get": {"path": {"id": "board-test"}},
+            "GroupChatController_get": {"path": {"id": "group-chat-test"}},
+            "ProjectController_get": {"path": {"id": "project-test"}},
+            "TaskController_get": {"path": {"id": "task-test"}},
+            "GroupChatController_search": {"path": {}, "query": {"limit": 1, "offset": 0}},
+        }
+        for operation_id, kwargs in cases.items():
+            with self.subTest(operation=operation_id):
+                sample = _sample_operation_response(operation_id)
+                record = sample["content"][0] if operation_id == "GroupChatController_search" else sample
+                record["deleted"] = None
+
+                async with YouGileClient(
+                    _settings(),
+                    transport=httpx.MockTransport(lambda _: httpx.Response(200, json=sample)),
+                    sleep=_no_sleep,
+                ) as client:
+                    response = await client.request(operation_id, **kwargs)
+                record = (
+                    response.data["content"][0]
+                    if operation_id == "GroupChatController_search"
+                    else response.data
+                )
+                self.assertIsNone(record["deleted"])
+
+                invalid = _sample_operation_response(operation_id)
+                invalid_record = (
+                    invalid["content"][0]
+                    if operation_id == "GroupChatController_search"
+                    else invalid
+                )
+                invalid_record["deleted"] = "not-a-boolean"
+                async with YouGileClient(
+                    _settings(),
+                    transport=httpx.MockTransport(lambda _: httpx.Response(200, json=invalid)),
+                    sleep=_no_sleep,
+                ) as client:
+                    with self.assertRaises(UpstreamError) as raised:
+                        await client.request(operation_id, **kwargs)
+                self.assertEqual(raised.exception.diagnostic.expected_type, "boolean")
+                self.assertEqual(raised.exception.diagnostic.actual_type, "string")
+
     async def test_compatibility_overlay_uses_canonical_routes_without_mutating_vendor_spec(self):
         spec = load_spec()
         compatible = load_compatible_spec()
@@ -1947,10 +2064,19 @@ class ApiClientTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(raw_field["type"], "boolean")
                 self.assertIs(compatible_field["nullable"], True)
                 self.assertEqual(compatible_field["type"], "boolean")
-        for schema_name in ("ProjectDto", "BoardDto", "TaskDto"):
-            self.assertNotIn(
-                "nullable", compatible["components"]["schemas"][schema_name]["properties"]["deleted"]
-            )
+        for schema_name in (
+            "ProjectDto",
+            "BoardDto",
+            "TaskDto",
+            "GroupChatDto",
+            "GroupChatListDtoBase",
+        ):
+            with self.subTest(schema=schema_name):
+                raw_field = spec["components"]["schemas"][schema_name]["properties"]["deleted"]
+                compatible_field = compatible["components"]["schemas"][schema_name]["properties"]["deleted"]
+                self.assertNotIn("nullable", raw_field)
+                self.assertEqual(compatible_field["nullable"], True)
+                self.assertEqual(compatible_field["type"], "boolean")
 
         self.assertEqual(
             compatible["components"]["schemas"]["WebhookFilters"]["properties"]["name"],

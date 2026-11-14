@@ -202,8 +202,11 @@
       },
       "effect": "read",
       "status": "mock_tested",
-      "live_evidence": "not_tested",
-      "compatibility_overlay": null,
+      "live_evidence": "live_verified_via_client",
+      "compatibility_overlay": {
+        "version": "2026-11-14.5",
+        "source_sha256": "9452cba3571607848de77fc12e68104cb454e403c35c7a6b97521ea6e0d1d406"
+      },
       "test_bindings": [
         {
           "test_path": "tests/test_api_client.py::ApiClientTests.test_board_detail_and_column_list_schemas",
@@ -211,7 +214,7 @@
           "kwargs": {}
         }
       ],
-      "notes": null
+      "notes": "GEN-229 first live SDK GET returned deleted=null; the narrow BoardDto overlay was followed by a successful SDK GET. Invalid types remain rejected."
     },
     {
       "operationId": "BoardController_search",
@@ -278,9 +281,9 @@
       },
       "effect": "read",
       "status": "mock_tested",
-      "live_evidence": "not_tested",
+      "live_evidence": "live_verified_via_client",
       "compatibility_overlay": {
-        "version": "2026-11-14.3",
+        "version": "2026-11-14.5",
         "source_sha256": "9452cba3571607848de77fc12e68104cb454e403c35c7a6b97521ea6e0d1d406"
       },
       "test_bindings": [
@@ -290,7 +293,7 @@
           "kwargs": {}
         }
       ],
-      "notes": "Owner-observed live SDK GET: HTTP 200 list response with deleted=null. Overlay permits nullable deleted only in BoardListDtoBase; repeat SDK verification after the fix before declaring the call live-verified."
+      "notes": "GEN-229 repeated the live SDK GET successfully after the list DTO overlay for deleted=null; invalid non-boolean values remain rejected."
     },
     {
       "operationId": "BoardController_update",
@@ -484,7 +487,7 @@
       },
       "effect": "read",
       "status": "mock_tested",
-      "live_evidence": "not_tested",
+      "live_evidence": "live_verified_via_client",
       "compatibility_overlay": null,
       "test_bindings": [
         {
@@ -710,7 +713,7 @@
       },
       "effect": "read",
       "status": "mock_tested",
-      "live_evidence": "not_tested",
+      "live_evidence": "live_verified_via_client",
       "compatibility_overlay": null,
       "test_bindings": [
         {
@@ -788,7 +791,7 @@
       },
       "effect": "read",
       "status": "mock_tested",
-      "live_evidence": "not_tested",
+      "live_evidence": "live_verified_via_client",
       "compatibility_overlay": null,
       "test_bindings": [
         {
@@ -870,9 +873,9 @@
       },
       "effect": "read",
       "status": "mock_tested",
-      "live_evidence": "curl_observed",
+      "live_evidence": "live_verified_via_client",
       "compatibility_overlay": {
-        "version": "2026-11-14.3",
+        "version": "2026-11-14.5",
         "source_sha256": "9452cba3571607848de77fc12e68104cb454e403c35c7a6b97521ea6e0d1d406"
       },
       "test_bindings": [
@@ -884,7 +887,7 @@
           }
         }
       ],
-      "notes": "Overlay uses the curl-observed no-ID current-company route and permits deleted=null; evidence is manual curl, not Python-client live verification."
+      "notes": "The no-ID current-company route and deleted=null compatibility were confirmed by both owner-supplied curl evidence and GEN-229 SDK GET."
     },
     {
       "operationId": "CompanyController_update",
@@ -915,7 +918,7 @@
       "status": "mock_tested",
       "live_evidence": "not_tested",
       "compatibility_overlay": {
-        "version": "2026-11-14.3",
+        "version": "2026-11-14.5",
         "source_sha256": "9452cba3571607848de77fc12e68104cb454e403c35c7a6b97521ea6e0d1d406"
       },
       "test_bindings": [
@@ -1166,7 +1169,7 @@
       },
       "effect": "read",
       "status": "mock_tested",
-      "live_evidence": "not_tested",
+      "live_evidence": "live_verified_via_client",
       "compatibility_overlay": null,
       "test_bindings": [
         {
@@ -1257,7 +1260,7 @@
       "status": "mock_tested",
       "live_evidence": "curl_observed",
       "compatibility_overlay": {
-        "version": "2026-11-14.3",
+        "version": "2026-11-14.5",
         "source_sha256": "9452cba3571607848de77fc12e68104cb454e403c35c7a6b97521ea6e0d1d406"
       },
       "test_bindings": [
@@ -1341,8 +1344,11 @@
       },
       "effect": "read",
       "status": "mock_tested",
-      "live_evidence": "not_tested",
-      "compatibility_overlay": null,
+      "live_evidence": "live_verified_via_client",
+      "compatibility_overlay": {
+        "version": "2026-11-14.5",
+        "source_sha256": "9452cba3571607848de77fc12e68104cb454e403c35c7a6b97521ea6e0d1d406"
+      },
       "test_bindings": [
         {
           "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
@@ -1352,7 +1358,7 @@
           }
         }
       ],
-      "notes": null
+      "notes": "GEN-229 follow-up SDK GET found deleted=null after the group-chat list overlay; the narrow GroupChatDto overlay was followed by a successful GET. Invalid values remain rejected."
     },
     {
       "operationId": "GroupChatController_search",
@@ -1412,8 +1418,11 @@
       },
       "effect": "read",
       "status": "mock_tested",
-      "live_evidence": "not_tested",
-      "compatibility_overlay": null,
+      "live_evidence": "live_verified_via_client",
+      "compatibility_overlay": {
+        "version": "2026-11-14.5",
+        "source_sha256": "9452cba3571607848de77fc12e68104cb454e403c35c7a6b97521ea6e0d1d406"
+      },
       "test_bindings": [
         {
           "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
@@ -1423,7 +1432,7 @@
           }
         }
       ],
-      "notes": null
+      "notes": "GEN-229 first live SDK GET returned deleted=null in list items; the narrow GroupChatListDtoBase overlay was followed by a successful SDK GET."
     },
     {
       "operationId": "GroupChatController_update",
@@ -1543,8 +1552,11 @@
       },
       "effect": "read",
       "status": "mock_tested",
-      "live_evidence": "not_tested",
-      "compatibility_overlay": null,
+      "live_evidence": "live_verified_via_client",
+      "compatibility_overlay": {
+        "version": "2026-11-14.5",
+        "source_sha256": "9452cba3571607848de77fc12e68104cb454e403c35c7a6b97521ea6e0d1d406"
+      },
       "test_bindings": [
         {
           "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
@@ -1554,7 +1566,7 @@
           }
         }
       ],
-      "notes": null
+      "notes": "GEN-229 first live SDK GET returned deleted=null; the narrow ProjectDto overlay was followed by a successful SDK GET. Invalid types remain rejected."
     },
     {
       "operationId": "ProjectController_search",
@@ -1614,9 +1626,9 @@
       },
       "effect": "read",
       "status": "mock_tested",
-      "live_evidence": "not_tested",
+      "live_evidence": "live_verified_via_client",
       "compatibility_overlay": {
-        "version": "2026-11-14.3",
+        "version": "2026-11-14.5",
         "source_sha256": "9452cba3571607848de77fc12e68104cb454e403c35c7a6b97521ea6e0d1d406"
       },
       "test_bindings": [
@@ -1628,7 +1640,7 @@
           }
         }
       ],
-      "notes": "Owner-observed live SDK GET: HTTP 200 list response with deleted=null. Overlay permits nullable deleted only in ProjectListDtoBase; repeat SDK verification after the fix before declaring the call live-verified."
+      "notes": "GEN-229 repeated the live SDK GET successfully after the list DTO overlay for deleted=null; invalid non-boolean values remain rejected."
     },
     {
       "operationId": "ProjectController_update",
@@ -1885,7 +1897,7 @@
       },
       "effect": "read",
       "status": "mock_tested",
-      "live_evidence": "not_tested",
+      "live_evidence": "live_verified_via_client",
       "compatibility_overlay": null,
       "test_bindings": [
         {
@@ -2101,7 +2113,7 @@
       },
       "effect": "read",
       "status": "mock_tested",
-      "live_evidence": "not_tested",
+      "live_evidence": "live_verified_via_client",
       "compatibility_overlay": null,
       "test_bindings": [
         {
@@ -2471,7 +2483,7 @@
       },
       "effect": "read",
       "status": "mock_tested",
-      "live_evidence": "not_tested",
+      "live_evidence": "live_verified_via_client",
       "compatibility_overlay": null,
       "test_bindings": [
         {
@@ -2763,8 +2775,11 @@
       },
       "effect": "read",
       "status": "mock_tested",
-      "live_evidence": "not_tested",
-      "compatibility_overlay": null,
+      "live_evidence": "live_verified_via_client",
+      "compatibility_overlay": {
+        "version": "2026-11-14.5",
+        "source_sha256": "9452cba3571607848de77fc12e68104cb454e403c35c7a6b97521ea6e0d1d406"
+      },
       "test_bindings": [
         {
           "test_path": "tests/test_api_client.py::ApiClientTests.test_path_value_is_percent_encoded",
@@ -2772,7 +2787,7 @@
           "kwargs": {}
         }
       ],
-      "notes": null
+      "notes": "GEN-229 first live SDK GET returned deleted=null; the narrow TaskDto overlay was followed by a successful SDK GET. Invalid types remain rejected."
     },
     {
       "operationId": "TaskController_getChatSubscribers",
@@ -2803,7 +2818,7 @@
       },
       "effect": "read",
       "status": "mock_tested",
-      "live_evidence": "not_tested",
+      "live_evidence": "live_verified_via_client",
       "compatibility_overlay": null,
       "test_bindings": [
         {
@@ -2867,7 +2882,7 @@
       },
       "effect": "read",
       "status": "mock_tested",
-      "live_evidence": "not_tested",
+      "live_evidence": "live_verified_via_client",
       "compatibility_overlay": null,
       "test_bindings": [
         {
@@ -2966,9 +2981,9 @@
       },
       "effect": "read",
       "status": "mock_tested",
-      "live_evidence": "not_tested",
+      "live_evidence": "live_verified_via_client",
       "compatibility_overlay": {
-        "version": "2026-11-14.3",
+        "version": "2026-11-14.5",
         "source_sha256": "9452cba3571607848de77fc12e68104cb454e403c35c7a6b97521ea6e0d1d406"
       },
       "test_bindings": [
@@ -2980,7 +2995,7 @@
           }
         }
       ],
-      "notes": "Owner-observed live SDK GET: HTTP 200 list response with deleted=null. Overlay permits nullable deleted only in TaskListDtoBase; repeat SDK verification after the fix before declaring the call live-verified."
+      "notes": "GEN-229 repeated the live SDK GET successfully after the list DTO overlay for deleted=null; invalid non-boolean values remain rejected."
     },
     {
       "operationId": "TaskController_searchReversed",
@@ -3068,7 +3083,7 @@
       },
       "effect": "read",
       "status": "mock_tested",
-      "live_evidence": "not_tested",
+      "live_evidence": "live_verified_via_client",
       "compatibility_overlay": null,
       "test_bindings": [
         {
@@ -3327,7 +3342,7 @@
       },
       "effect": "read",
       "status": "mock_tested",
-      "live_evidence": "not_tested",
+      "live_evidence": "live_verified_via_client",
       "compatibility_overlay": null,
       "test_bindings": [
         {
@@ -3363,7 +3378,7 @@
       },
       "effect": "read",
       "status": "mock_tested",
-      "live_evidence": "not_tested",
+      "live_evidence": "live_verified_via_client",
       "compatibility_overlay": null,
       "test_bindings": [
         {
@@ -3434,7 +3449,7 @@
       },
       "effect": "read",
       "status": "mock_tested",
-      "live_evidence": "not_tested",
+      "live_evidence": "live_verified_via_client",
       "compatibility_overlay": null,
       "test_bindings": [
         {
@@ -3563,7 +3578,7 @@
       "status": "mock_tested",
       "live_evidence": "curl_observed",
       "compatibility_overlay": {
-        "version": "2026-11-14.3",
+        "version": "2026-11-14.5",
         "source_sha256": "9452cba3571607848de77fc12e68104cb454e403c35c7a6b97521ea6e0d1d406"
       },
       "test_bindings": [
@@ -3614,7 +3629,7 @@
       "status": "mock_tested",
       "live_evidence": "curl_observed",
       "compatibility_overlay": {
-        "version": "2026-11-14.3",
+        "version": "2026-11-14.5",
         "source_sha256": "9452cba3571607848de77fc12e68104cb454e403c35c7a6b97521ea6e0d1d406"
       },
       "test_bindings": [
@@ -3658,9 +3673,9 @@
       },
       "effect": "read",
       "status": "mock_tested",
-      "live_evidence": "curl_observed",
+      "live_evidence": "live_verified_via_client",
       "compatibility_overlay": {
-        "version": "2026-11-14.3",
+        "version": "2026-11-14.5",
         "source_sha256": "9452cba3571607848de77fc12e68104cb454e403c35c7a6b97521ea6e0d1d406"
       },
       "test_bindings": [

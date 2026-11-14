@@ -4,16 +4,35 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass
+
+
+@dataclass(frozen=True)
+class SchemaDiagnostic:
+    """Sanitized response-schema mismatch metadata; never contains instance values."""
+
+    path: str
+    rule: str
+    expected_type: str | None
+    actual_type: str
+
 
 class ApiError(Exception):
     """A normalized failure; vendor response bodies are intentionally omitted."""
 
     category = "upstream_failure"
 
-    def __init__(self, *, status_code: int | None = None, retry_after: float | None = None):
+    def __init__(
+        self,
+        *,
+        status_code: int | None = None,
+        retry_after: float | None = None,
+        diagnostic: SchemaDiagnostic | None = None,
+    ):
         super().__init__(self.category)
         self.status_code = status_code
         self.retry_after = retry_after
+        self.diagnostic = diagnostic
 
 
 class InvalidInputError(ApiError, ValueError):
@@ -50,6 +69,10 @@ class VendorValidationError(ApiError):
 
 class RateLimitError(ApiError):
     category = "rate_limited"
+
+
+class RequestBudgetError(ApiError):
+    category = "request_budget_exhausted"
 
 
 class RequestTimeoutError(ApiError):
