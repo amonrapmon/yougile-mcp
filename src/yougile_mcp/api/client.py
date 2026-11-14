@@ -262,7 +262,12 @@ class YouGileClient:
                 raise InvalidInputError()
             request_body, content_type = self._validate_body(operation, body)
 
-        request_headers = {"Accept": "application/json, text/plain, text/html"}
+        # YouGile live responses have triggered httpx.DecodingError when compression is negotiated.
+        # Request identity encoding rather than relying on the HTTPX default Accept-Encoding.
+        request_headers = {
+            "Accept": "application/json, text/plain, text/html",
+            "Accept-Encoding": "identity",
+        }
         for key, value in header_values.items():
             if key.lower() in _RESERVED_HEADERS:
                 raise InvalidInputError()
