@@ -1,9 +1,44 @@
-* text=auto
+# Keep text files LF in both the Git index and working tree on every OS.
+# This overrides core.autocrlf on Windows for files Git detects as text.
+* text=auto eol=lf
+
+# Explicit source/config formats (including Docker and cross-platform scripts).
 *.py text eol=lf
+*.pyi text eol=lf
 *.toml text eol=lf
 *.yml text eol=lf
 *.yaml text eol=lf
 *.json text eol=lf
+*.jsonl text eol=lf
 *.md text eol=lf
+*.txt text eol=lf
 *.sh text eol=lf
+*.bash text eol=lf
+*.zsh text eol=lf
+*.ps1 text eol=lf
+*.psm1 text eol=lf
+*.psd1 text eol=lf
+*.lock text eol=lf
 Dockerfile text eol=lf
+*.Dockerfile text eol=lf
+Makefile text eol=lf
+
+# Windows command interpreter scripts conventionally use CRLF.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Never normalize or text-diff binary artifacts.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ico binary
+*.pdf binary
+*.zip binary
+*.gz binary
+*.7z binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.otf binary
