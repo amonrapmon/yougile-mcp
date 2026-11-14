@@ -97,7 +97,14 @@ most 50 requests per minute, matching the
 [official company limit](https://docs.yougile.com/docs/admin-guide-linux/api/).
 Read operations may retry a bounded 429 response when `Retry-After` fits the
 wait budget. A write timeout raises an uncertain-write error and is never
-retried. Multiple server replicas need a distributed limiter. `list_all` uses
+retried.
+
+The API client requests `Accept-Encoding: identity` by default. On 2026-11-14
+a live read through HTTPX received HTTP 200 but failed while decoding the
+response body (`httpx.DecodingError`); requesting an uncompressed response
+allowed that same SDK call to succeed. The exact vendor-side compression
+problem remains unconfirmed. Uncompressed responses may use more bandwidth,
+but this avoids the reproduced failure on the affected YouGile endpoint. Multiple server replicas need a distributed limiter. `list_all` uses
 bounded offset pagination and the task-log timestamp cursor (100 pages and
 10,000 items); it raises on a stalled cursor or budget overflow instead of
 returning a partial result.
