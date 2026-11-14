@@ -144,6 +144,9 @@ CURL_OBSERVED_OPERATION_IDS = {
     "FileController_uploadFile",
 }
 COMPATIBILITY_OVERLAY_OPERATION_IDS = {
+    "BoardController_search",
+    "ProjectController_search",
+    "TaskController_search",
     "CompanyController_get",
     "CompanyController_update",
     "WebhookController_create",
@@ -152,6 +155,21 @@ COMPATIBILITY_OVERLAY_OPERATION_IDS = {
     "FileController_uploadFile",
 }
 COMPATIBILITY_NOTES = {
+    "BoardController_search": (
+        "Owner-observed live SDK GET: HTTP 200 list response with deleted=null. "
+        "Overlay permits nullable deleted only in BoardListDtoBase; repeat "
+        "SDK verification after the fix before declaring the call live-verified."
+    ),
+    "ProjectController_search": (
+        "Owner-observed live SDK GET: HTTP 200 list response with deleted=null. "
+        "Overlay permits nullable deleted only in ProjectListDtoBase; repeat "
+        "SDK verification after the fix before declaring the call live-verified."
+    ),
+    "TaskController_search": (
+        "Owner-observed live SDK GET: HTTP 200 list response with deleted=null. "
+        "Overlay permits nullable deleted only in TaskListDtoBase; repeat "
+        "SDK verification after the fix before declaring the call live-verified."
+    ),
     "CompanyController_get": (
         "Overlay uses the curl-observed no-ID current-company route and permits "
         "deleted=null; evidence is manual curl, not Python-client live verification."
