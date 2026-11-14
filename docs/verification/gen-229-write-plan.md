@@ -17,7 +17,7 @@ The external synthetic plan was kept outside the repository. It used created obj
 | User and task subscribers | Synthetic `example.invalid` users created with `messengerOnly:false` passed HTTP 201; update and delete passed. A subscriber update using a synthetic user returned HTTP 200. An earlier `messengerOnly:true` create returned HTTP 400; the vendor reason is unavailable. |
 | Group chat and messages | Two synthetic users were created and deleted in each diagnostic attempt. Group-chat POST returned HTTP 400 twice, including with the exact OpenAPI example role-map shape. Chat and message dependent operations were skipped; no group chat or message remained. Exact vendor validation reason is unknown because error bodies are discarded. |
 | Auth keys and account custom status | BLOCKED: the local credential set has no login/password for auth-key creation/search, and custom-status methods target `/users/me` outside the disposable company scope. Existing credentials and administrative access were preserved. |
-| Webhooks | Create/update/search and disable/delete lifecycle checks passed; final preflight found no unapproved active hook. The API reported `failuresSinceLastSuccess > 0` after the task-created event, so delivery remains FAIL / unconfirmed. The callback was not called directly. |
+| Webhooks | Create/update/search and disable/delete lifecycle checks passed; final preflight found no unapproved active hook. The API reported `failuresSinceLastSuccess > 0`, and the owner saw no n8n execution for the task-created event, so delivery is FAIL. The callback was not called directly; exact cause is unknown. |
 
 ## Cleanup and retained data
 
