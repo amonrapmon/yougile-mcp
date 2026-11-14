@@ -53,11 +53,36 @@ other invalid types must still raise `UpstreamError`. `ProjectDto`,
 The vendor snapshot `openapi-v2.json` remains unmodified and SHA-256 pinned
 at `9452cba3571607848de77fc12e68104cb454e403c35c7a6b97521ea6e0d1d406`.
 
+## Post-fix SDK confirmation: six of six read-only requests
+
+After applying the GEN-227 identity header **and** GEN-228 nullable-list
+overlay, the owner repeated all six calls through the Python SDK with
+`Settings.from_env()`, **without monkeypatching or turning off validation**.
+The owner reported the following sanitized local console output on
+2026-11-14:
+
+```text
+PASS UserController_getMe: HTTP 200
+PASS CompanyController_get: HTTP 200
+PASS WebhookController_search: HTTP 200
+PASS ProjectController_search: HTTP 200
+PASS BoardController_search: HTTP 200
+PASS TaskController_search: HTTP 200
+
+LIVE RESULT: 6/6
+```
+
+All six operations succeeded on the specific authenticated account and
+tested request variants; the last three search calls used
+`limit=2`, `offset=0`. The results were supplied by the project owner and
+**were not executed by GitHub CI**. This is sufficient evidence of a
+point-in-time successful SDK invocation, not proof that every field, role,
+pagination path, or deployment is compatible.
+
 ## Scope and unverified behavior
 
-This is owner-supplied live observation, not a test executed in GitHub CI.
-The six operation results above are **before** the GEN-228 overlay fix.
-A clean SDK re-run after applying GEN-228 is required before claiming
-six-of-six live compatibility. Pagination beyond the first limited page,
-writes, per-tenant access rights, and list detail/read equivalence
-were not tested. Do not mark the entire 72-operation catalog live-verified.
+The 6/6 result concerns exactly six read-only GET operations, not the entire
+72-operation OpenAPI catalog. Pagination beyond the first limited page,
+mutating operations, per-tenant access rights, and detail-versus-list
+response equivalence were not tested. No production data was changed by
+these SDK smoke tests. The remaining operations need separate live evidence.
