@@ -61,7 +61,7 @@ class InventoryTests(unittest.TestCase):
             {item["operationId"] for item in rows if item["status"] == "mock_tested"},
             IMPLEMENTED_OPERATION_IDS,
         )
-        self.assertEqual(len(IMPLEMENTED_OPERATION_IDS), 46)
+        self.assertEqual(len(IMPLEMENTED_OPERATION_IDS), 62)
         by_id = {item["operationId"]: item for item in rows}
         for operation_id in (
             "CompanyController_get",

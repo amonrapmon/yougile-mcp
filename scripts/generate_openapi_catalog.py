@@ -81,18 +81,34 @@ READ_OPERATION_IDS = {
 WRITE_OPERATION_IDS = {
     "AuthKeyController_create",
     "BoardController_create",
+    "BoardController_update",
     "ChatMessageController_sendMessage",
+    "ChatMessageController_typing",
+    "ChatMessageController_update",
+    "ColumnController_update",
     "CrmContactPersonsController_create",
     "DepartmentController_create",
+    "DepartmentController_update",
     "GroupChatController_create",
+    "GroupChatController_update",
     "ProjectController_create",
+    "ProjectController_update",
     "ProjectRolesController_create",
+    "ProjectRolesController_update",
     "SprintStickerController_create",
+    "SprintStickerController_update",
     "SprintStickerStateController_create",
+    "SprintStickerStateController_update",
     "StringStickerController_create",
+    "StringStickerController_update",
     "StringStickerStateController_create",
+    "StringStickerStateController_update",
     "TaskController_create",
+    "TaskController_update",
+    "TaskController_updateChatSubscribers",
     "UserController_create",
+    "UserController_setCustomStatus",
+    "UserController_update",
 }
 MOCK_TESTS.update(
     {
@@ -214,8 +230,12 @@ def _note(operation_id: str) -> str | None:
             "'location', conflicting with its string-name example; needs vendor clarification."
         )
     if operation_id == "FileController_uploadFile":
-        return "Upload limits and allowed MIME types need an approved client policy."
-    return "Not included in the first implemented slice."
+        return (
+            "The multipart requestBody points to the empty schema reference "
+            "'#/components/schemas/'; upload limits and allowed MIME types "
+            "need an approved client policy."
+        )
+    return "Not yet covered by a MockTransport contract."
 
 
 def main() -> int:
