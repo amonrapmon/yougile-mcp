@@ -136,3 +136,9 @@ class CreateColumnDto(TypedDict):
 
 class WithIdDto(TypedDict):
     id: str
+
+
+class FileUploadDto(TypedDict):
+    result: str
+    url: str
+    fullUrl: str

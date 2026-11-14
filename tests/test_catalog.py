@@ -54,15 +54,35 @@ class InventoryTests(unittest.TestCase):
         self.assertEqual(len({item["operationId"] for item in rows}), 72)
         self.assertEqual(len(gaps), 5)
         self.assertTrue(set(gaps).issubset({item["operationId"] for item in rows}))
+        self.assertEqual({item["status"] for item in rows}, {"mock_tested"})
+        self.assertEqual({item["live_evidence"] for item in rows}, {"not_tested", "curl_observed"})
         self.assertEqual(
-            {item["status"] for item in rows}, {"discovered", "mock_tested"}
+            {
+                item["operationId"]
+                for item in rows
+                if item["live_evidence"] == "curl_observed"
+            },
+            {
+                "CompanyController_get",
+                "FileController_uploadFile",
+                "WebhookController_create",
+                "WebhookController_put",
+                "WebhookController_search",
+            },
         )
         self.assertEqual(
             {item["operationId"] for item in rows if item["status"] == "mock_tested"},
             IMPLEMENTED_OPERATION_IDS,
         )
-        self.assertEqual(len(IMPLEMENTED_OPERATION_IDS), 66)
+        self.assertEqual(len(IMPLEMENTED_OPERATION_IDS), 72)
         by_id = {item["operationId"]: item for item in rows}
+        self.assertEqual(checker._coverage_metadata_errors(rows, source_meta["sha256"]), [])
+        overlay_rows = [item for item in rows if item["compatibility_overlay"] is not None]
+        self.assertEqual(len(overlay_rows), 6)
+        self.assertEqual(
+            {item["compatibility_overlay"]["source_sha256"] for item in overlay_rows},
+            {source_meta["sha256"]},
+        )
         for operation_id in (
             "CompanyController_get",
             "CompanyController_update",
@@ -71,8 +91,10 @@ class InventoryTests(unittest.TestCase):
             "WebhookController_put",
             "WebhookController_search",
         ):
-            self.assertEqual(by_id[operation_id]["status"], "discovered")
+            self.assertEqual(by_id[operation_id]["status"], "mock_tested")
             self.assertTrue(by_id[operation_id]["notes"])
+        self.assertEqual(by_id["CompanyController_update"]["live_evidence"], "not_tested")
+        self.assertIn("no live company update", by_id["CompanyController_update"]["notes"])
         self.assertFalse(any(item["status"] == "implemented" for item in rows))
         self.assertFalse(any(item["status"] == "live_verified" for item in rows))
         self.assertEqual(checker._test_binding_errors(rows, checker._api_test_methods()), [])
@@ -197,6 +219,65 @@ class InventoryTests(unittest.TestCase):
         self.assertEqual(
             checker._test_binding_errors([row], {"test_operation_contracts": method}),
             ["Test does not invoke the bound operation case: UserController_getMe"],
+        )
+
+    def test_upload_coverage_binding_requires_the_multipart_case(self):
+        row = {
+            "operationId": "FileController_uploadFile",
+            "method": "POST",
+            "path": "/api-v2/upload-file",
+            "effect": "write",
+            "status": "mock_tested",
+            "test_bindings": [
+                {
+                    "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
+                    "client_call": "request",
+                    "kwargs": {"operation_id": "FileController_uploadFile"},
+                }
+            ],
+        }
+        valid = ast.parse(
+            "async def test_operation_contracts():\n"
+            "    for operation_id, case in OPERATION_CASES.items():\n"
+            "        with self.assertRaises(InvalidInputError):\n"
+            "            await client.request(operation_id=operation_id, **case['invalid'])\n"
+            "        await client.request(operation_id=operation_id, path=case['path'], "
+            "query=case['query'], body=case.get('body'), "
+            "multipart_file=case.get('multipart_file'))\n"
+        ).body[0]
+        missing_multipart = ast.parse(
+            "async def test_operation_contracts():\n"
+            "    for operation_id, case in OPERATION_CASES.items():\n"
+            "        with self.assertRaises(InvalidInputError):\n"
+            "            await client.request(operation_id=operation_id, **case['invalid'])\n"
+            "        await client.request(operation_id=operation_id, path=case['path'], "
+            "query=case['query'], body=case.get('body'))\n"
+        ).body[0]
+        methods = checker._api_test_methods()
+        self.assertEqual(checker._test_binding_errors([row], {**methods, "test_operation_contracts": valid}), [])
+        self.assertEqual(
+            checker._test_binding_errors([row], {**methods, "test_operation_contracts": missing_multipart}),
+            ["Test does not invoke the bound operation case: FileController_uploadFile"],
+        )
+
+    def test_coverage_metadata_does_not_mistake_curl_for_sdk_verification(self):
+        row = {
+            "operationId": "WebhookController_search",
+            "status": "mock_tested",
+            "live_evidence": "curl_observed",
+            "compatibility_overlay": {"version": "2026-11-14.1", "source_sha256": "pinned"},
+        }
+        self.assertEqual(checker._coverage_metadata_errors([row], "pinned"), [])
+        row["status"] = "live_verified"
+        self.assertEqual(
+            checker._coverage_metadata_errors([row], "pinned"),
+            ["live_verified operation lacks Python-client evidence: WebhookController_search"],
+        )
+        row["status"] = "mock_tested"
+        row["compatibility_overlay"]["source_sha256"] = "stale"
+        self.assertEqual(
+            checker._coverage_metadata_errors([row], "pinned"),
+            ["Compatibility overlay is not tied to the pinned source: WebhookController_search"],
         )
 
     def test_coverage_matrix_is_generated_from_the_pinned_source(self):

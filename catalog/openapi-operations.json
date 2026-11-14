@@ -40,6 +40,8 @@
       },
       "effect": "write",
       "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
       "test_bindings": [
         {
           "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
@@ -76,6 +78,8 @@
       },
       "effect": "destructive",
       "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
       "test_bindings": [
         {
           "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
@@ -115,6 +119,8 @@
       },
       "effect": "read",
       "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
       "test_bindings": [
         {
           "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
@@ -152,6 +158,8 @@
       },
       "effect": "write",
       "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
       "test_bindings": [
         {
           "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
@@ -194,6 +202,8 @@
       },
       "effect": "read",
       "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
       "test_bindings": [
         {
           "test_path": "tests/test_api_client.py::ApiClientTests.test_board_detail_and_column_list_schemas",
@@ -268,6 +278,8 @@
       },
       "effect": "read",
       "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
       "test_bindings": [
         {
           "test_path": "tests/test_api_client.py::ApiClientTests.test_headers_query_and_response_dto",
@@ -312,6 +324,8 @@
       },
       "effect": "write",
       "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
       "test_bindings": [
         {
           "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
@@ -361,6 +375,8 @@
       },
       "effect": "read",
       "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
       "test_bindings": [
         {
           "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
@@ -465,6 +481,8 @@
       },
       "effect": "read",
       "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
       "test_bindings": [
         {
           "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
@@ -510,6 +528,8 @@
       },
       "effect": "write",
       "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
       "test_bindings": [
         {
           "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
@@ -551,6 +571,8 @@
       },
       "effect": "write",
       "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
       "test_bindings": [
         {
           "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
@@ -604,6 +626,8 @@
       },
       "effect": "write",
       "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
       "test_bindings": [
         {
           "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
@@ -641,6 +665,8 @@
       },
       "effect": "write",
       "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
       "test_bindings": [
         {
           "test_path": "tests/test_api_client.py::ApiClientTests.test_write_sends_json_body_and_returns_created_dto",
@@ -681,6 +707,8 @@
       },
       "effect": "read",
       "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
       "test_bindings": [
         {
           "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
@@ -757,6 +785,8 @@
       },
       "effect": "read",
       "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
       "test_bindings": [
         {
           "test_path": "tests/test_api_client.py::ApiClientTests.test_board_detail_and_column_list_schemas",
@@ -801,6 +831,8 @@
       },
       "effect": "write",
       "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
       "test_bindings": [
         {
           "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
@@ -834,9 +866,22 @@
         ]
       },
       "effect": "read",
-      "status": "discovered",
-      "test_bindings": [],
-      "notes": "The vendor path contains a non-standard wildcard with no declared parameter schema."
+      "status": "mock_tested",
+      "live_evidence": "curl_observed",
+      "compatibility_overlay": {
+        "version": "2026-11-14.1",
+        "source_sha256": "9452cba3571607848de77fc12e68104cb454e403c35c7a6b97521ea6e0d1d406"
+      },
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
+          "client_call": "request",
+          "kwargs": {
+            "operation_id": "CompanyController_get"
+          }
+        }
+      ],
+      "notes": "Overlay uses the curl-observed no-ID current-company route and permits deleted=null; evidence is manual curl, not Python-client live verification."
     },
     {
       "operationId": "CompanyController_update",
@@ -864,9 +909,22 @@
         ]
       },
       "effect": "write",
-      "status": "discovered",
-      "test_bindings": [],
-      "notes": "The vendor path contains a non-standard wildcard with no declared parameter schema."
+      "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": {
+        "version": "2026-11-14.1",
+        "source_sha256": "9452cba3571607848de77fc12e68104cb454e403c35c7a6b97521ea6e0d1d406"
+      },
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
+          "client_call": "request",
+          "kwargs": {
+            "operation_id": "CompanyController_update"
+          }
+        }
+      ],
+      "notes": "Mock-only PUT uses the canonical current-company route and pinned UpdateCompanyDto; no live company update was performed."
     },
     {
       "operationId": "CrmContactPersonsController_create",
@@ -894,6 +952,8 @@
       },
       "effect": "write",
       "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
       "test_bindings": [
         {
           "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
@@ -942,6 +1002,8 @@
       },
       "effect": "read",
       "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
       "test_bindings": [
         {
           "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
@@ -979,6 +1041,8 @@
       },
       "effect": "write",
       "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
       "test_bindings": [
         {
           "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
@@ -1021,6 +1085,8 @@
       },
       "effect": "read",
       "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
       "test_bindings": [
         {
           "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
@@ -1097,6 +1163,8 @@
       },
       "effect": "read",
       "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
       "test_bindings": [
         {
           "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
@@ -1143,6 +1211,8 @@
       },
       "effect": "write",
       "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
       "test_bindings": [
         {
           "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
@@ -1181,9 +1251,22 @@
         ]
       },
       "effect": "write",
-      "status": "discovered",
-      "test_bindings": [],
-      "notes": "The multipart requestBody points to the empty schema reference '#/components/schemas/'; upload limits and allowed MIME types need an approved client policy."
+      "status": "mock_tested",
+      "live_evidence": "curl_observed",
+      "compatibility_overlay": {
+        "version": "2026-11-14.1",
+        "source_sha256": "9452cba3571607848de77fc12e68104cb454e403c35c7a6b97521ea6e0d1d406"
+      },
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
+          "client_call": "request",
+          "kwargs": {
+            "operation_id": "FileController_uploadFile"
+          }
+        }
+      ],
+      "notes": "Overlay removes the malformed multipart ref and accepts the curl-observed 201 FileUploadDto; size and MIME limits are configurable client policy."
     },
     {
       "operationId": "GroupChatController_create",
@@ -1211,6 +1294,8 @@
       },
       "effect": "write",
       "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
       "test_bindings": [
         {
           "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
@@ -1253,6 +1338,8 @@
       },
       "effect": "read",
       "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
       "test_bindings": [
         {
           "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
@@ -1322,6 +1409,8 @@
       },
       "effect": "read",
       "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
       "test_bindings": [
         {
           "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
@@ -1368,6 +1457,8 @@
       },
       "effect": "write",
       "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
       "test_bindings": [
         {
           "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
@@ -1405,6 +1496,8 @@
       },
       "effect": "write",
       "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
       "test_bindings": [
         {
           "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
@@ -1447,6 +1540,8 @@
       },
       "effect": "read",
       "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
       "test_bindings": [
         {
           "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
@@ -1516,6 +1611,8 @@
       },
       "effect": "read",
       "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
       "test_bindings": [
         {
           "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
@@ -1562,6 +1659,8 @@
       },
       "effect": "write",
       "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
       "test_bindings": [
         {
           "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
@@ -1607,6 +1706,8 @@
       },
       "effect": "write",
       "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
       "test_bindings": [
         {
           "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
@@ -1656,6 +1757,8 @@
       },
       "effect": "destructive",
       "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
       "test_bindings": [
         {
           "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
@@ -1705,6 +1808,8 @@
       },
       "effect": "read",
       "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
       "test_bindings": [
         {
           "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
@@ -1774,6 +1879,8 @@
       },
       "effect": "read",
       "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
       "test_bindings": [
         {
           "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
@@ -1827,6 +1934,8 @@
       },
       "effect": "write",
       "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
       "test_bindings": [
         {
           "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
@@ -1864,6 +1973,8 @@
       },
       "effect": "write",
       "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
       "test_bindings": [
         {
           "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
@@ -1906,6 +2017,8 @@
       },
       "effect": "read",
       "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
       "test_bindings": [
         {
           "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
@@ -1982,6 +2095,8 @@
       },
       "effect": "read",
       "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
       "test_bindings": [
         {
           "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
@@ -2028,6 +2143,8 @@
       },
       "effect": "write",
       "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
       "test_bindings": [
         {
           "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
@@ -2074,6 +2191,8 @@
       },
       "effect": "write",
       "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
       "test_bindings": [
         {
           "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
@@ -2130,6 +2249,8 @@
       },
       "effect": "read",
       "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
       "test_bindings": [
         {
           "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
@@ -2183,6 +2304,8 @@
       },
       "effect": "write",
       "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
       "test_bindings": [
         {
           "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
@@ -2220,6 +2343,8 @@
       },
       "effect": "write",
       "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
       "test_bindings": [
         {
           "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
@@ -2262,6 +2387,8 @@
       },
       "effect": "read",
       "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
       "test_bindings": [
         {
           "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
@@ -2338,6 +2465,8 @@
       },
       "effect": "read",
       "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
       "test_bindings": [
         {
           "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
@@ -2384,6 +2513,8 @@
       },
       "effect": "write",
       "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
       "test_bindings": [
         {
           "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
@@ -2430,6 +2561,8 @@
       },
       "effect": "write",
       "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
       "test_bindings": [
         {
           "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
@@ -2486,6 +2619,8 @@
       },
       "effect": "read",
       "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
       "test_bindings": [
         {
           "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
@@ -2539,6 +2674,8 @@
       },
       "effect": "write",
       "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
       "test_bindings": [
         {
           "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
@@ -2576,6 +2713,8 @@
       },
       "effect": "write",
       "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
       "test_bindings": [
         {
           "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
@@ -2618,6 +2757,8 @@
       },
       "effect": "read",
       "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
       "test_bindings": [
         {
           "test_path": "tests/test_api_client.py::ApiClientTests.test_path_value_is_percent_encoded",
@@ -2656,6 +2797,8 @@
       },
       "effect": "read",
       "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
       "test_bindings": [
         {
           "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
@@ -2718,6 +2861,8 @@
       },
       "effect": "read",
       "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
       "test_bindings": [
         {
           "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
@@ -2815,6 +2960,8 @@
       },
       "effect": "read",
       "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
       "test_bindings": [
         {
           "test_path": "tests/test_api_client.py::ApiClientTests.test_task_search_maps_both_confirmed_list_operations",
@@ -2912,6 +3059,8 @@
       },
       "effect": "read",
       "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
       "test_bindings": [
         {
           "test_path": "tests/test_api_client.py::ApiClientTests.test_task_search_maps_both_confirmed_list_operations",
@@ -2958,6 +3107,8 @@
       },
       "effect": "write",
       "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
       "test_bindings": [
         {
           "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
@@ -3004,6 +3155,8 @@
       },
       "effect": "write",
       "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
       "test_bindings": [
         {
           "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
@@ -3038,6 +3191,8 @@
       },
       "effect": "destructive",
       "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
       "test_bindings": [
         {
           "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
@@ -3075,6 +3230,8 @@
       },
       "effect": "write",
       "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
       "test_bindings": [
         {
           "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
@@ -3117,6 +3274,8 @@
       },
       "effect": "destructive",
       "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
       "test_bindings": [
         {
           "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
@@ -3159,6 +3318,8 @@
       },
       "effect": "read",
       "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
       "test_bindings": [
         {
           "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
@@ -3193,6 +3354,8 @@
       },
       "effect": "read",
       "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
       "test_bindings": [
         {
           "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
@@ -3262,6 +3425,8 @@
       },
       "effect": "read",
       "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
       "test_bindings": [
         {
           "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
@@ -3300,6 +3465,8 @@
       },
       "effect": "write",
       "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
       "test_bindings": [
         {
           "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
@@ -3346,6 +3513,8 @@
       },
       "effect": "write",
       "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
       "test_bindings": [
         {
           "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
@@ -3382,9 +3551,22 @@
         ]
       },
       "effect": "write",
-      "status": "discovered",
-      "test_bindings": [],
-      "notes": "The pinned OAS declares WebhookFilters.name.items as unsupported type 'location', conflicting with its string-name example; needs vendor clarification."
+      "status": "mock_tested",
+      "live_evidence": "curl_observed",
+      "compatibility_overlay": {
+        "version": "2026-11-14.1",
+        "source_sha256": "9452cba3571607848de77fc12e68104cb454e403c35c7a6b97521ea6e0d1d406"
+      },
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
+          "client_call": "request",
+          "kwargs": {
+            "operation_id": "WebhookController_create"
+          }
+        }
+      ],
+      "notes": "Overlay treats webhook filter name/value as strings; curl confirmed the title filter shape and HTTP 201 response."
     },
     {
       "operationId": "WebhookController_put",
@@ -3420,9 +3602,22 @@
         ]
       },
       "effect": "write",
-      "status": "discovered",
-      "test_bindings": [],
-      "notes": "The pinned OAS declares WebhookFilters.name.items as unsupported type 'location', conflicting with its string-name example; needs vendor clarification."
+      "status": "mock_tested",
+      "live_evidence": "curl_observed",
+      "compatibility_overlay": {
+        "version": "2026-11-14.1",
+        "source_sha256": "9452cba3571607848de77fc12e68104cb454e403c35c7a6b97521ea6e0d1d406"
+      },
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
+          "client_call": "request",
+          "kwargs": {
+            "operation_id": "WebhookController_put"
+          }
+        }
+      ],
+      "notes": "Overlay treats webhook filter name/value as strings; curl confirmed disabled=true persisted after PUT on a disposable test webhook."
     },
     {
       "operationId": "WebhookController_search",
@@ -3453,9 +3648,22 @@
         ]
       },
       "effect": "read",
-      "status": "discovered",
-      "test_bindings": [],
-      "notes": "The pinned OAS declares WebhookFilters.name.items as unsupported type 'location', conflicting with its string-name example; needs vendor clarification."
+      "status": "mock_tested",
+      "live_evidence": "curl_observed",
+      "compatibility_overlay": {
+        "version": "2026-11-14.1",
+        "source_sha256": "9452cba3571607848de77fc12e68104cb454e403c35c7a6b97521ea6e0d1d406"
+      },
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_operation_contracts",
+          "client_call": "request",
+          "kwargs": {
+            "operation_id": "WebhookController_search"
+          }
+        }
+      ],
+      "notes": "Overlay decodes the curl-observed response as an array and uses string filter fields; other filter variants are not live-verified."
     },
     {
       "operationId": "getCompanies",
@@ -3505,6 +3713,8 @@
       },
       "effect": "read",
       "status": "mock_tested",
+      "live_evidence": "not_tested",
+      "compatibility_overlay": null,
       "test_bindings": [
         {
           "test_path": "tests/test_api_client.py::ApiClientTests.test_company_lookup_keeps_credentials_in_body_without_bearer",

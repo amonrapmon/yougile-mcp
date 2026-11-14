@@ -102,6 +102,7 @@ def _calls_bound_operation_case(
             continue
         valid_call = False
         invalid_call = False
+        multipart_call = "multipart_file" not in operation_cases[operation_id_value]
         for child in ast.walk(node):
             if isinstance(child, ast.With):
                 guarded = any(
@@ -152,7 +153,19 @@ def _calls_bound_operation_case(
                 for name in ("path", "query")
             ) and isinstance(keywords.get("body"), ast.Call):
                 valid_call = True
-        if valid_call and invalid_call:
+                multipart = keywords.get("multipart_file")
+                if (
+                    isinstance(multipart, ast.Call)
+                    and isinstance(multipart.func, ast.Attribute)
+                    and isinstance(multipart.func.value, ast.Name)
+                    and multipart.func.value.id == "case"
+                    and multipart.func.attr == "get"
+                    and multipart.args
+                    and isinstance(multipart.args[0], ast.Constant)
+                    and multipart.args[0].value == "multipart_file"
+                ):
+                    multipart_call = True
+        if valid_call and invalid_call and multipart_call:
             return True
     return False
 
@@ -218,6 +231,26 @@ def _test_binding_errors(operations: list[dict], test_methods: dict[str, ast.AST
     return errors
 
 
+def _coverage_metadata_errors(operations: list[dict], source_sha256: str) -> list[str]:
+    errors = []
+    live_evidence = {"not_tested", "curl_observed", "live_verified_via_client"}
+    for item in operations:
+        operation_id = item.get("operationId", "<unknown>")
+        evidence = item.get("live_evidence")
+        if evidence not in live_evidence:
+            errors.append(f"Unknown live evidence status: {operation_id}")
+        if item.get("status") == "live_verified" and evidence != "live_verified_via_client":
+            errors.append(f"live_verified operation lacks Python-client evidence: {operation_id}")
+        overlay = item.get("compatibility_overlay")
+        if overlay is not None and (
+            not isinstance(overlay, dict)
+            or not isinstance(overlay.get("version"), str)
+            or overlay.get("source_sha256") != source_sha256
+        ):
+            errors.append(f"Compatibility overlay is not tied to the pinned source: {operation_id}")
+    return errors
+
+
 def load(name: str) -> dict:
     return json.loads((ROOT / "catalog" / name).read_text(encoding="utf-8"))
 
@@ -256,6 +289,13 @@ def main() -> int:
         raise SystemExit("Known gaps do not match the pinned snapshot")
     if any(item["status"] not in {"discovered", "implemented", "mock_tested", "live_verified", "excluded_with_reason"} for item in operations):
         raise SystemExit("Unknown operation coverage status")
+    metadata_errors = _coverage_metadata_errors(operations, source.get("sha256", ""))
+    if metadata_errors:
+        raise SystemExit("\n".join(metadata_errors))
+    if any(item["live_evidence"] == "curl_observed" for item in operations) and not (
+        ROOT / "docs/verification/yougile-live-2026-11-14.md"
+    ).is_file():
+        raise SystemExit("curl-observed coverage must link to its sanitized evidence document")
     if any(item["status"] == "excluded_with_reason" and not item.get("notes") for item in operations):
         raise SystemExit("Every excluded operation needs a reason")
     binding_errors = _test_binding_errors(operations, _api_test_methods())

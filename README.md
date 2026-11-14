@@ -18,21 +18,25 @@ https://github.com/justrussian/yougile-mcp/pull/5 (commit
 that unlicensed PR has been imported. The pinned official OpenAPI 3.0.0
 document describes 72 YouGile REST API v2 operations. The previous 70-operation
 snapshot had no removals and lacked two operations added by the official source;
-five operations remain outside the PR #5 inventory. The coverage matrix marks
-66 operations as mock-tested and 6 as discovered. The uncovered company
-wildcard, webhook filter and file-upload contracts have concrete schema or
-policy blockers. See catalog/ and docs/PROVENANCE.md.
+five operations remain outside the PR #5 inventory. All 72 operations now have
+per-operation MockTransport coverage; none is marked `live_verified`. Five
+operations also have separately recorded owner-run curl observations. The
+company PUT was deliberately not sent to a live company. See catalog/ and
+docs/PROVENANCE.md.
 
 An importable asynchronous API client currently covers mock-tested read
 operations for users, projects and roles, departments, boards, columns, tasks,
 stickers, group chats, chat messages and CRM lookup. It also covers create,
 update and delete operations across those resources, API-key creation, user
-status and chat typing, company listing and column creation.
+status and chat typing, company listing/detail/update, webhook create/update/
+search, multipart file upload and column creation. Company update remains
+mock-only; it has not been sent to a live company.
 Company listing sends credentials in its documented request body without a
 bearer API key. The generic `request(operation_id, path=..., query=...,
-body=...)` entry point validates requests and responses against the pinned
-OpenAPI contract. Discovered operations remain unavailable until their
-request, response and side-effect contracts are implemented and tested.
+body=...)` entry point validates JSON requests and responses against the pinned
+OpenAPI contract. The upload method sends immutable bytes as multipart field
+`file` through that same client. A hash-pinned compatibility overlay adapts the
+six vendor-schema mismatches without changing the official snapshot.
 
 ## API client slice
 
@@ -58,8 +62,15 @@ Protected calls require both `YOUGILE_API_KEY` and `YOUGILE_COMPANY_ID`; a
 missing value fails before sending a request. `get_companies` can run before
 the company ID is known. The `doctor` command remains offline. `create_column`
 is the current write example; its body is validated against the official schema and is tested
-only through a fake HTTP transport. Do not use it against a real company in
-this task. See `tests/test_api_client.py` for the mocked write example.
+only through a fake HTTP transport. Do not use it against a real company
+without separate authorization. See `tests/test_api_client.py` for the mocked
+write examples.
+
+File uploads accept bytes rather than local paths. The default local policy is
+10 MiB and `text/plain`; callers can set `max_upload_bytes` and
+`allowed_upload_content_types` when constructing `YouGileClient`. Those limits
+are client policy, not verified YouGile limits. Upload timeout results are
+uncertain and are never retried.
 
 Clients with the same `YOUGILE_COMPANY_ID` share a process-local budget of at
 most 50 requests per minute, matching the

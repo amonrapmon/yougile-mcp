@@ -10,7 +10,7 @@ import re
 import threading
 import time
 from collections import deque
-from collections.abc import Mapping
+from collections.abc import Collection, Mapping
 from datetime import datetime, timezone
 from email.utils import parsedate_to_datetime
 from typing import Any, cast
@@ -46,6 +46,7 @@ from .models import (
     CompanyListDto,
     CompanySearchQuery,
     CreateColumnDto,
+    FileUploadDto,
     TaskDto,
     TaskListDto,
     TaskSearchQuery,
@@ -121,6 +122,12 @@ IMPLEMENTED_OPERATION_IDS = frozenset(
         "UserController_delete",
         "UserController_setCustomStatus",
         "UserController_update",
+        "CompanyController_get",
+        "CompanyController_update",
+        "WebhookController_create",
+        "WebhookController_put",
+        "WebhookController_search",
+        "FileController_uploadFile",
     }
 )
 _PAGE_SIZE_LIMIT = 1000
@@ -130,7 +137,10 @@ _MAX_RESPONSE_BYTES = 16 * 1024 * 1024
 _MAX_RETRY_AFTER_SECONDS = 5.0
 _MAX_429_RETRIES = 2
 _PATH_VARIABLE = re.compile(r"\{([^{}]+)\}")
-_RESERVED_HEADERS = {"authorization", "host", "content-length", "cookie"}
+_MEDIA_TYPE = re.compile(r"[a-z0-9!#$&^_.+-]+/[a-z0-9!#$&^_.+-]+")
+_DEFAULT_MAX_UPLOAD_BYTES = 10 * 1024 * 1024
+_DEFAULT_UPLOAD_CONTENT_TYPES = frozenset({"text/plain"})
+_RESERVED_HEADERS = {"authorization", "host", "content-length", "cookie", "content-type"}
 _COMPANY_LIMITERS: dict[str, CompanyRateLimiter] = {}
 _COMPANY_LIMITERS_LOCK = threading.Lock()
 
@@ -183,11 +193,23 @@ class YouGileClient:
         limiter: CompanyRateLimiter | None = None,
         sleep: Any = asyncio.sleep,
         timeout: float = 10.0,
+        max_upload_bytes: int = _DEFAULT_MAX_UPLOAD_BYTES,
+        allowed_upload_content_types: Collection[str] = _DEFAULT_UPLOAD_CONTENT_TYPES,
     ) -> None:
+        if isinstance(max_upload_bytes, bool) or not isinstance(max_upload_bytes, int) or max_upload_bytes < 1:
+            raise ValueError("max_upload_bytes must be a positive integer")
+        try:
+            upload_content_types = frozenset(item.strip().lower() for item in allowed_upload_content_types)
+        except (AttributeError, TypeError):
+            raise ValueError("allowed_upload_content_types must contain media types") from None
+        if not upload_content_types or any(_MEDIA_TYPE.fullmatch(item) is None for item in upload_content_types):
+            raise ValueError("allowed_upload_content_types must contain media types")
         self._api_key = settings.yougile_api_key.reveal() if settings.yougile_api_key else None
         self._company_id = settings.company_id
         self._limiter = limiter if limiter is not None else _company_limiter(settings, sleep)
         self._sleep = sleep
+        self._max_upload_bytes = max_upload_bytes
+        self._allowed_upload_content_types = upload_content_types
         self._http = httpx.AsyncClient(
             base_url=settings.yougile_base_url,
             timeout=timeout,
@@ -213,6 +235,7 @@ class YouGileClient:
         query: Mapping[str, object] | None = None,
         body: object = None,
         headers: Mapping[str, str] | None = None,
+        multipart_file: tuple[str, bytes, str] | None = None,
     ) -> ApiResponse[Any]:
         if operation_id not in IMPLEMENTED_OPERATION_IDS:
             raise UnsupportedOperationError()
@@ -227,7 +250,17 @@ class YouGileClient:
         self._validate_parameters(operation, "header", header_values)
         url = self._build_path(operation, path_values)
         params = self._encode_query(query_values)
-        request_body, content_type = self._validate_body(operation, body)
+        files = None
+        if operation_id == "FileController_uploadFile":
+            if body is not None:
+                raise InvalidInputError()
+            filename, content, file_content_type = self._validate_upload_file(multipart_file)
+            files = {"file": (filename, content, file_content_type)}
+            request_body, content_type = None, None
+        else:
+            if multipart_file is not None:
+                raise InvalidInputError()
+            request_body, content_type = self._validate_body(operation, body)
 
         request_headers = {"Accept": "application/json, text/plain, text/html"}
         for key, value in header_values.items():
@@ -241,7 +274,22 @@ class YouGileClient:
         if content_type:
             request_headers["Content-Type"] = content_type
 
-        return await self._send(operation, url, params, request_body, request_headers)
+        return await self._send(operation, url, params, request_body, request_headers, files=files)
+
+    async def upload_file(
+        self,
+        *,
+        filename: str,
+        content: bytes,
+        content_type: str = "text/plain",
+    ) -> ApiResponse[FileUploadDto]:
+        return cast(
+            ApiResponse[FileUploadDto],
+            await self.request(
+                "FileController_uploadFile",
+                multipart_file=(filename, content, content_type),
+            ),
+        )
 
     async def search_boards(
         self, query: BoardSearchQuery | None = None
@@ -385,6 +433,8 @@ class YouGileClient:
         params: list[tuple[str, str]],
         body: object,
         headers: dict[str, str],
+        *,
+        files: Mapping[str, tuple[str, bytes, str]] | None = None,
     ) -> ApiResponse[Any]:
         attempt = 0
         while True:
@@ -395,6 +445,7 @@ class YouGileClient:
                     url,
                     params=params,
                     json=body if body is not None else None,
+                    files=files,
                     headers=headers,
                 ) as raw_response:
                     if raw_response.status_code == 429:
@@ -446,6 +497,31 @@ class YouGileClient:
             if not isinstance(schema, dict):
                 raise InvalidInputError()
             validate_schema(value, schema, request=True)
+
+    def _validate_upload_file(
+        self, multipart_file: tuple[str, bytes, str] | None
+    ) -> tuple[str, bytes, str]:
+        if not isinstance(multipart_file, tuple) or len(multipart_file) != 3:
+            raise InvalidInputError()
+        filename, content, content_type = multipart_file
+        if (
+            not isinstance(filename, str)
+            or not filename
+            or filename in {".", ".."}
+            or any(character in filename for character in "/\\")
+            or any(ord(character) < 32 or ord(character) == 127 for character in filename)
+            or not isinstance(content, bytes)
+            or len(content) > self._max_upload_bytes
+            or not isinstance(content_type, str)
+        ):
+            raise InvalidInputError()
+        normalized_type = content_type.strip().lower()
+        if (
+            _MEDIA_TYPE.fullmatch(normalized_type) is None
+            or normalized_type not in self._allowed_upload_content_types
+        ):
+            raise InvalidInputError()
+        return filename, content, normalized_type
 
     def _build_path(self, operation: Operation, path_values: dict[str, object]) -> str:
         names = set(_PATH_VARIABLE.findall(operation.path))

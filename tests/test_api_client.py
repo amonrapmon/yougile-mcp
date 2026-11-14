@@ -30,7 +30,7 @@ from yougile_mcp.api import (
     YouGileClient,
 )
 from yougile_mcp.api.client import _decode_response
-from yougile_mcp.api.spec import Operation, load_spec, operations
+from yougile_mcp.api.spec import Operation, load_compatible_spec, load_spec, operations
 from yougile_mcp.config import Settings
 
 
@@ -762,6 +762,99 @@ OPERATION_CASES = {
         "query": {},
         "authenticated": True,
         "invalid": {"path": {}},
+    },
+    "CompanyController_get": {
+        "method": "GET",
+        "path_template": "/api-v2/companies{*companyId}",
+        "expected_path": "/api-v2/companies",
+        "path": {},
+        "query": {},
+        "response_body": {
+            "title": "Example company",
+            "timestamp": 1700000000000,
+            "id": "company-1",
+            "deleted": None,
+        },
+        "authenticated": True,
+        "invalid": {"path": {"companyId": "company-1"}},
+    },
+    "CompanyController_update": {
+        "method": "PUT",
+        "path_template": "/api-v2/companies{*companyId}",
+        "expected_path": "/api-v2/companies",
+        "path": {},
+        "query": {},
+        "body": {"title": "Mock-only company title"},
+        "authenticated": True,
+        "invalid": {"body": {"title": False}},
+    },
+    "WebhookController_create": {
+        "method": "POST",
+        "path_template": "/api-v2/webhooks",
+        "expected_path": "/api-v2/webhooks",
+        "path": {},
+        "query": {},
+        "body": {
+            "url": "https://receiver.example.test",
+            "event": "task-created",
+            "filters": [{"name": "title", "value": "^GEN214_TEST_ONLY$"}],
+        },
+        "status_code": 201,
+        "authenticated": True,
+        "invalid": {
+            "body": {
+                "url": "https://receiver.example.test",
+                "event": "task-created",
+                "filters": [{"name": "title", "value": 42}],
+            }
+        },
+    },
+    "WebhookController_put": {
+        "method": "PUT",
+        "path_template": "/api-v2/webhooks/{id}",
+        "expected_path": "/api-v2/webhooks/webhook%2Ftest",
+        "path": {"id": "webhook/test"},
+        "query": {},
+        "body": {"disabled": True},
+        "authenticated": True,
+        "invalid": {"body": {"disabled": "true"}},
+    },
+    "WebhookController_search": {
+        "method": "GET",
+        "path_template": "/api-v2/webhooks",
+        "expected_path": "/api-v2/webhooks",
+        "path": {},
+        "query": {"includeDeleted": True},
+        "response_body": [
+            {
+                "id": "webhook-test",
+                "event": "task-created",
+                "url": "https://receiver.example.test",
+                "filters": [{"name": "title", "value": "^GEN214_TEST_ONLY$"}],
+                "failuresSinceLastSuccess": 0,
+                "disabled": True,
+            }
+        ],
+        "authenticated": True,
+        "invalid": {"query": {"includeDeleted": "true"}},
+    },
+    "FileController_uploadFile": {
+        "method": "POST",
+        "path_template": "/api-v2/upload-file",
+        "expected_path": "/api-v2/upload-file",
+        "path": {},
+        "query": {},
+        "multipart_file": ("contract.txt", b"mock upload", "text/plain"),
+        "status_code": 201,
+        "response_body": {
+            "result": "ok",
+            "url": "/uploads/mock.txt",
+            "fullUrl": "https://ru.yougile.com/uploads/mock.txt",
+        },
+        "authenticated": True,
+        "invalid": {
+            "multipart_file": ("../contract.txt", b"mock upload", "text/plain")
+        },
     },
 }
 
@@ -1523,11 +1616,13 @@ class ApiClientTests(unittest.IsolatedAsyncioTestCase):
                 seen = []
                 status_code = case.get("status_code", 200)
                 empty_response = case.get("empty_response", False)
-                response_body = (
-                    None
-                    if empty_response
-                    else _sample_operation_response(operation_id, status_code)
-                )
+                response_body = case.get("response_body")
+                if "response_body" not in case:
+                    response_body = (
+                        None
+                        if empty_response
+                        else _sample_operation_response(operation_id, status_code)
+                    )
                 expected_effect = (
                     "read"
                     if case["method"] == "GET" or operation_id == "AuthKeyController_search"
@@ -1557,6 +1652,7 @@ class ApiClientTests(unittest.IsolatedAsyncioTestCase):
                         path=case["path"],
                         query=case["query"],
                         body=case.get("body"),
+                        multipart_file=case.get("multipart_file"),
                     )
 
                 self.assertEqual(result.status_code, status_code)
@@ -1579,14 +1675,82 @@ class ApiClientTests(unittest.IsolatedAsyncioTestCase):
                     self.assertEqual(request.headers["Authorization"], f"Bearer {SECRET}")
                 else:
                     self.assertNotIn("Authorization", request.headers)
-                if case.get("body") is not None:
+                if case.get("multipart_file") is not None:
+                    filename, content, part_content_type = case["multipart_file"]
+                    self.assertTrue(request.headers["Content-Type"].startswith("multipart/form-data; boundary="))
+                    self.assertIn(f'filename="{filename}"'.encode(), request.content)
+                    self.assertIn(content, request.content)
+                    self.assertIn(f"Content-Type: {part_content_type}".encode(), request.content)
+                elif case.get("body") is not None:
                     self.assertEqual(request.headers["Content-Type"], "application/json")
                     self.assertEqual(json.loads(request.content), case["body"])
                 else:
                     self.assertEqual(request.content, b"")
                 print(f"MockTransport contract passed: {operation_id}")
 
-    async def test_vendor_schema_blockers_remain_unavailable(self):
+    async def test_compatibility_overlay_uses_canonical_routes_without_mutating_vendor_spec(self):
+        spec = load_spec()
+        compatible = load_compatible_spec()
+        raw_company_path = "/api-v2/companies{*companyId}"
+        self.assertIn(raw_company_path, spec["paths"])
+        self.assertEqual(
+            spec["components"]["schemas"]["WebhookFilters"]["properties"]["name"]["items"]["type"],
+            "location",
+        )
+        self.assertEqual(
+            spec["paths"]["/api-v2/upload-file"]["post"]["requestBody"]["content"]["multipart/form-data"]["schema"]["$ref"],
+            "#/components/schemas/",
+        )
+        self.assertTrue(
+            compatible["components"]["schemas"]["CompanyDto"]["properties"]["deleted"]["nullable"]
+        )
+        self.assertEqual(
+            compatible["components"]["schemas"]["WebhookFilters"]["properties"],
+            {"name": {"type": "string"}, "value": {"type": "string"}},
+        )
+        upload_schema = compatible["paths"]["/api-v2/upload-file"]["post"]["requestBody"]["content"]["multipart/form-data"]["schema"]
+        self.assertNotIn("$ref", upload_schema)
+        self.assertEqual(upload_schema["properties"]["file"], {"type": "string", "format": "binary"})
+        self.assertEqual(operations()["CompanyController_get"].path, "/api-v2/companies")
+        self.assertEqual(operations()["CompanyController_update"].path, "/api-v2/companies")
+        self.assertEqual(operations()["WebhookController_search"].responses["200"]["content"]["application/json"]["schema"]["type"], "array")
+        self.assertIn("201", operations()["FileController_uploadFile"].responses)
+        self.assertEqual(spec["paths"][raw_company_path]["get"]["operationId"], "CompanyController_get")
+
+    async def test_upload_policy_is_configurable_and_accepts_binary_multipart(self):
+        seen = []
+
+        def handler(request: httpx.Request) -> httpx.Response:
+            seen.append(request)
+            return httpx.Response(
+                201,
+                json={"result": "ok", "url": "/uploads/binary.bin", "fullUrl": "https://ru.yougile.com/uploads/binary.bin"},
+            )
+
+        async with YouGileClient(
+            _settings(),
+            transport=httpx.MockTransport(handler),
+            sleep=_no_sleep,
+            max_upload_bytes=4,
+            allowed_upload_content_types={"application/octet-stream"},
+        ) as client:
+            result = await client.upload_file(
+                filename="payload.bin",
+                content=b"\x00\xffab",
+                content_type="application/octet-stream",
+            )
+
+        self.assertEqual(result.status_code, 201)
+        self.assertEqual(result.data["result"], "ok")
+        self.assertEqual(len(seen), 1)
+        self.assertEqual(seen[0].method, "POST")
+        self.assertEqual(seen[0].url.path, "/api-v2/upload-file")
+        self.assertEqual(seen[0].headers["Authorization"], f"Bearer {SECRET}")
+        self.assertTrue(seen[0].headers["Content-Type"].startswith("multipart/form-data; boundary="))
+        self.assertIn(b'name="file"; filename="payload.bin"', seen[0].content)
+        self.assertIn(b"\x00\xffab", seen[0].content)
+
+    async def test_upload_rejects_unsafe_filename_size_and_mime_before_http(self):
         calls = 0
 
         def handler(_: httpx.Request) -> httpx.Response:
@@ -1595,20 +1759,39 @@ class ApiClientTests(unittest.IsolatedAsyncioTestCase):
             return httpx.Response(200, json={})
 
         async with YouGileClient(
+            _settings(),
+            transport=httpx.MockTransport(handler),
+            sleep=_no_sleep,
+            max_upload_bytes=10,
+        ) as client:
+            for filename, content, content_type in (
+                ("../unsafe.txt", b"ok", "text/plain"),
+                ("too-large.txt", b"12345678901", "text/plain"),
+                ("wrong-type.bin", b"ok", "application/octet-stream"),
+            ):
+                with self.subTest(filename=filename):
+                    with self.assertRaises(InvalidInputError):
+                        await client.upload_file(
+                            filename=filename, content=content, content_type=content_type
+                        )
+        self.assertEqual(calls, 0)
+
+    async def test_upload_timeout_is_uncertain_and_not_retried(self):
+        calls = 0
+
+        def handler(request: httpx.Request) -> httpx.Response:
+            nonlocal calls
+            calls += 1
+            raise httpx.ReadTimeout("timed out", request=request)
+
+        async with YouGileClient(
             _settings(), transport=httpx.MockTransport(handler), sleep=_no_sleep
         ) as client:
-            for operation_id in (
-                "CompanyController_get",
-                "CompanyController_update",
-                "FileController_uploadFile",
-                "WebhookController_create",
-                "WebhookController_put",
-                "WebhookController_search",
-            ):
-                with self.subTest(operation_id=operation_id):
-                    with self.assertRaises(UnsupportedOperationError):
-                        await client.request(operation_id)
-        self.assertEqual(calls, 0)
+            with self.assertRaises(UncertainWriteError):
+                await client.upload_file(
+                    filename="small.txt", content=b"safe", content_type="text/plain"
+                )
+        self.assertEqual(calls, 1)
 
 
 if __name__ == "__main__":

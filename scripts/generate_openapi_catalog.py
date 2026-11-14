@@ -10,7 +10,11 @@ import json
 from pathlib import Path
 from typing import Any
 
-from yougile_mcp.api.spec import operation_effect
+from yougile_mcp.api.spec import (
+    COMPATIBILITY_OVERLAY_SOURCE_SHA256,
+    COMPATIBILITY_OVERLAY_VERSION,
+    operation_effect,
+)
 
 ROOT = Path(__file__).resolve().parents[1]
 SPEC_PATH = ROOT / "src/yougile_mcp/api/openapi-v2.json"
@@ -56,6 +60,7 @@ READ_OPERATION_IDS = {
     "AuthKeyController_search",
     "ChatMessageController_get",
     "ChatMessageController_search",
+    "CompanyController_get",
     "CrmExternalIdController_findContactByExternalId",
     "DepartmentController_get",
     "DepartmentController_search",
@@ -77,11 +82,13 @@ READ_OPERATION_IDS = {
     "UserController_get",
     "UserController_getMe",
     "UserController_search",
+    "WebhookController_search",
 }
 WRITE_OPERATION_IDS = {
     "AuthKeyController_create",
     "BoardController_create",
     "BoardController_update",
+    "CompanyController_update",
     "ChatMessageController_sendMessage",
     "ChatMessageController_typing",
     "ChatMessageController_update",
@@ -109,6 +116,9 @@ WRITE_OPERATION_IDS = {
     "UserController_create",
     "UserController_setCustomStatus",
     "UserController_update",
+    "WebhookController_create",
+    "WebhookController_put",
+    "FileController_uploadFile",
 }
 DESTRUCTIVE_OPERATION_IDS = {
     "AuthKeyController_delete",
@@ -126,6 +136,47 @@ MOCK_TESTS.update(
         for operation_id in READ_OPERATION_IDS | WRITE_OPERATION_IDS | DESTRUCTIVE_OPERATION_IDS
     }
 )
+CURL_OBSERVED_OPERATION_IDS = {
+    "CompanyController_get",
+    "WebhookController_create",
+    "WebhookController_put",
+    "WebhookController_search",
+    "FileController_uploadFile",
+}
+COMPATIBILITY_OVERLAY_OPERATION_IDS = {
+    "CompanyController_get",
+    "CompanyController_update",
+    "WebhookController_create",
+    "WebhookController_put",
+    "WebhookController_search",
+    "FileController_uploadFile",
+}
+COMPATIBILITY_NOTES = {
+    "CompanyController_get": (
+        "Overlay uses the curl-observed no-ID current-company route and permits "
+        "deleted=null; evidence is manual curl, not Python-client live verification."
+    ),
+    "CompanyController_update": (
+        "Mock-only PUT uses the canonical current-company route and pinned "
+        "UpdateCompanyDto; no live company update was performed."
+    ),
+    "WebhookController_create": (
+        "Overlay treats webhook filter name/value as strings; curl confirmed "
+        "the title filter shape and HTTP 201 response."
+    ),
+    "WebhookController_put": (
+        "Overlay treats webhook filter name/value as strings; curl confirmed "
+        "disabled=true persisted after PUT on a disposable test webhook."
+    ),
+    "WebhookController_search": (
+        "Overlay decodes the curl-observed response as an array and uses string "
+        "filter fields; other filter variants are not live-verified."
+    ),
+    "FileController_uploadFile": (
+        "Overlay removes the malformed multipart ref and accepts the curl-observed "
+        "201 FileUploadDto; size and MIME limits are configurable client policy."
+    ),
+}
 
 
 def schema_sources(value: Any) -> list[str]:
@@ -199,6 +250,17 @@ def build_catalog(spec: dict[str, Any], source: dict[str, Any]) -> dict[str, Any
                     "auth": {"schemes": auth_schemes},
                     "effect": operation_effect(operation_id, method),
                     "status": "mock_tested" if operation_id in MOCK_TESTS else "discovered",
+                    "live_evidence": (
+                        "curl_observed"
+                        if operation_id in CURL_OBSERVED_OPERATION_IDS
+                        else "not_tested"
+                    ),
+                    "compatibility_overlay": {
+                        "version": COMPATIBILITY_OVERLAY_VERSION,
+                        "source_sha256": COMPATIBILITY_OVERLAY_SOURCE_SHA256,
+                    }
+                    if operation_id in COMPATIBILITY_OVERLAY_OPERATION_IDS
+                    else None,
                     "test_bindings": [
                         {
                             "test_path": (
@@ -226,6 +288,8 @@ def build_catalog(spec: dict[str, Any], source: dict[str, Any]) -> dict[str, Any
 
 
 def _note(operation_id: str) -> str | None:
+    if operation_id in COMPATIBILITY_NOTES:
+        return COMPATIBILITY_NOTES[operation_id]
     if operation_id in MOCK_TESTS:
         return None
     if operation_id in {"CompanyController_get", "CompanyController_update"}:

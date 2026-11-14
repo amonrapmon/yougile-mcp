@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+from copy import deepcopy
 from dataclasses import dataclass
 from functools import lru_cache
 from importlib.resources import files
@@ -18,6 +19,12 @@ from .errors import InvalidInputError, UpstreamError
 
 _SPEC_FILE = "openapi-v2.json"
 _SOURCE_FILE = "openapi-source.json"
+COMPATIBILITY_OVERLAY_VERSION = "2026-11-14.1"
+COMPATIBILITY_OVERLAY_SOURCE_SHA256 = "9452cba3571607848de77fc12e68104cb454e403c35c7a6b97521ea6e0d1d406"
+_COMPATIBILITY_PATHS = {
+    "CompanyController_get": "/api-v2/companies",
+    "CompanyController_update": "/api-v2/companies",
+}
 
 
 @dataclass(frozen=True)
@@ -49,8 +56,37 @@ def load_spec() -> dict[str, Any]:
 
 
 @lru_cache(maxsize=1)
+def load_compatible_spec() -> dict[str, Any]:
+    """Return the narrow runtime overlay for the exact pinned vendor schema."""
+    package = files(__package__)
+    source = json.loads(package.joinpath(_SOURCE_FILE).read_text(encoding="utf-8"))
+    if source.get("sha256") != COMPATIBILITY_OVERLAY_SOURCE_SHA256:
+        raise UpstreamError()
+    spec = deepcopy(load_spec())
+
+    company = spec["components"]["schemas"]["CompanyDto"]["properties"]
+    company["deleted"]["nullable"] = True
+
+    webhook_filters = spec["components"]["schemas"]["WebhookFilters"]
+    webhook_filters["properties"] = {
+        "name": {"type": "string"},
+        "value": {"type": "string"},
+    }
+    webhooks = spec["paths"]["/api-v2/webhooks"]
+    webhooks["get"]["responses"]["200"]["content"]["application/json"]["schema"] = {
+        "type": "array",
+        "items": {"$ref": "#/components/schemas/WebhookDto"},
+    }
+
+    upload = spec["paths"]["/api-v2/upload-file"]["post"]
+    upload["requestBody"]["content"]["multipart/form-data"]["schema"].pop("$ref", None)
+    upload["responses"]["201"] = deepcopy(upload["responses"]["200"])
+    return spec
+
+
+@lru_cache(maxsize=1)
 def operations() -> dict[str, Operation]:
-    spec = load_spec()
+    spec = load_compatible_spec()
     found: dict[str, Operation] = {}
     for path, path_item in spec["paths"].items():
         path_parameters = path_item.get("parameters", [])
@@ -65,7 +101,7 @@ def operations() -> dict[str, Operation]:
             found[operation_id] = Operation(
                 operation_id=operation_id,
                 method=method,
-                path=path,
+                path=_COMPATIBILITY_PATHS.get(operation_id, path),
                 effect=operation_effect(operation_id, method),
                 parameters=tuple(parameters),
                 request_body=raw.get("requestBody"),
@@ -85,7 +121,7 @@ def operation_effect(operation_id: str, method: str) -> str:
 
 def validate_schema(value: Any, schema: Mapping[str, Any], *, request: bool) -> None:
     """Validate against local OAS refs only; never fetch a schema over the network."""
-    spec = load_spec()
+    spec = load_compatible_spec()
     resolver = RefResolver.from_schema(spec)
     validator_type = OAS30Validator
     try:
