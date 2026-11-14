@@ -21,6 +21,33 @@ from yougile_mcp.config import Settings
 PREFIX = "YOUGILE_MCP_E2E_GEN229_TEST01"
 
 
+class RunnerExitCodeTests(unittest.TestCase):
+    def _run(self, side_effect_status: str) -> int:
+        report = {
+            "operations": [{"status": "PASS"}],
+            "side_effect_checks": {
+                "webhook_delivery": {"status": side_effect_status}
+            },
+        }
+        with (
+            patch.object(probe, "build_report", return_value=report),
+            patch.object(probe, "_print_report"),
+        ):
+            return probe.main(["--dry-run"])
+
+    def test_all_side_effect_checks_pass(self):
+        self.assertEqual(self._run("PASS"), 0)
+
+    def test_failed_side_effect_check_fails_the_run(self):
+        self.assertEqual(self._run("FAIL"), 1)
+
+    def test_blocked_side_effect_check_does_not_count_as_e2e_pass(self):
+        self.assertEqual(self._run("BLOCKED"), 1)
+
+    def test_unconfirmed_side_effect_check_does_not_count_as_e2e_pass(self):
+        self.assertEqual(self._run("PENDING"), 1)
+
+
 class LiveContractProbeTests(unittest.IsolatedAsyncioTestCase):
     def test_resolve_replaces_reference_keys_in_nested_objects(self):
         self.assertEqual(
@@ -154,7 +181,7 @@ class LiveContractProbeTests(unittest.IsolatedAsyncioTestCase):
             "event": "task-*",
             "filters": [
                 {"name": "location", "value": ["test-project"]},
-                {"name": "title", "value": [f"^{PREFIX}"]},
+                {"name": "title", "value": f"^{PREFIX}"},
             ],
         }
 

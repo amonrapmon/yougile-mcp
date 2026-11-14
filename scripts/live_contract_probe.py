@@ -512,7 +512,11 @@ def _fixture_gate(
         location_filter = named_filters.get("location")
         title_filter = named_filters.get("title")
         location_ids = location_filter if isinstance(location_filter, list) else []
-        title_patterns = title_filter if isinstance(title_filter, list) else []
+        title_patterns = (
+            [title_filter]
+            if isinstance(title_filter, str)
+            else title_filter if isinstance(title_filter, list) else []
+        )
         if (
             not isinstance(body, dict)
             or not isinstance(body.get("event"), str)
@@ -1021,7 +1025,12 @@ def main(argv: list[str] | None = None) -> int:
             )
         )
     _print_report(report)
-    return 1 if any(row["status"] == "FAIL" for row in report["operations"]) else 0
+    operation_failed = any(row["status"] == "FAIL" for row in report["operations"])
+    side_effect_unverified = any(
+        check.get("status") != "PASS"
+        for check in report.get("side_effect_checks", {}).values()
+    )
+    return 1 if operation_failed or side_effect_unverified else 0
 
 
 if __name__ == "__main__":

@@ -204,7 +204,7 @@
       "status": "mock_tested",
       "live_evidence": "live_verified_via_client",
       "compatibility_overlay": {
-        "version": "2026-11-14.6",
+        "version": "2026-11-14.7",
         "source_sha256": "9452cba3571607848de77fc12e68104cb454e403c35c7a6b97521ea6e0d1d406"
       },
       "test_bindings": [
@@ -283,7 +283,7 @@
       "status": "mock_tested",
       "live_evidence": "live_verified_via_client",
       "compatibility_overlay": {
-        "version": "2026-11-14.6",
+        "version": "2026-11-14.7",
         "source_sha256": "9452cba3571607848de77fc12e68104cb454e403c35c7a6b97521ea6e0d1d406"
       },
       "test_bindings": [
@@ -875,7 +875,7 @@
       "status": "mock_tested",
       "live_evidence": "live_verified_via_client",
       "compatibility_overlay": {
-        "version": "2026-11-14.6",
+        "version": "2026-11-14.7",
         "source_sha256": "9452cba3571607848de77fc12e68104cb454e403c35c7a6b97521ea6e0d1d406"
       },
       "test_bindings": [
@@ -918,7 +918,7 @@
       "status": "mock_tested",
       "live_evidence": "live_verified_via_client",
       "compatibility_overlay": {
-        "version": "2026-11-14.6",
+        "version": "2026-11-14.7",
         "source_sha256": "9452cba3571607848de77fc12e68104cb454e403c35c7a6b97521ea6e0d1d406"
       },
       "test_bindings": [
@@ -1010,7 +1010,7 @@
       "status": "mock_tested",
       "live_evidence": "live_expected_error_via_client",
       "compatibility_overlay": {
-        "version": "2026-11-14.6",
+        "version": "2026-11-14.7",
         "source_sha256": "9452cba3571607848de77fc12e68104cb454e403c35c7a6b97521ea6e0d1d406"
       },
       "test_bindings": [
@@ -1263,7 +1263,7 @@
       "status": "mock_tested",
       "live_evidence": "live_verified_via_client",
       "compatibility_overlay": {
-        "version": "2026-11-14.6",
+        "version": "2026-11-14.7",
         "source_sha256": "9452cba3571607848de77fc12e68104cb454e403c35c7a6b97521ea6e0d1d406"
       },
       "test_bindings": [
@@ -1349,7 +1349,7 @@
       "status": "mock_tested",
       "live_evidence": "live_verified_via_client",
       "compatibility_overlay": {
-        "version": "2026-11-14.6",
+        "version": "2026-11-14.7",
         "source_sha256": "9452cba3571607848de77fc12e68104cb454e403c35c7a6b97521ea6e0d1d406"
       },
       "test_bindings": [
@@ -1423,7 +1423,7 @@
       "status": "mock_tested",
       "live_evidence": "live_verified_via_client",
       "compatibility_overlay": {
-        "version": "2026-11-14.6",
+        "version": "2026-11-14.7",
         "source_sha256": "9452cba3571607848de77fc12e68104cb454e403c35c7a6b97521ea6e0d1d406"
       },
       "test_bindings": [
@@ -1557,7 +1557,7 @@
       "status": "mock_tested",
       "live_evidence": "live_verified_via_client",
       "compatibility_overlay": {
-        "version": "2026-11-14.6",
+        "version": "2026-11-14.7",
         "source_sha256": "9452cba3571607848de77fc12e68104cb454e403c35c7a6b97521ea6e0d1d406"
       },
       "test_bindings": [
@@ -1631,7 +1631,7 @@
       "status": "mock_tested",
       "live_evidence": "live_verified_via_client",
       "compatibility_overlay": {
-        "version": "2026-11-14.6",
+        "version": "2026-11-14.7",
         "source_sha256": "9452cba3571607848de77fc12e68104cb454e403c35c7a6b97521ea6e0d1d406"
       },
       "test_bindings": [
@@ -1780,7 +1780,7 @@
       "status": "mock_tested",
       "live_evidence": "live_verified_via_client",
       "compatibility_overlay": {
-        "version": "2026-11-14.6",
+        "version": "2026-11-14.7",
         "source_sha256": "9452cba3571607848de77fc12e68104cb454e403c35c7a6b97521ea6e0d1d406"
       },
       "test_bindings": [
@@ -1792,7 +1792,7 @@
           }
         }
       ],
-      "notes": "GEN-229 live DELETE returned a partial ProjectRoleDto; the operation-only overlay removes required fields for this response and validates present fields."
+      "notes": "GEN-229 live DELETE returned ProjectRoleDto with only id; the operation-only overlay requires id and validates any other present fields."
     },
     {
       "operationId": "ProjectRolesController_get",
@@ -2783,7 +2783,7 @@
       "status": "mock_tested",
       "live_evidence": "live_verified_via_client",
       "compatibility_overlay": {
-        "version": "2026-11-14.6",
+        "version": "2026-11-14.7",
         "source_sha256": "9452cba3571607848de77fc12e68104cb454e403c35c7a6b97521ea6e0d1d406"
       },
       "test_bindings": [
@@ -2989,7 +2989,7 @@
       "status": "mock_tested",
       "live_evidence": "live_verified_via_client",
       "compatibility_overlay": {
-        "version": "2026-11-14.6",
+        "version": "2026-11-14.7",
         "source_sha256": "9452cba3571607848de77fc12e68104cb454e403c35c7a6b97521ea6e0d1d406"
       },
       "test_bindings": [
@@ -3584,7 +3584,7 @@
       "status": "mock_tested",
       "live_evidence": "live_verified_via_client",
       "compatibility_overlay": {
-        "version": "2026-11-14.6",
+        "version": "2026-11-14.7",
         "source_sha256": "9452cba3571607848de77fc12e68104cb454e403c35c7a6b97521ea6e0d1d406"
       },
       "test_bindings": [
@@ -3635,7 +3635,7 @@
       "status": "mock_tested",
       "live_evidence": "live_verified_via_client",
       "compatibility_overlay": {
-        "version": "2026-11-14.6",
+        "version": "2026-11-14.7",
         "source_sha256": "9452cba3571607848de77fc12e68104cb454e403c35c7a6b97521ea6e0d1d406"
       },
       "test_bindings": [
@@ -3681,7 +3681,7 @@
       "status": "mock_tested",
       "live_evidence": "live_verified_via_client",
       "compatibility_overlay": {
-        "version": "2026-11-14.6",
+        "version": "2026-11-14.7",
         "source_sha256": "9452cba3571607848de77fc12e68104cb454e403c35c7a6b97521ea6e0d1d406"
       },
       "test_bindings": [

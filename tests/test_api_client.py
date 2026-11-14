@@ -2128,6 +2128,18 @@ class ApiClientTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(raised.exception.diagnostic.path, "id")
         self.assertEqual(raised.exception.diagnostic.expected_type, "string")
 
+        async with YouGileClient(
+            _settings(),
+            transport=httpx.MockTransport(lambda _: httpx.Response(200, json={})),
+            sleep=_no_sleep,
+        ) as client:
+            with self.assertRaises(UpstreamError) as raised:
+                await client.request(
+                    "ProjectRolesController_delete",
+                    path={"projectId": "test-project", "id": "test-role"},
+                )
+        self.assertEqual(raised.exception.diagnostic.rule, "required")
+
     def test_crm_external_id_overlay_documents_live_not_found_response(self):
         self.assertNotIn(
             "404",

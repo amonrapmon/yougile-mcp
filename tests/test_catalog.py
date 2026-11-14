@@ -136,7 +136,7 @@ class InventoryTests(unittest.TestCase):
         )
         self.assertEqual(
             {item["compatibility_overlay"]["version"] for item in overlay_rows},
-            {"2026-11-14.6"},
+            {"2026-11-14.7"},
         )
         self.assertEqual(
             {item["compatibility_overlay"]["source_sha256"] for item in overlay_rows},

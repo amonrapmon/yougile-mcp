@@ -291,8 +291,8 @@ COMPATIBILITY_NOTES = {
         "overlay was followed by a successful SDK GET. Invalid types remain rejected."
     ),
     "ProjectRolesController_delete": (
-        "GEN-229 live DELETE returned a partial ProjectRoleDto; the operation-only "
-        "overlay removes required fields for this response and validates present fields."
+        "GEN-229 live DELETE returned ProjectRoleDto with only id; the operation-only "
+        "overlay requires id and validates any other present fields."
     ),
     "TaskController_get": (
         "GEN-229 first live SDK GET returned deleted=null; the narrow TaskDto "
