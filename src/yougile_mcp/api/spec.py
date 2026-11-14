@@ -15,11 +15,11 @@ from typing import Any, Mapping
 from jsonschema import RefResolver, ValidationError
 from openapi_schema_validator import OAS30Validator
 
-from .errors import InvalidInputError, UpstreamError
+from .errors import InvalidInputError, SchemaDiagnostic, UpstreamError
 
 _SPEC_FILE = "openapi-v2.json"
 _SOURCE_FILE = "openapi-source.json"
-COMPATIBILITY_OVERLAY_VERSION = "2026-11-14.3"
+COMPATIBILITY_OVERLAY_VERSION = "2026-11-14.5"
 COMPATIBILITY_OVERLAY_SOURCE_SHA256 = "9452cba3571607848de77fc12e68104cb454e403c35c7a6b97521ea6e0d1d406"
 _COMPATIBILITY_PATHS = {
     "CompanyController_get": "/api-v2/companies",
@@ -71,6 +71,17 @@ def load_compatible_spec() -> dict[str, Any]:
     # tasks. Restrict this override to the three observed search DTOs; do not
     # silently change detail or write schemas without independent evidence.
     for schema_name in ("ProjectListDtoBase", "BoardListDtoBase", "TaskListDtoBase"):
+        spec["components"]["schemas"][schema_name]["properties"]["deleted"]["nullable"] = True
+
+    # GEN-229 confirmed the same server behavior in four detail DTOs and the
+    # group-chat list. Keep the adjustment limited to those observed schemas.
+    for schema_name in (
+        "ProjectDto",
+        "BoardDto",
+        "TaskDto",
+        "GroupChatDto",
+        "GroupChatListDtoBase",
+    ):
         spec["components"]["schemas"][schema_name]["properties"]["deleted"]["nullable"] = True
 
     webhook_filters = spec["components"]["schemas"]["WebhookFilters"]
@@ -137,9 +148,61 @@ def validate_schema(value: Any, schema: Mapping[str, Any], *, request: bool) -> 
     validator_type = OAS30Validator
     try:
         validator_type(schema, resolver=resolver).validate(value)
-    except ValidationError:
+    except ValidationError as validation_error:
         error = InvalidInputError() if request else UpstreamError()
+        if not request:
+            error.diagnostic = _schema_diagnostic(validation_error)
         raise error from None
+
+
+def _schema_diagnostic(error: ValidationError) -> SchemaDiagnostic:
+    schema_path = tuple(error.absolute_schema_path)
+    declared_fields = [
+        str(schema_path[index + 1])
+        for index, item in enumerate(schema_path[:-1])
+        if item == "properties"
+    ]
+    path_parts: list[str] = []
+    field_index = 0
+    for part in error.absolute_path:
+        if isinstance(part, int):
+            path_parts.append("[item]")
+        elif field_index < len(declared_fields) and part == declared_fields[field_index]:
+            path_parts.append(str(part))
+            field_index += 1
+        else:
+            path_parts.append("[key]")
+
+    expected_type = None
+    if error.validator == "type":
+        values = error.validator_value
+        if isinstance(values, str):
+            expected_type = values
+        elif isinstance(values, (tuple, list)) and all(isinstance(item, str) for item in values):
+            expected_type = "|".join(values)
+
+    instance = error.instance
+    if instance is None:
+        actual_type = "null"
+    elif isinstance(instance, bool):
+        actual_type = "boolean"
+    elif isinstance(instance, (int, float)):
+        actual_type = "number"
+    elif isinstance(instance, str):
+        actual_type = "string"
+    elif isinstance(instance, list):
+        actual_type = "array"
+    elif isinstance(instance, dict):
+        actual_type = "object"
+    else:
+        actual_type = "unknown"
+
+    return SchemaDiagnostic(
+        path=".".join(path_parts) or "$",
+        rule=str(error.validator or "unknown"),
+        expected_type=expected_type,
+        actual_type=actual_type,
+    )
 
 
 def _merge_parameters(

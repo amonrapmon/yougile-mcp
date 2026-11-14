@@ -55,7 +55,14 @@ class InventoryTests(unittest.TestCase):
         self.assertEqual(len(gaps), 5)
         self.assertTrue(set(gaps).issubset({item["operationId"] for item in rows}))
         self.assertEqual({item["status"] for item in rows}, {"mock_tested"})
-        self.assertEqual({item["live_evidence"] for item in rows}, {"not_tested", "curl_observed"})
+        self.assertEqual(
+            {item["live_evidence"] for item in rows},
+            {
+                "not_tested",
+                "curl_observed",
+                "live_verified_via_client",
+            },
+        )
         self.assertEqual(
             {
                 item["operationId"]
@@ -63,12 +70,26 @@ class InventoryTests(unittest.TestCase):
                 if item["live_evidence"] == "curl_observed"
             },
             {
-                "CompanyController_get",
                 "FileController_uploadFile",
                 "WebhookController_create",
                 "WebhookController_put",
-                "WebhookController_search",
             },
+        )
+        self.assertEqual(
+            {
+                item["operationId"]
+                for item in rows
+                if item["live_evidence"] == "live_verified_via_client"
+            },
+            generator.SDK_PASS_OPERATION_IDS,
+        )
+        self.assertEqual(
+            {
+                item["operationId"]
+                for item in rows
+                if item["live_evidence"] == "live_mismatch_via_client"
+            },
+            set(),
         )
         self.assertEqual(
             {item["operationId"] for item in rows if item["status"] == "mock_tested"},
@@ -78,15 +99,20 @@ class InventoryTests(unittest.TestCase):
         by_id = {item["operationId"]: item for item in rows}
         self.assertEqual(checker._coverage_metadata_errors(rows, source_meta["sha256"]), [])
         overlay_rows = [item for item in rows if item["compatibility_overlay"] is not None]
-        self.assertEqual(len(overlay_rows), 9)
+        self.assertEqual(len(overlay_rows), 14)
         self.assertEqual(
             {item["operationId"] for item in overlay_rows},
             {
+                "BoardController_get",
                 "BoardController_search",
                 "CompanyController_get",
                 "CompanyController_update",
                 "FileController_uploadFile",
+                "GroupChatController_get",
+                "GroupChatController_search",
+                "ProjectController_get",
                 "ProjectController_search",
+                "TaskController_get",
                 "TaskController_search",
                 "WebhookController_create",
                 "WebhookController_put",
@@ -95,18 +121,23 @@ class InventoryTests(unittest.TestCase):
         )
         self.assertEqual(
             {item["compatibility_overlay"]["version"] for item in overlay_rows},
-            {"2026-11-14.3"},
+            {"2026-11-14.5"},
         )
         self.assertEqual(
             {item["compatibility_overlay"]["source_sha256"] for item in overlay_rows},
             {source_meta["sha256"]},
         )
         for operation_id in (
+            "BoardController_get",
             "BoardController_search",
             "CompanyController_get",
             "CompanyController_update",
             "FileController_uploadFile",
+            "GroupChatController_get",
+            "GroupChatController_search",
+            "ProjectController_get",
             "ProjectController_search",
+            "TaskController_get",
             "TaskController_search",
             "WebhookController_create",
             "WebhookController_put",
@@ -300,6 +331,15 @@ class InventoryTests(unittest.TestCase):
             checker._coverage_metadata_errors([row], "pinned"),
             ["Compatibility overlay is not tied to the pinned source: WebhookController_search"],
         )
+
+    def test_sdk_schema_mismatch_evidence_is_not_reported_as_a_live_pass(self):
+        row = {
+            "operationId": "BoardController_get",
+            "status": "mock_tested",
+            "live_evidence": "live_mismatch_via_client",
+            "compatibility_overlay": {"version": "2026-11-14.4", "source_sha256": "pinned"},
+        }
+        self.assertEqual(checker._coverage_metadata_errors([row], "pinned"), [])
 
     def test_coverage_matrix_is_generated_from_the_pinned_source(self):
         spec = json.loads((ROOT / "src/yougile_mcp/api/openapi-v2.json").read_text(encoding="utf-8"))

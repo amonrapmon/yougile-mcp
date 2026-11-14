@@ -29,6 +29,7 @@ from .errors import (
     PaginationLimitError,
     PermissionDeniedError,
     RateLimitError,
+    RequestBudgetError,
     RequestTimeoutError,
     UnsupportedOperationError,
     UncertainWriteError,
@@ -193,11 +194,16 @@ class YouGileClient:
         limiter: CompanyRateLimiter | None = None,
         sleep: Any = asyncio.sleep,
         timeout: float = 10.0,
+        max_requests: int | None = None,
         max_upload_bytes: int = _DEFAULT_MAX_UPLOAD_BYTES,
         allowed_upload_content_types: Collection[str] = _DEFAULT_UPLOAD_CONTENT_TYPES,
     ) -> None:
         if isinstance(max_upload_bytes, bool) or not isinstance(max_upload_bytes, int) or max_upload_bytes < 1:
             raise ValueError("max_upload_bytes must be a positive integer")
+        if max_requests is not None and (
+            isinstance(max_requests, bool) or not isinstance(max_requests, int) or max_requests < 1
+        ):
+            raise ValueError("max_requests must be a positive integer")
         try:
             upload_content_types = frozenset(item.strip().lower() for item in allowed_upload_content_types)
         except (AttributeError, TypeError):
@@ -210,6 +216,9 @@ class YouGileClient:
         self._sleep = sleep
         self._max_upload_bytes = max_upload_bytes
         self._allowed_upload_content_types = upload_content_types
+        self._max_requests = max_requests
+        self._requests_sent = 0
+        self._request_count_lock = threading.Lock()
         self._http = httpx.AsyncClient(
             base_url=settings.yougile_base_url,
             timeout=timeout,
@@ -226,6 +235,17 @@ class YouGileClient:
 
     async def aclose(self) -> None:
         await self._http.aclose()
+
+    @property
+    def requests_sent(self) -> int:
+        with self._request_count_lock:
+            return self._requests_sent
+
+    def _reserve_request(self) -> None:
+        with self._request_count_lock:
+            if self._max_requests is not None and self._requests_sent >= self._max_requests:
+                raise RequestBudgetError()
+            self._requests_sent += 1
 
     async def request(
         self,
@@ -443,6 +463,7 @@ class YouGileClient:
     ) -> ApiResponse[Any]:
         attempt = 0
         while True:
+            self._reserve_request()
             await self._limiter.acquire()
             try:
                 async with self._http.stream(
