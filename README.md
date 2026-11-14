@@ -19,15 +19,19 @@ that unlicensed PR has been imported. The pinned official OpenAPI 3.0.0
 document describes 72 YouGile REST API v2 operations. The previous 70-operation
 snapshot had no removals and lacked two operations added by the official source;
 five operations remain outside the PR #5 inventory. The coverage matrix marks
-eight operations as mock-tested and the rest as discovered. See catalog/ and
+32 operations as mock-tested and 40 as discovered. The uncovered company
+wildcard and webhook filter schemas have concrete vendor-contract blockers;
+remaining writes are being implemented in later groups. See catalog/ and
 docs/PROVENANCE.md.
 
-An importable asynchronous API client currently covers company listing with
-user credentials, board/column/task reads, and a mocked column-creation
-operation. Company listing sends its credentials in the documented request
-body and does not attach a bearer API key. It is not a complete API SDK;
-the other operation IDs are deliberately unavailable in the client until
-their request, response and side-effect contracts are implemented and tested.
+An importable asynchronous API client currently covers the mock-tested read
+operations for users, projects and roles, departments, boards, columns, tasks,
+stickers, group chats, chat messages, and CRM lookup, plus company listing and
+column creation. Company listing sends credentials in its documented request
+body without a bearer API key. The generic `request(operation_id, path=...,
+query=..., body=...)` entry point validates requests and responses against the
+pinned OpenAPI contract. Discovered operations remain unavailable until their
+request, response and side-effect contracts are implemented and tested.
 
 ## API client slice
 
@@ -43,6 +47,10 @@ from yougile_mcp.config import Settings
 async def read_boards():
     async with YouGileClient(Settings.from_env()) as api:
         return await api.search_boards({"limit": 50, "offset": 0})
+
+async def read_current_user():
+    async with YouGileClient(Settings.from_env()) as api:
+        return await api.request("UserController_getMe")
 ```
 
 Protected calls require both `YOUGILE_API_KEY` and `YOUGILE_COMPANY_ID`; a

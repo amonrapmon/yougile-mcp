@@ -35,6 +35,19 @@ def _api_test_methods() -> dict[str, ast.FunctionDef | ast.AsyncFunctionDef]:
     }
 
 
+def _operation_test_cases() -> dict[str, dict]:
+    source = (ROOT / "tests/test_api_client.py").read_text(encoding="utf-8")
+    module = ast.parse(source)
+    for node in module.body:
+        if isinstance(node, ast.Assign) and any(
+            isinstance(target, ast.Name) and target.id == "READ_OPERATION_CASES"
+            for target in node.targets
+        ):
+            cases = ast.literal_eval(node.value)
+            return cases if isinstance(cases, dict) else {}
+    return {}
+
+
 def _calls_client_method(
     test_method: ast.FunctionDef | ast.AsyncFunctionDef,
     expected_method: str,
@@ -58,8 +71,55 @@ def _calls_client_method(
     return False
 
 
+def _calls_bound_operation_case(
+    test_method: ast.FunctionDef | ast.AsyncFunctionDef,
+) -> bool:
+    for node in ast.walk(test_method):
+        if not isinstance(node, (ast.For, ast.AsyncFor)):
+            continue
+        if not isinstance(node.target, (ast.Tuple, ast.List)) or len(node.target.elts) != 2:
+            continue
+        operation_id, case = node.target.elts
+        if not (
+            isinstance(operation_id, ast.Name)
+            and operation_id.id == "operation_id"
+            and isinstance(case, ast.Name)
+            and case.id == "case"
+        ):
+            continue
+        iterator = node.iter
+        if not (
+            isinstance(iterator, ast.Call)
+            and isinstance(iterator.func, ast.Attribute)
+            and iterator.func.attr == "items"
+            and isinstance(iterator.func.value, ast.Name)
+            and iterator.func.value.id == "READ_OPERATION_CASES"
+        ):
+            continue
+        for child in ast.walk(node):
+            if not isinstance(child, ast.Call) or not isinstance(child.func, ast.Attribute):
+                continue
+            if child.func.attr != "request":
+                continue
+            keywords = {keyword.arg: keyword.value for keyword in child.keywords}
+            if not (
+                isinstance(keywords.get("operation_id"), ast.Name)
+                and keywords["operation_id"].id == "operation_id"
+            ):
+                continue
+            if all(
+                isinstance(keywords.get(name), ast.Subscript)
+                and isinstance(keywords[name].value, ast.Name)
+                and keywords[name].value.id == "case"
+                for name in ("path", "query")
+            ) and isinstance(keywords.get("body"), ast.Call):
+                return True
+    return False
+
+
 def _test_binding_errors(operations: list[dict], test_methods: dict[str, ast.AST]) -> list[str]:
     errors = []
+    operation_cases = _operation_test_cases()
     for item in operations:
         if item["status"] not in {"implemented", "mock_tested", "live_verified"}:
             continue
@@ -86,6 +146,24 @@ def _test_binding_errors(operations: list[dict], test_methods: dict[str, ast.AST
             kwargs = binding.get("kwargs", {})
             if not isinstance(client_call, str) or not isinstance(kwargs, dict):
                 errors.append(f"Invalid operation call binding: {item['operationId']}")
+            elif client_call == "request" and "operation_id" in kwargs:
+                operation_id = kwargs["operation_id"]
+                case = operation_cases.get(operation_id)
+                if operation_id != item["operationId"]:
+                    errors.append(f"Test binding operationId mismatch: {item['operationId']}")
+                elif not isinstance(case, dict):
+                    errors.append(f"Operation test case is missing: {operation_id}")
+                elif (
+                    case.get("method") != item["method"]
+                    or case.get("path_template") != item["path"]
+                    or not isinstance(case.get("expected_path"), str)
+                    or not isinstance(case.get("invalid"), dict)
+                ):
+                    errors.append(f"Operation test case differs from catalog: {operation_id}")
+                elif not _calls_bound_operation_case(test_method):
+                    errors.append(
+                        f"Test does not invoke the bound operation case: {operation_id}"
+                    )
             elif not _calls_client_method(test_method, client_call, kwargs):
                 errors.append(
                     f"Test does not call {client_call} for {item['operationId']}: {method_name}"

@@ -57,11 +57,35 @@ IMPLEMENTED_OPERATION_IDS = frozenset(
         "getCompanies",
         "BoardController_search",
         "BoardController_get",
+        "ColumnController_get",
         "ColumnController_search",
         "ColumnController_create",
+        "AuthKeyController_search",
+        "ChatMessageController_get",
+        "ChatMessageController_search",
+        "CrmExternalIdController_findContactByExternalId",
+        "DepartmentController_get",
+        "DepartmentController_search",
+        "GroupChatController_get",
+        "GroupChatController_search",
+        "ProjectController_get",
+        "ProjectController_search",
+        "ProjectRolesController_get",
+        "ProjectRolesController_search",
+        "SprintStickerController_getSticker",
+        "SprintStickerController_search",
+        "SprintStickerStateController_get",
+        "StringStickerController_get",
+        "StringStickerController_search",
+        "StringStickerStateController_get",
         "TaskController_search",
         "TaskController_searchReversed",
         "TaskController_get",
+        "TaskController_getChatSubscribers",
+        "TaskController_getLog",
+        "UserController_get",
+        "UserController_getMe",
+        "UserController_search",
     }
 )
 _PAGE_SIZE_LIMIT = 1000
@@ -227,18 +251,22 @@ class YouGileClient:
         self,
         operation_id: str,
         *,
+        path: Mapping[str, object] | None = None,
         query: Mapping[str, object] | None = None,
         max_pages: int = _PAGINATION_LIMITS["max_pages"],
         max_items: int = _PAGINATION_LIMITS["max_items"],
     ) -> list[dict[str, Any]]:
         if max_pages < 1 or max_items < 1:
             raise InvalidInputError()
-        if operation_id not in {
-            "BoardController_search",
-            "ColumnController_search",
-            "TaskController_search",
-            "TaskController_searchReversed",
-        }:
+        operation = operations().get(operation_id)
+        query_parameters = {
+            parameter["name"]
+            for parameter in operation.parameters
+            if parameter.get("in") == "query"
+        } if operation is not None else set()
+        if operation_id not in IMPLEMENTED_OPERATION_IDS or not {"limit", "offset"}.issubset(
+            query_parameters
+        ):
             raise UnsupportedOperationError()
         current_query = dict(query or {})
         page_size = current_query.get("limit", 50)
@@ -255,7 +283,7 @@ class YouGileClient:
                 raise PaginationError()
             seen_offsets.add(offset_value)
             current_query["offset"] = offset_value
-            response = await self.request(operation_id, query=current_query)
+            response = await self.request(operation_id, path=path, query=current_query)
             data = response.data
             if not isinstance(data, dict):
                 raise PaginationError()

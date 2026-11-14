@@ -24,12 +24,13 @@ from yougile_mcp.api import (
     RateLimitError,
     RequestTimeoutError,
     UncertainWriteError,
+    UnsupportedOperationError,
     UpstreamError,
     VendorValidationError,
     YouGileClient,
 )
 from yougile_mcp.api.client import _decode_response
-from yougile_mcp.api.spec import Operation
+from yougile_mcp.api.spec import Operation, load_spec
 from yougile_mcp.config import Settings
 
 
@@ -59,6 +60,322 @@ def _board(board_id: str = "board-1") -> dict[str, str]:
 
 def _task(task_id: str = "task-1") -> dict[str, Any]:
     return {"id": task_id, "title": "Task", "timestamp": 123}
+
+
+READ_OPERATION_CASES = {
+    "AuthKeyController_search": {
+        "method": "POST",
+        "path_template": "/api-v2/auth/keys/get",
+        "expected_path": "/api-v2/auth/keys/get",
+        "path": {},
+        "query": {},
+        "body": {"login": "user@example.test", "password": "test-password", "companyId": "company-1"},
+        "authenticated": False,
+        "invalid": {"body": None},
+    },
+    "ChatMessageController_get": {
+        "method": "GET",
+        "path_template": "/api-v2/chats/{chatId}/messages/{id}",
+        "expected_path": "/api-v2/chats/chat%2F9/messages/42",
+        "path": {"chatId": "chat/9", "id": 42},
+        "query": {},
+        "authenticated": True,
+        "invalid": {"path": {"chatId": "chat/9"}},
+    },
+    "ChatMessageController_search": {
+        "method": "GET",
+        "path_template": "/api-v2/chats/{chatId}/messages",
+        "expected_path": "/api-v2/chats/chat%2F9/messages",
+        "path": {"chatId": "chat/9"},
+        "query": {
+            "includeDeleted": True,
+            "limit": 10,
+            "offset": 2,
+            "fromUserId": "user-1",
+            "text": "hello & hi",
+            "label": "comment",
+            "since": 1700000000000,
+            "includeSystem": False,
+        },
+        "authenticated": True,
+        "invalid": {"path": {}},
+    },
+    "CrmExternalIdController_findContactByExternalId": {
+        "method": "GET",
+        "path_template": "/api-v2/crm/contacts/by-external-id",
+        "expected_path": "/api-v2/crm/contacts/by-external-id",
+        "path": {},
+        "query": {"provider": "telegram", "chatId": "external-user-1"},
+        "authenticated": True,
+        "invalid": {"query": {"chatId": "external-user-1"}},
+    },
+    "DepartmentController_get": {
+        "method": "GET",
+        "path_template": "/api-v2/departments/{id}",
+        "expected_path": "/api-v2/departments/department%205",
+        "path": {"id": "department 5"},
+        "query": {},
+        "authenticated": True,
+        "invalid": {"path": {}},
+    },
+    "DepartmentController_search": {
+        "method": "GET",
+        "path_template": "/api-v2/departments",
+        "expected_path": "/api-v2/departments",
+        "path": {},
+        "query": {
+            "includeDeleted": False,
+            "limit": 10,
+            "offset": 2,
+            "title": "Engineering",
+            "parentId": "root/1",
+        },
+        "authenticated": True,
+        "invalid": {"query": {"unknown": "value"}},
+    },
+    "ColumnController_get": {
+        "method": "GET",
+        "path_template": "/api-v2/columns/{id}",
+        "expected_path": "/api-v2/columns/column%205",
+        "path": {"id": "column 5"},
+        "query": {},
+        "authenticated": True,
+        "invalid": {"path": {}},
+    },
+    "GroupChatController_get": {
+        "method": "GET",
+        "path_template": "/api-v2/group-chats/{id}",
+        "expected_path": "/api-v2/group-chats/chat%201",
+        "path": {"id": "chat 1"},
+        "query": {},
+        "authenticated": True,
+        "invalid": {"path": {}},
+    },
+    "GroupChatController_search": {
+        "method": "GET",
+        "path_template": "/api-v2/group-chats",
+        "expected_path": "/api-v2/group-chats",
+        "path": {},
+        "query": {
+            "includeDeleted": True,
+            "limit": 10,
+            "offset": 2,
+            "title": "Announcements",
+        },
+        "authenticated": True,
+        "invalid": {"query": {"unknown": "value"}},
+    },
+    "ProjectController_get": {
+        "method": "GET",
+        "path_template": "/api-v2/projects/{id}",
+        "expected_path": "/api-v2/projects/project%207",
+        "path": {"id": "project 7"},
+        "query": {},
+        "authenticated": True,
+        "invalid": {"path": {}},
+    },
+    "ProjectController_search": {
+        "method": "GET",
+        "path_template": "/api-v2/projects",
+        "expected_path": "/api-v2/projects",
+        "path": {},
+        "query": {
+            "includeDeleted": True,
+            "limit": 10,
+            "offset": 2,
+            "title": "Research & Dev",
+        },
+        "authenticated": True,
+        "invalid": {"query": {"unknown": "value"}},
+    },
+    "ProjectRolesController_get": {
+        "method": "GET",
+        "path_template": "/api-v2/projects/{projectId}/roles/{id}",
+        "expected_path": "/api-v2/projects/project%2F7/roles/role%203",
+        "path": {"projectId": "project/7", "id": "role 3"},
+        "query": {},
+        "authenticated": True,
+        "invalid": {"path": {"projectId": "project/7"}},
+    },
+    "ProjectRolesController_search": {
+        "method": "GET",
+        "path_template": "/api-v2/projects/{projectId}/roles",
+        "expected_path": "/api-v2/projects/project%2F7/roles",
+        "path": {"projectId": "project/7"},
+        "query": {"limit": 10, "offset": 2, "name": "Reviewer"},
+        "authenticated": True,
+        "invalid": {"path": {}},
+    },
+    "SprintStickerController_getSticker": {
+        "method": "GET",
+        "path_template": "/api-v2/sprint-stickers/{id}",
+        "expected_path": "/api-v2/sprint-stickers/sprint%201",
+        "path": {"id": "sprint 1"},
+        "query": {},
+        "authenticated": True,
+        "invalid": {"path": {}},
+    },
+    "SprintStickerController_search": {
+        "method": "GET",
+        "path_template": "/api-v2/sprint-stickers",
+        "expected_path": "/api-v2/sprint-stickers",
+        "path": {},
+        "query": {
+            "includeDeleted": False,
+            "limit": 10,
+            "offset": 2,
+            "name": "Sprint",
+            "boardId": "board/1",
+        },
+        "authenticated": True,
+        "invalid": {"query": {"unknown": "value"}},
+    },
+    "SprintStickerStateController_get": {
+        "method": "GET",
+        "path_template": "/api-v2/sprint-stickers/{stickerId}/states/{stickerStateId}",
+        "expected_path": "/api-v2/sprint-stickers/sprint%202/states/state%203",
+        "path": {"stickerId": "sprint 2", "stickerStateId": "state 3"},
+        "query": {"includeDeleted": False},
+        "authenticated": True,
+        "invalid": {"path": {"stickerId": "sprint 2"}},
+    },
+    "StringStickerController_get": {
+        "method": "GET",
+        "path_template": "/api-v2/string-stickers/{id}",
+        "expected_path": "/api-v2/string-stickers/sticker%201",
+        "path": {"id": "sticker 1"},
+        "query": {},
+        "authenticated": True,
+        "invalid": {"path": {}},
+    },
+    "StringStickerController_search": {
+        "method": "GET",
+        "path_template": "/api-v2/string-stickers",
+        "expected_path": "/api-v2/string-stickers",
+        "path": {},
+        "query": {
+            "includeDeleted": True,
+            "limit": 10,
+            "offset": 2,
+            "name": "Priority",
+            "boardId": "board/1",
+        },
+        "authenticated": True,
+        "invalid": {"query": {"unknown": "value"}},
+    },
+    "StringStickerStateController_get": {
+        "method": "GET",
+        "path_template": "/api-v2/string-stickers/{stickerId}/states/{stickerStateId}",
+        "expected_path": "/api-v2/string-stickers/sticker%202/states/state%201",
+        "path": {"stickerId": "sticker 2", "stickerStateId": "state 1"},
+        "query": {"includeDeleted": True},
+        "authenticated": True,
+        "invalid": {"path": {"stickerId": "sticker 2"}},
+    },
+    "TaskController_getChatSubscribers": {
+        "method": "GET",
+        "path_template": "/api-v2/tasks/{id}/chat-subscribers",
+        "expected_path": "/api-v2/tasks/task%206/chat-subscribers",
+        "path": {"id": "task 6"},
+        "query": {},
+        "authenticated": True,
+        "invalid": {"path": {}},
+    },
+    "TaskController_getLog": {
+        "method": "GET",
+        "path_template": "/api-v2/tasks/{id}/log",
+        "expected_path": "/api-v2/tasks/task%2F5/log",
+        "path": {"id": "task/5"},
+        "query": {"limit": 10, "before": 1700000000000},
+        "authenticated": True,
+        "invalid": {"path": {}},
+    },
+    "UserController_get": {
+        "method": "GET",
+        "path_template": "/api-v2/users/{id}",
+        "expected_path": "/api-v2/users/user%2F42",
+        "path": {"id": "user/42"},
+        "query": {},
+        "authenticated": True,
+        "invalid": {"path": {}},
+    },
+    "UserController_getMe": {
+        "method": "GET",
+        "path_template": "/api-v2/users/me",
+        "expected_path": "/api-v2/users/me",
+        "path": {},
+        "query": {},
+        "authenticated": True,
+        "invalid": {"query": {"unknown": "value"}},
+    },
+    "UserController_search": {
+        "method": "GET",
+        "path_template": "/api-v2/users",
+        "expected_path": "/api-v2/users",
+        "path": {},
+        "query": {
+            "limit": 10,
+            "offset": 2,
+            "email": "person@example.test",
+            "projectId": "project / 1",
+        },
+        "authenticated": True,
+        "invalid": {"query": {"unknown": "value"}},
+    },
+}
+
+
+def _sample_schema(schema: dict[str, Any], spec: dict[str, Any] | None = None) -> Any:
+    spec = spec or load_spec()
+    if "$ref" in schema:
+        target: Any = spec
+        for part in schema["$ref"].removeprefix("#/").split("/"):
+            target = target[part]
+        return _sample_schema(target, spec)
+    if "enum" in schema:
+        return schema["enum"][0]
+    for union in ("oneOf", "anyOf"):
+        if union in schema:
+            return _sample_schema(schema[union][0], spec)
+    result: dict[str, Any] = {}
+    for part in schema.get("allOf", []):
+        example = _sample_schema(part, spec)
+        if isinstance(example, dict):
+            result.update(example)
+        elif not result:
+            return example
+    schema_type = schema.get("type")
+    if schema_type == "array":
+        if schema.get("maxItems") == 0:
+            return []
+        return [_sample_schema(schema.get("items", {}), spec)]
+    if schema_type == "object" or "properties" in schema:
+        properties = schema.get("properties", {})
+        for name in schema.get("required", []):
+            result[name] = _sample_schema(properties[name], spec)
+        return result
+    if schema_type == "string":
+        return "sample"
+    if schema_type in {"number", "integer"}:
+        return schema.get("minimum", 1)
+    if schema_type == "boolean":
+        return False
+    if schema_type == "null":
+        return None
+    return result
+
+
+def _sample_operation_response(operation_id: str) -> Any:
+    operation = load_spec()["paths"]
+    raw_operation = next(
+        raw
+        for path_item in operation.values()
+        for method, raw in path_item.items()
+        if method in {"get", "post", "put", "patch", "delete"}
+        and raw.get("operationId") == operation_id
+    )
+    schema = raw_operation["responses"]["200"]["content"]["application/json"]["schema"]
+    return _sample_schema(schema)
 
 
 async def _no_sleep(_: float) -> None:
@@ -571,6 +888,34 @@ class ApiClientTests(unittest.IsolatedAsyncioTestCase):
                 items = await client.list_all("BoardController_search")
             self.assertEqual(len(items), expected_count)
 
+    async def test_list_all_supports_other_offset_paged_operations(self):
+        page = _sample_operation_response("ProjectRolesController_search")
+        page["paging"].update({"count": 1, "limit": 1, "offset": 0, "next": False})
+        seen = []
+
+        def handler(request: httpx.Request) -> httpx.Response:
+            seen.append(request)
+            return httpx.Response(200, json=page)
+
+        async with YouGileClient(
+            _settings(), transport=httpx.MockTransport(handler), sleep=_no_sleep
+        ) as client:
+            roles = await client.list_all(
+                "ProjectRolesController_search",
+                path={"projectId": "project/7"},
+                query={"limit": 1},
+            )
+            with self.assertRaises(UnsupportedOperationError):
+                await client.list_all("TaskController_getLog")
+
+        self.assertEqual(roles, page["content"])
+        self.assertEqual(len(seen), 1)
+        self.assertEqual(
+            seen[0].url.raw_path.split(b"?", 1)[0],
+            b"/api-v2/projects/project%2F7/roles",
+        )
+        self.assertEqual(dict(seen[0].url.params), {"limit": "1", "offset": "0"})
+
     async def test_pagination_rejects_duplicate_offsets_and_unbounded_results(self):
         calls = 0
 
@@ -635,6 +980,73 @@ class ApiClientTests(unittest.IsolatedAsyncioTestCase):
                     await (first if index % 2 else second).search_boards()
                 await second.search_boards()
         self.assertEqual(delays, [60.0])
+
+    async def test_read_operation_contracts(self):
+        for operation_id, case in READ_OPERATION_CASES.items():
+            with self.subTest(operation_id=operation_id):
+                seen = []
+                response_body = _sample_operation_response(operation_id)
+
+                def handler(request: httpx.Request) -> httpx.Response:
+                    seen.append(request)
+                    return httpx.Response(200, json=response_body)
+
+                async with YouGileClient(
+                    _settings(), transport=httpx.MockTransport(handler), sleep=_no_sleep
+                ) as client:
+                    with self.assertRaises(InvalidInputError):
+                        await client.request(operation_id=operation_id, **case["invalid"])
+                    self.assertEqual(seen, [])
+
+                    result = await client.request(
+                        operation_id=operation_id,
+                        path=case["path"],
+                        query=case["query"],
+                        body=case.get("body"),
+                    )
+
+                self.assertEqual(result.status_code, 200)
+                self.assertEqual(result.data, response_body)
+                self.assertEqual(len(seen), 1)
+                request = seen[0]
+                self.assertEqual(request.method, case["method"])
+                self.assertEqual(
+                    request.url.raw_path.split(b"?", 1)[0].decode("ascii"),
+                    case["expected_path"],
+                )
+                self.assertEqual(
+                    dict(request.url.params),
+                    {
+                        key: str(value).lower() if isinstance(value, bool) else str(value)
+                        for key, value in case["query"].items()
+                    },
+                )
+                if case["authenticated"]:
+                    self.assertEqual(request.headers["Authorization"], f"Bearer {SECRET}")
+                else:
+                    self.assertNotIn("Authorization", request.headers)
+                if case.get("body") is not None:
+                    self.assertEqual(request.headers["Content-Type"], "application/json")
+                    self.assertEqual(json.loads(request.content), case["body"])
+                else:
+                    self.assertEqual(request.content, b"")
+
+    async def test_vendor_schema_blockers_remain_unavailable(self):
+        calls = 0
+
+        def handler(_: httpx.Request) -> httpx.Response:
+            nonlocal calls
+            calls += 1
+            return httpx.Response(200, json={})
+
+        async with YouGileClient(
+            _settings(), transport=httpx.MockTransport(handler), sleep=_no_sleep
+        ) as client:
+            for operation_id in ("CompanyController_get", "WebhookController_search"):
+                with self.subTest(operation_id=operation_id):
+                    with self.assertRaises(UnsupportedOperationError):
+                        await client.request(operation_id)
+        self.assertEqual(calls, 0)
 
 
 if __name__ == "__main__":

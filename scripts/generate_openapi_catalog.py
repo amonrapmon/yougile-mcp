@@ -52,6 +52,42 @@ MOCK_TESTS = {
         "call": "get_task",
     },
 }
+READ_OPERATION_IDS = {
+    "AuthKeyController_search",
+    "ChatMessageController_get",
+    "ChatMessageController_search",
+    "CrmExternalIdController_findContactByExternalId",
+    "DepartmentController_get",
+    "DepartmentController_search",
+    "ColumnController_get",
+    "GroupChatController_get",
+    "GroupChatController_search",
+    "ProjectController_get",
+    "ProjectController_search",
+    "ProjectRolesController_get",
+    "ProjectRolesController_search",
+    "SprintStickerController_getSticker",
+    "SprintStickerController_search",
+    "SprintStickerStateController_get",
+    "StringStickerController_get",
+    "StringStickerController_search",
+    "StringStickerStateController_get",
+    "TaskController_getChatSubscribers",
+    "TaskController_getLog",
+    "UserController_get",
+    "UserController_getMe",
+    "UserController_search",
+}
+MOCK_TESTS.update(
+    {
+        operation_id: {
+            "test": "test_read_operation_contracts",
+            "call": "request",
+            "kwargs": {"operation_id": operation_id},
+        }
+        for operation_id in READ_OPERATION_IDS
+    }
+)
 
 
 def schema_sources(value: Any) -> list[str]:
@@ -156,6 +192,11 @@ def _note(operation_id: str) -> str | None:
         return None
     if operation_id in {"CompanyController_get", "CompanyController_update"}:
         return "The vendor path contains a non-standard wildcard with no declared parameter schema."
+    if operation_id.startswith("WebhookController_"):
+        return (
+            "The pinned OAS declares WebhookFilters.name.items as unsupported type "
+            "'location', conflicting with its string-name example; needs vendor clarification."
+        )
     if operation_id == "FileController_uploadFile":
         return "Upload limits and allowed MIME types need an approved client policy."
     return "Not included in the first implemented slice."

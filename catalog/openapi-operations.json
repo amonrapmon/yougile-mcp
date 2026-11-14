@@ -98,9 +98,17 @@
         "schemes": []
       },
       "effect": "read",
-      "status": "discovered",
-      "test_bindings": [],
-      "notes": "Not included in the first implemented slice."
+      "status": "mock_tested",
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_read_operation_contracts",
+          "client_call": "request",
+          "kwargs": {
+            "operation_id": "AuthKeyController_search"
+          }
+        }
+      ],
+      "notes": null
     },
     {
       "operationId": "BoardController_create",
@@ -320,9 +328,17 @@
         ]
       },
       "effect": "read",
-      "status": "discovered",
-      "test_bindings": [],
-      "notes": "Not included in the first implemented slice."
+      "status": "mock_tested",
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_read_operation_contracts",
+          "client_call": "request",
+          "kwargs": {
+            "operation_id": "ChatMessageController_get"
+          }
+        }
+      ],
+      "notes": null
     },
     {
       "operationId": "ChatMessageController_search",
@@ -416,9 +432,17 @@
         ]
       },
       "effect": "read",
-      "status": "discovered",
-      "test_bindings": [],
-      "notes": "Not included in the first implemented slice."
+      "status": "mock_tested",
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_read_operation_contracts",
+          "client_call": "request",
+          "kwargs": {
+            "operation_id": "ChatMessageController_search"
+          }
+        }
+      ],
+      "notes": null
     },
     {
       "operationId": "ChatMessageController_sendMessage",
@@ -600,9 +624,17 @@
         ]
       },
       "effect": "read",
-      "status": "discovered",
-      "test_bindings": [],
-      "notes": "Not included in the first implemented slice."
+      "status": "mock_tested",
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_read_operation_contracts",
+          "client_call": "request",
+          "kwargs": {
+            "operation_id": "ColumnController_get"
+          }
+        }
+      ],
+      "notes": null
     },
     {
       "operationId": "ColumnController_search",
@@ -837,9 +869,17 @@
         ]
       },
       "effect": "read",
-      "status": "discovered",
-      "test_bindings": [],
-      "notes": "Not included in the first implemented slice."
+      "status": "mock_tested",
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_read_operation_contracts",
+          "client_call": "request",
+          "kwargs": {
+            "operation_id": "CrmExternalIdController_findContactByExternalId"
+          }
+        }
+      ],
+      "notes": null
     },
     {
       "operationId": "DepartmentController_create",
@@ -900,9 +940,17 @@
         ]
       },
       "effect": "read",
-      "status": "discovered",
-      "test_bindings": [],
-      "notes": "Not included in the first implemented slice."
+      "status": "mock_tested",
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_read_operation_contracts",
+          "client_call": "request",
+          "kwargs": {
+            "operation_id": "DepartmentController_get"
+          }
+        }
+      ],
+      "notes": null
     },
     {
       "operationId": "DepartmentController_search",
@@ -968,9 +1016,17 @@
         ]
       },
       "effect": "read",
-      "status": "discovered",
-      "test_bindings": [],
-      "notes": "Not included in the first implemented slice."
+      "status": "mock_tested",
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_read_operation_contracts",
+          "client_call": "request",
+          "kwargs": {
+            "operation_id": "DepartmentController_search"
+          }
+        }
+      ],
+      "notes": null
     },
     {
       "operationId": "DepartmentController_update",
@@ -1100,9 +1156,17 @@
         ]
       },
       "effect": "read",
-      "status": "discovered",
-      "test_bindings": [],
-      "notes": "Not included in the first implemented slice."
+      "status": "mock_tested",
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_read_operation_contracts",
+          "client_call": "request",
+          "kwargs": {
+            "operation_id": "GroupChatController_get"
+          }
+        }
+      ],
+      "notes": null
     },
     {
       "operationId": "GroupChatController_search",
@@ -1161,9 +1225,17 @@
         ]
       },
       "effect": "read",
-      "status": "discovered",
-      "test_bindings": [],
-      "notes": "Not included in the first implemented slice."
+      "status": "mock_tested",
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_read_operation_contracts",
+          "client_call": "request",
+          "kwargs": {
+            "operation_id": "GroupChatController_search"
+          }
+        }
+      ],
+      "notes": null
     },
     {
       "operationId": "GroupChatController_update",
@@ -1262,9 +1334,17 @@
         ]
       },
       "effect": "read",
-      "status": "discovered",
-      "test_bindings": [],
-      "notes": "Not included in the first implemented slice."
+      "status": "mock_tested",
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_read_operation_contracts",
+          "client_call": "request",
+          "kwargs": {
+            "operation_id": "ProjectController_get"
+          }
+        }
+      ],
+      "notes": null
     },
     {
       "operationId": "ProjectController_search",
@@ -1323,9 +1403,17 @@
         ]
       },
       "effect": "read",
-      "status": "discovered",
-      "test_bindings": [],
-      "notes": "Not included in the first implemented slice."
+      "status": "mock_tested",
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_read_operation_contracts",
+          "client_call": "request",
+          "kwargs": {
+            "operation_id": "ProjectController_search"
+          }
+        }
+      ],
+      "notes": null
     },
     {
       "operationId": "ProjectController_update",
@@ -1480,9 +1568,17 @@
         ]
       },
       "effect": "read",
-      "status": "discovered",
-      "test_bindings": [],
-      "notes": "Not included in the first implemented slice."
+      "status": "mock_tested",
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_read_operation_contracts",
+          "client_call": "request",
+          "kwargs": {
+            "operation_id": "ProjectRolesController_get"
+          }
+        }
+      ],
+      "notes": null
     },
     {
       "operationId": "ProjectRolesController_search",
@@ -1541,9 +1637,17 @@
         ]
       },
       "effect": "read",
-      "status": "discovered",
-      "test_bindings": [],
-      "notes": "Not included in the first implemented slice."
+      "status": "mock_tested",
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_read_operation_contracts",
+          "client_call": "request",
+          "kwargs": {
+            "operation_id": "ProjectRolesController_search"
+          }
+        }
+      ],
+      "notes": null
     },
     {
       "operationId": "ProjectRolesController_update",
@@ -1649,9 +1753,17 @@
         ]
       },
       "effect": "read",
-      "status": "discovered",
-      "test_bindings": [],
-      "notes": "Not included in the first implemented slice."
+      "status": "mock_tested",
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_read_operation_contracts",
+          "client_call": "request",
+          "kwargs": {
+            "operation_id": "SprintStickerController_getSticker"
+          }
+        }
+      ],
+      "notes": null
     },
     {
       "operationId": "SprintStickerController_search",
@@ -1717,9 +1829,17 @@
         ]
       },
       "effect": "read",
-      "status": "discovered",
-      "test_bindings": [],
-      "notes": "Not included in the first implemented slice."
+      "status": "mock_tested",
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_read_operation_contracts",
+          "client_call": "request",
+          "kwargs": {
+            "operation_id": "SprintStickerController_search"
+          }
+        }
+      ],
+      "notes": null
     },
     {
       "operationId": "SprintStickerController_update",
@@ -1841,9 +1961,17 @@
         ]
       },
       "effect": "read",
-      "status": "discovered",
-      "test_bindings": [],
-      "notes": "Not included in the first implemented slice."
+      "status": "mock_tested",
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_read_operation_contracts",
+          "client_call": "request",
+          "kwargs": {
+            "operation_id": "SprintStickerStateController_get"
+          }
+        }
+      ],
+      "notes": null
     },
     {
       "operationId": "SprintStickerStateController_update",
@@ -1949,9 +2077,17 @@
         ]
       },
       "effect": "read",
-      "status": "discovered",
-      "test_bindings": [],
-      "notes": "Not included in the first implemented slice."
+      "status": "mock_tested",
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_read_operation_contracts",
+          "client_call": "request",
+          "kwargs": {
+            "operation_id": "StringStickerController_get"
+          }
+        }
+      ],
+      "notes": null
     },
     {
       "operationId": "StringStickerController_search",
@@ -2017,9 +2153,17 @@
         ]
       },
       "effect": "read",
-      "status": "discovered",
-      "test_bindings": [],
-      "notes": "Not included in the first implemented slice."
+      "status": "mock_tested",
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_read_operation_contracts",
+          "client_call": "request",
+          "kwargs": {
+            "operation_id": "StringStickerController_search"
+          }
+        }
+      ],
+      "notes": null
     },
     {
       "operationId": "StringStickerController_update",
@@ -2141,9 +2285,17 @@
         ]
       },
       "effect": "read",
-      "status": "discovered",
-      "test_bindings": [],
-      "notes": "Not included in the first implemented slice."
+      "status": "mock_tested",
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_read_operation_contracts",
+          "client_call": "request",
+          "kwargs": {
+            "operation_id": "StringStickerStateController_get"
+          }
+        }
+      ],
+      "notes": null
     },
     {
       "operationId": "StringStickerStateController_update",
@@ -2287,9 +2439,17 @@
         ]
       },
       "effect": "read",
-      "status": "discovered",
-      "test_bindings": [],
-      "notes": "Not included in the first implemented slice."
+      "status": "mock_tested",
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_read_operation_contracts",
+          "client_call": "request",
+          "kwargs": {
+            "operation_id": "TaskController_getChatSubscribers"
+          }
+        }
+      ],
+      "notes": null
     },
     {
       "operationId": "TaskController_getLog",
@@ -2341,9 +2501,17 @@
         ]
       },
       "effect": "read",
-      "status": "discovered",
-      "test_bindings": [],
-      "notes": "Not included in the first implemented slice."
+      "status": "mock_tested",
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_read_operation_contracts",
+          "client_call": "request",
+          "kwargs": {
+            "operation_id": "TaskController_getLog"
+          }
+        }
+      ],
+      "notes": null
     },
     {
       "operationId": "TaskController_search",
@@ -2734,9 +2902,17 @@
         ]
       },
       "effect": "read",
-      "status": "discovered",
-      "test_bindings": [],
-      "notes": "Not included in the first implemented slice."
+      "status": "mock_tested",
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_read_operation_contracts",
+          "client_call": "request",
+          "kwargs": {
+            "operation_id": "UserController_get"
+          }
+        }
+      ],
+      "notes": null
     },
     {
       "operationId": "UserController_getMe",
@@ -2760,9 +2936,17 @@
         ]
       },
       "effect": "read",
-      "status": "discovered",
-      "test_bindings": [],
-      "notes": "Not included in the first implemented slice."
+      "status": "mock_tested",
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_read_operation_contracts",
+          "client_call": "request",
+          "kwargs": {
+            "operation_id": "UserController_getMe"
+          }
+        }
+      ],
+      "notes": null
     },
     {
       "operationId": "UserController_search",
@@ -2821,9 +3005,17 @@
         ]
       },
       "effect": "read",
-      "status": "discovered",
-      "test_bindings": [],
-      "notes": "Not included in the first implemented slice."
+      "status": "mock_tested",
+      "test_bindings": [
+        {
+          "test_path": "tests/test_api_client.py::ApiClientTests.test_read_operation_contracts",
+          "client_call": "request",
+          "kwargs": {
+            "operation_id": "UserController_search"
+          }
+        }
+      ],
+      "notes": null
     },
     {
       "operationId": "UserController_setCustomStatus",
@@ -2920,7 +3112,7 @@
       "effect": "write",
       "status": "discovered",
       "test_bindings": [],
-      "notes": "Not included in the first implemented slice."
+      "notes": "The pinned OAS declares WebhookFilters.name.items as unsupported type 'location', conflicting with its string-name example; needs vendor clarification."
     },
     {
       "operationId": "WebhookController_put",
@@ -2958,7 +3150,7 @@
       "effect": "write",
       "status": "discovered",
       "test_bindings": [],
-      "notes": "Not included in the first implemented slice."
+      "notes": "The pinned OAS declares WebhookFilters.name.items as unsupported type 'location', conflicting with its string-name example; needs vendor clarification."
     },
     {
       "operationId": "WebhookController_search",
@@ -2991,7 +3183,7 @@
       "effect": "read",
       "status": "discovered",
       "test_bindings": [],
-      "notes": "Not included in the first implemented slice."
+      "notes": "The pinned OAS declares WebhookFilters.name.items as unsupported type 'location', conflicting with its string-name example; needs vendor clarification."
     },
     {
       "operationId": "getCompanies",
