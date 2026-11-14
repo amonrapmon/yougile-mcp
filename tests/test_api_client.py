@@ -1030,6 +1030,7 @@ class ApiClientTests(unittest.IsolatedAsyncioTestCase):
                     self.assertEqual(json.loads(request.content), case["body"])
                 else:
                     self.assertEqual(request.content, b"")
+                print(f"MockTransport contract passed: {operation_id}")
 
     async def test_vendor_schema_blockers_remain_unavailable(self):
         calls = 0
