@@ -4,6 +4,8 @@
 
 **Last full read-only sweep:** 2026-11-14 15:41 UTC (18:41 Moscow).
 
+**Draft PR:** [#13](https://github.com/amonrapmon/yougile-mcp/pull/13). **GitHub Actions:** [run](https://github.com/amonrapmon/yougile-mcp/actions/runs/43612067944) — Python 3.11, Python 3.12 and Docker passed.
+
 **Scope:** all 72 catalog operation IDs; reads only against the owner-confirmed disposable company.
 
 **Credential handling:** loaded from the profile-local `e2e.env` into the Python process; no values, company identifier, account profile, task data or response bodies were recorded.
@@ -21,6 +23,8 @@ The first complete diagnostic run found four schema mismatches, all `deleted: nu
 A full rerun after overlay `2026-11-14.4` passed those four findings and unlocked `GroupChatController_get`, which exposed the same mismatch at `deleted`. Overlay `2026-11-14.5` added only `GroupChatDto`; the next full rerun completed with **23 PASS, 0 FAIL, 40 BLOCKED, 9 SKIPPED, 0 NOT RUN**. The initial and final statuses are shown below.
 
 All final successful HTTP calls returned HTTP 200 and passed strict SDK response validation. Each PASS and initial schema FAIL row represents one request; BLOCKED and SKIPPED rows were not called. The final full sweep used 23/50 allowed HTTP attempts, including two preflight calls. The runner continued independent probes after validation failures and skipped only dependent detail calls without a usable test fixture.
+
+No cleanup ran because no live write operation was performed.
 
 ## Operation matrix
 
