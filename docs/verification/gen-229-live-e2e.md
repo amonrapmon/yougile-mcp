@@ -14,9 +14,10 @@
 
 ## Run summary
 
-| Pass | Fail | Blocked | Skipped | Not run | HTTP attempts |
-|---:|---:|---:|---:|---:|---:|
-| 17 | 4 | 40 | 11 | 0 | 21 initial; final sweep: 23 |
+| Run | Pass | Fail | Blocked | Skipped | Not run | HTTP attempts |
+|---|---:|---:|---:|---:|---:|---:|
+| Initial | 17 | 4 | 40 | 11 | 0 | 21 |
+| Final | 23 | 0 | 40 | 9 | 0 | 23 |
 
 The first complete diagnostic run found four schema mismatches, all `deleted: null` where the pinned schema required `boolean`: `BoardController_get` (`deleted`), `ProjectController_get` (`deleted`), `TaskController_get` (`deleted`), and `GroupChatController_search` (`content.[item].deleted`). The expected type was `boolean`; actual JSON type was `null` in each case.
 
