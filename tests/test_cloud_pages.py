@@ -19,8 +19,29 @@ class CloudPageTests(unittest.TestCase):
         self.assertIn('&lt;script&gt;', html)
         self.assertIn('method="post"', html)
         self.assertIn('type="password"', html)
-        self.assertIn('основа Indalo', html)
+        self.assertNotIn('основа Indalo', html)
         self.assertIn('github.com/amonrapmon/yougile-mcp', html)
+
+    def test_landing_has_github_avatar_mcp_url_and_no_upstream_footer(self):
+        url = 'https://yougile.ooouch.com/mcp'
+        html = pages.home_page(url)
+        self.assertIn(url, html)
+        self.assertIn('class="landing"', html)
+        self.assertIn('class="landing-avatar"', html)
+        self.assertIn('avatars.githubusercontent.com/u/167690761', html)
+        self.assertIn('Исходный код на GitHub', html)
+        self.assertIn('AGPL-3.0', html)
+        self.assertNotIn('основа Indalo', html)
+        self.assertNotIn('indalo-tech/yougile-mcp-cloud', html)
+        self.assertNotIn('<script', html.lower())
+        self.assertIn('aria-label="Скопируйте адрес подключения"', html)
+
+    def test_landing_escapes_untrusted_endpoint(self):
+        injected = 'https://example.test/?a=<script>alert(1)</script>&x="'
+        html = pages.home_page(injected)
+        self.assertNotIn(injected, html)
+        self.assertIn('&lt;script&gt;', html)
+        self.assertIn('&amp;x=&quot;', html)
 
     def test_company_choice_escapes_id_and_title(self):
         html = pages.company_page(

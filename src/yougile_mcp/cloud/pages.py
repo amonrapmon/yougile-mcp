@@ -1,6 +1,6 @@
 # Adapted from indalo-tech/yougile-mcp-cloud, pinned upstream commit ea88a0d5c5c055262cba9cf9741fd51828481ba5
 # Copyright (c) Indalo; upstream licensed AGPL-3.0-only.
-# Changes: project source URL, retained upstream credit in HTML footer.
+# Changes: project source URL, refreshed interface and source link; upstream credit stays in NOTICE.
 # SPDX-License-Identifier: AGPL-3.0-only
 
 """Server-rendered HTML. Every interpolated value goes through ``e()``: no raw input in HTML."""
@@ -11,7 +11,7 @@ from html import escape
 
 # AGPL: people using the service can always reach the code that runs it.
 SOURCE = "https://github.com/amonrapmon/yougile-mcp"
-INDALO_SOURCE = "https://github.com/indalo-tech/yougile-mcp-cloud"
+AVATAR = "https://avatars.githubusercontent.com/u/167690761?v=4"
 
 CSS = """
 :root{--bg:#f6f7f9;--card:#fff;--text:#1d2330;--muted:#5d6675;--line:#dfe3ea;--accent:#2f6fed;
@@ -62,6 +62,50 @@ background:var(--bg);font-size:15px;user-select:all;overflow-wrap:anywhere}ol{pa
 @media (max-width:640px){table,thead,tbody,tr,td,th{display:block}thead{display:none}
 td{border:0;padding:4px 0}tr{border-bottom:1px solid var(--line);padding:8px 0}
 td[data-label]::before{content:attr(data-label) ": ";color:var(--muted)}}
+
+/* Landing layout is isolated from /signin and company/host admin. */
+main.landing{max-width:740px;margin:clamp(44px,11vh,104px) auto 28px;padding:0 20px}
+main.landing .card{padding:clamp(28px,5vw,48px);border-radius:24px;
+background:radial-gradient(ellipse at 100% 0%,rgba(70,111,240,.12),transparent 48%),var(--card);
+box-shadow:0 22px 85px rgba(30,48,98,.08);overflow:hidden}
+.landing-brand{display:flex;align-items:center;gap:14px;margin-bottom:42px}
+.landing-avatar{display:block;flex:none;width:54px;height:54px;border-radius:16px;overflow:hidden;
+border:1px solid var(--line);background:var(--bg);box-shadow:0 6px 15px rgba(34,50,96,.10)}
+.landing-avatar img{display:block;width:100%;height:100%;object-fit:cover}
+.landing-brand-name{font-size:18px;font-weight:760;letter-spacing:-.45px;line-height:1.2}
+.landing-brand-label{font-size:12px;color:var(--muted);margin-top:4px}
+.landing-protocol{margin-left:auto;border:1px solid var(--line);border-radius:999px;
+padding:6px 10px;font-size:11px;font-weight:700;letter-spacing:.04em;color:var(--muted);white-space:nowrap}
+.landing h1{max-width:550px;font-size:clamp(29px,4.8vw,42px);font-weight:780;
+letter-spacing:-1.4px;line-height:1.14;margin:0 0 16px}
+.landing .hero-copy{max-width:540px;color:var(--muted);font-size:15px;line-height:1.75;margin:0 0 32px}
+.landing-endpoint{background:var(--bg);border:1px solid var(--line);border-radius:15px;padding:17px 18px}
+.landing-endpoint-top{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:9px}
+.landing-endpoint-label{font-size:12px;font-weight:650;color:var(--muted)}
+.landing-endpoint-tag{font-size:11px;font-weight:700;color:var(--accent)}
+.landing-endpoint code{display:block;font-size:clamp(12px,2.5vw,15px);line-height:1.6;
+font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-weight:650;
+letter-spacing:-.3px;user-select:all;overflow-wrap:anywhere;cursor:text}
+.landing-endpoint code:focus-visible{outline:2px solid var(--accent);outline-offset:5px;border-radius:3px}
+.landing-steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;
+border-top:1px solid var(--line);margin-top:34px;padding-top:28px}
+.landing-step{font-size:12px;color:var(--muted);line-height:1.6}
+.landing-step b{display:block;color:var(--text);font-size:13px;margin:5px 0 3px}
+.landing-step-num{font:700 11px ui-monospace,SFMono-Regular,Consolas,monospace;color:var(--accent)}
+.site-footer{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px 16px;
+font-size:12px;color:var(--muted);margin:20px 0 0}
+.site-footer a{color:var(--muted);text-decoration:none;font-weight:650;display:inline-flex;align-items:center;gap:6px}
+.site-footer a:hover,.site-footer a:focus-visible{color:var(--accent);text-decoration:underline}
+@media (max-width:640px){
+main.landing{margin-top:28px;padding:0 14px}
+main.landing .card{border-radius:19px}
+.landing-brand{margin-bottom:28px}
+.landing-steps{grid-template-columns:1fr;gap:15px}
+.landing-step{display:grid;grid-template-columns:24px 1fr;column-gap:8px}
+.landing-step-num{grid-row:span 2;padding-top:5px}
+.landing-step b{margin:0}
+.landing-protocol{font-size:10px;padding:5px 8px}
+}
 """
 
 
@@ -69,14 +113,17 @@ def e(value: object) -> str:
     return escape("" if value is None else str(value), quote=True)
 
 
-def page(title: str, body: str, *, wide: bool = False) -> str:
+def page(title: str, body: str, *, wide: bool = False, landing: bool = False) -> str:
+    main_class = "landing" if landing else "wide" if wide else ""
     return (
         '<!doctype html><html lang="ru"><head><meta charset="utf-8">'
         '<meta name="viewport" content="width=device-width,initial-scale=1">'
         f'<meta name="robots" content="noindex"><title>{e(title)}</title><style>{CSS}</style>'
-        f'</head><body><main class="{"wide" if wide else ""}"><div class="card">{body}</div>'
-        f'<p class="note foot">YouGile MCP · <a href="{SOURCE}">исходный код</a> (AGPL-3.0) · '
-        f'<a href="{INDALO_SOURCE}">основа Indalo</a></p>'
+        f'</head><body><main class="{main_class}"><div class="card">{body}</div>'
+        f'<footer class="site-footer"><a href="{SOURCE}" target="_blank" '
+        'rel="noopener noreferrer" aria-label="Исходный код на GitHub">'
+        'Исходный код на GitHub <span aria-hidden="true">↗</span></a>'
+        '<span>Открытый проект · AGPL-3.0</span></footer>'
         "</main></body></html>"
     )
 
@@ -145,18 +192,35 @@ def company_page(
 
 
 def home_page(mcp_url: str) -> str:
+    """Connection landing; OAuth login is shown only when a client starts a flow."""
     return page(
-        "YouGile MCP",
-        "<h1>YouGile MCP</h1><p class=lead>YouGile в AI-ассистенте — Claude и других клиентах с "
-        "поддержкой MCP. Без установки: ассистент видит проекты, доски и задачи и работает с "
-        "ними с вашими правами в YouGile.</p>"
-        "<label>Адрес для подключения</label>"
-        f'<p><code class="url">{e(mcp_url)}</code></p>'
-        "<ol><li>В AI-клиенте добавьте удалённый MCP-сервер (коннектор) с этим адресом.</li>"
-        "<li>Клиент откроет страницу входа — войдите логином и паролем YouGile.</li>"
-        "<li>Если вы в нескольких компаниях, выберите одну.</li></ol>"
-        '<p class="note">Администраторам компании: права сотрудников и правила для ассистента — '
-        'на <a href="/admin">странице управления</a>.</p>',
+        "YouGile MCP · Подключение",
+        '<header class="landing-brand">'
+        f'<a class="landing-avatar" href="{SOURCE}" target="_blank" '
+        'rel="noopener noreferrer" aria-label="Репозиторий YouGile MCP на GitHub">'
+        f'<img src="{AVATAR}" alt="Аватар GitHub-проекта" width="54" height="54" '
+        'referrerpolicy="no-referrer"></a>'
+        '<div><div class="landing-brand-name">YouGile MCP</div>'
+        '<div class="landing-brand-label">Подключение AI-ассистентов</div></div>'
+        '<span class="landing-protocol">MCP · OAUTH</span></header>'
+        '<h1>Ваш YouGile.<br>Теперь и в AI-ассистенте.</h1>'
+        '<p class="hero-copy">Подключайте проекты, доски и задачи через защищённый '
+        'MCP-сервер. Доступ к данным появится только после входа '
+        'в вашу учётную запись YouGile.</p>'
+        '<section class="landing-endpoint" aria-label="Адрес подключения">'
+        '<div class="landing-endpoint-top"><span class="landing-endpoint-label">'
+        'Адрес MCP-сервера</span><span class="landing-endpoint-tag">HTTPS</span></div>'
+        f'<code tabindex="0" aria-label="Скопируйте адрес подключения">{e(mcp_url)}</code>'
+        '</section>'
+        '<div class="landing-steps" aria-label="Как подключиться">'
+        '<div class="landing-step"><span class="landing-step-num">01</span>'
+        '<b>Добавьте сервер</b>Скопируйте адрес в настройках вашего AI-клиента.</div>'
+        '<div class="landing-step"><span class="landing-step-num">02</span>'
+        '<b>Войдите в YouGile</b>Авторизуйтесь в открывшемся окне.</div>'
+        '<div class="landing-step"><span class="landing-step-num">03</span>'
+        '<b>Выберите компанию</b>Если у вас их несколько, укажите нужную.</div>'
+        '</div>',
+        landing=True,
     )
 
 

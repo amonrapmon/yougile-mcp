@@ -22,7 +22,9 @@ Cloud UI reuse (GEN-231):
 - Copyright (c) Indalo, upstream license AGPL-3.0-only.
 - Pinned source commit: ea88a0d5c5c055262cba9cf9741fd51828481ba5 (2026-10-29).
 - Adapted files: src/yougile_mcp/cloud/pages.py and redirects.py.
-- Changes: module paths, source/attribution links; no UI redesign.
+- Changes: module paths, source/attribution links, redesigned landing page and CSS.
+- The original Indalo link was removed from public HTML footer; copyright,
+  SPDX identifiers and provenance are retained in code, NOTICE and docs.
 - The OAuth, DB, sign-in and admin modules have NOT yet been copied.
 
 Hosted persistence adaptation, GEN-231 #23:

@@ -52,7 +52,7 @@ _SCOPE = "yougile.full"
 
 _SECURITY = {
     "Content-Security-Policy": (
-        "default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; "
+        "default-src 'none'; style-src 'unsafe-inline'; img-src https://avatars.githubusercontent.com; form-action 'self'; "
         "frame-ancestors 'none'; base-uri 'none'"
     ),
     "X-Frame-Options": "DENY",
@@ -143,16 +143,7 @@ class CloudLoginPages:
         )
 
     async def home(self, request: Request) -> Response:
-        # The upstream home_page mentions /admin, not enabled at this stage.
-        return _html(
-            pages.page(
-                "YouGile MCP",
-                "<h1>YouGile MCP</h1><p class=lead>Подключение к YouGile через MCP</p>"
-                f"<p>Адрес подключения: <code class=url>{pages.e(self.provider.mcp_url)}</code></p>"
-                "<p class=note>Добавьте этот адрес в ваш AI-клиент. "
-                "Вход и выбор компании выполняются при OAuth-подключении.</p>",
-            )
-        )
+        return _html(pages.home_page(self.provider.mcp_url))
 
     async def health(self, request: Request) -> Response:
         # Liveness, not database status or deployment secrets.
