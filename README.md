@@ -208,3 +208,14 @@ docs/ROADMAP.md and CONTRIBUTING.md before opening a PR.
 
 Original code: GNU AGPL-3.0-only (LICENSE). A license declaration on this
 repository does not grant rights to copy the unlicensed PR #5 sources.
+
+## DE self-hosted cloud stack (pre-release)
+
+A Docker Compose stack for PostgreSQL 16, Valkey 8 and private
+OAuth-protected MCP is included in deploy/compose.yml. It integrates
+with an existing Traefik network and publishes no application/database
+host ports. The Docker image includes optional cloud dependencies.
+See deploy/README.md for a DE server inventory, secret generation,
+DNS, deployment and release validation. Public use still requires
+actual ChatGPT/Codex and live YouGile OAuth E2E, rate limit hardening
+and a verified backup/restore procedure.

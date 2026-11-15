@@ -6,7 +6,7 @@ COPY pyproject.toml uv.lock README.md LICENSE NOTICE ./
 COPY src/ ./src/
 
 RUN python -m pip install uv==0.13.8 \
- && uv sync --locked --no-dev --no-editable
+ && uv sync --locked --no-dev --no-editable --extra cloud
 
 FROM python:3.12-slim
 
@@ -22,5 +22,6 @@ RUN groupadd --system app \
 
 USER app:app
 
-# Configuration verification only. No HTTP listener.
+# Safe default: configuration verification only. Cloud mode requires
+# explicit docker compose command and a private Docker network.
 CMD ["yougile-mcp", "doctor"]
