@@ -80,6 +80,6 @@ async def cloud_serve(
                 await state.close()
         finally:
             await store.close()
-    except ValueError as exc:
+    except ValueError:
         # Do not print exception details, which may contain connection data.
         raise ConfigError("Cloud OAuth configuration rejected") from None
