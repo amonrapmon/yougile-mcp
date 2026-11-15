@@ -28,7 +28,7 @@ services:
     security_opt: [no-new-privileges:true]
 
   traefik:
-    image: traefik:v3.8
+    image: traefik:v3.7.19
     restart: unless-stopped
     depends_on: [docker-socket-proxy]
     command:
