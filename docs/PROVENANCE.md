@@ -134,3 +134,12 @@ Copyright (c) Indalo, AGPL-3.0-only. Adapted OAuth token, authorization
 code, refresh rotation and revocation flows to the official MCP Python SDK
 v2, with in-house PyJWT JWT issuance and the new project PostgreSQL/Valkey
 backends. Not a deployment of the upstream HTTP/OAuth app.
+
+## Cloud HTTP form/server adaptation (GEN-231, PR #25)
+
+Reference: https://github.com/indalo-tech/yougile-mcp-cloud/blob/ea88a0d5c5c055262cba9cf9741fd51828481ba5/src/yougile_cloud/web.py
+(© Indalo, AGPL-3.0-only). The server-rendered sign-in, request origin
+checks, five-minute encrypted company choice and security headers have
+been adapted in our `src/yougile_mcp/cloud/web.py` using MCP Python SDK v2
+`Server.streamable_http_app`. Host app/command is new; not a straight
+copy of Indalo's original FastMCP/Starlette wiring.

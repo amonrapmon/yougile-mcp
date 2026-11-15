@@ -81,6 +81,15 @@ class ValkeyCloudState:
         raw = await self.client.getdel(key)
         return json.loads(raw) if raw else None
 
+    async def put_bytes(self, key: str, payload: bytes, *, ttl: int) -> None:
+        if not isinstance(payload, bytes) or not 1 <= ttl <= 300:
+            raise ValueError("Invalid temporary secret or TTL")
+        await self.client.set(key, payload, ex=ttl)
+
+    async def take_bytes(self, key: str) -> bytes | None:
+        """Consume encrypted company-choice state exactly once."""
+        return await self.client.getdel(key)
+
     async def count_failure(self, key: str, *, window_seconds: int = 900) -> int:
         return int(await self.client.eval(_HIT, 1, key, window_seconds))
 

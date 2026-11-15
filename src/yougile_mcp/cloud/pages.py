@@ -116,7 +116,7 @@ def login_page(
         '<input id="password" name="password" type="password" '
         'autocomplete="current-password" required>'
         '<button type="submit">Войти</button></form>'
-        '<p class="note">Пароль передаётся в YouGile один раз, чтобы выпустить ключ доступа, '
+        '<p class="note">Пароль используется только при подключении для выпуска персонального ключа, '
         "и нигде не сохраняется. Ключ хранится в зашифрованном виде и действует с вашими "
         "правами в YouGile.</p>",
     )
