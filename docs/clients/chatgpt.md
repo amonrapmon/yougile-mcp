@@ -1,27 +1,25 @@
-# ChatGPT (web)
+# Подключение к ChatGPT
 
-**Transport:** remote Streamable HTTP with OAuth. **Status:** configuration guide only; YouGile MCP-to-ChatGPT E2E has not yet been verified.
+**Транспорт:** удалённый Streamable HTTP + OAuth. **Статус:** инструкция по конфигурации; сквозное подключение нашего сервера к ChatGPT пока не подтверждено тестами.
 
-## Prerequisites
+## Перед подключением
 
-- An operational public HTTPS MCP endpoint at `https://YOUR-HOST.example/mcp`. Replace the placeholder with your own deployed server URL.
-- A ChatGPT workspace/account with permission to add a **custom MCP server**. Full MCP support for writes is subject to current plan/workspace access. See [OpenAI's availability and permissions](https://help.openai.com/en/articles/12584461-connecting-custom-mcp-servers-in-chatgpt).
-- Your YouGile credentials for the OAuth sign-in page, and an allowed OAuth redirect origin configured by the server operator.
+- Нужен работающий публичный HTTPS-адрес MCP, например `https://YOUR-HOST.example/mcp`. Замените пример реальным адресом своего развёртывания.
+- В вашей версии ChatGPT и рабочем пространстве должна быть доступна функция подключения собственного MCP-сервера. Доступность и полномочия отличаются в зависимости от тарифа и настроек организации. Проверяйте [официальную справку OpenAI](https://help.openai.com/en/articles/12584461-connecting-custom-mcp-servers-in-chatgpt).
+- Оператор сервера должен разрешить доверенный OAuth callback, используемый ChatGPT.
 
-## Connect
+## Подключение
 
-1. In **ChatGPT web**, open **Plugins**.
-2. Use **+ → Add custom MCP server** (if your plan and workspace permit it).
-3. Enter a display name such as **YouGile MCP**.
-4. Under connection, provide `https://YOUR-HOST.example/mcp` (or a supported secure MCP tunnel where applicable).
-5. Configure OAuth according to the ChatGPT connection form. Complete the browser sign-in to YouGile; select a company if offered.
-6. Accept the security review prompt and create the connection. Inspect the discovered tools before enabling it.
-7. Install/select the connection for a conversation (for example with `@`), then make a **read-only** request to verify the company context.
+1. В веб-версии ChatGPT откройте раздел **Plugins / Подключения** (название зависит от текущего интерфейса).
+2. Найдите добавление пользовательского MCP-сервера, если функция доступна вашей учётной записи.
+3. Укажите название **YouGile MCP** и адрес `https://YOUR-HOST.example/mcp`.
+4. Выберите OAuth, если интерфейс запрашивает способ авторизации. Завершите вход в YouGile через открывшуюся страницу и выберите компанию.
+5. Проверьте список инструментов и начните с безопасного запроса на чтение.
 
-**Do not** enter a `YOUGILE_API_KEY` into ChatGPT or use `http://localhost:8000/mcp` for a hosted ChatGPT connection. ChatGPT does not run this repository's local stdio process from a web chat.
+**Не вставляйте `YOUGILE_API_KEY` или пароль YouGile в поля конфигурации MCP.** Облачная версия ChatGPT не запускает локальный stdio-процесс вашего компьютера. Адрес `http://localhost:8000/mcp` для такого подключения не подходит.
 
-## Limitations
+## Ограничения
 
-This guide does **not** assert that YouGile MCP is deployed, published in ChatGPT, or live-tested with ChatGPT. Server-side approval-gated operations remain unavailable without a configured approval service, even if ChatGPT requests user confirmation. For available permissions and the current connection UI see [official ChatGPT help](https://help.openai.com/en/articles/12584461-connecting-custom-mcp-servers-in-chatgpt).
+Эта инструкция не означает, что сервер уже развёрнут или прошёл реальный E2E с ChatGPT. Операции, требующие серверного подтверждения, могут возвращать `approval_required`, даже если действие подтверждено в интерфейсе ChatGPT.
 
-[Back to client index](README.md)
+[Общий обзор подключения](README.md)
