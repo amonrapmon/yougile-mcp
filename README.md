@@ -219,3 +219,14 @@ See deploy/README.md for a DE server inventory, secret generation,
 DNS, deployment and release validation. Public use still requires
 actual ChatGPT/Codex and live YouGile OAuth E2E, rate limit hardening
 and a verified backup/restore procedure.
+
+### DE5130: dedicated Traefik ingress
+
+The DE server runs an unused Xray service on host TCP 443, and does
+not have Traefik, Nginx or Caddy. For direct HTTPS (without Cloudflare),
+use [deploy/TRAEFIK-DE.md](deploy/TRAEFIK-DE.md) after verifying
+that Xray can be stopped safely. The separate
+[deploy/compose.edge.yml](deploy/compose.edge.yml) creates the shared
+proxy network with Traefik, Docker socket proxy and ACME HTTP-01.
+It does not alter any existing bots. No public opening before real
+OAuth, vendor API tests, and backup verification.

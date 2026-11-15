@@ -37,6 +37,17 @@ class DockerDeploymentTests(unittest.TestCase):
         self.assertIn("cloudflared-token:ro", source)
         self.assertIn("internal: true", source)
         self.assertIn("networks: [storage, edge]", source)
+    def test_dedicated_traefik_uses_only_public_80_and_443(self):
+        source = (ROOT / "deploy/compose.edge.yml").read_text(encoding="utf-8")
+        self.assertIn('80:80/tcp', source)
+        self.assertIn('443:443/tcp', source)
+        self.assertIn('providers.docker.exposedbydefault=false', source)
+        self.assertIn('acme.httpchallenge.entrypoint=web', source)
+        self.assertIn('docker-socket-proxy', source)
+        self.assertNotIn('api.insecure=true', source)
+        self.assertIn('POST: "0"', source)
+        self.assertIn('internal: true', source)
+
     def test_no_real_secrets_in_template(self):
         sample = (ROOT / "deploy/.env.example").read_text(encoding="utf-8")
         self.assertIn("REPLACE_WITH", sample)

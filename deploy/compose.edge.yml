@@ -1,0 +1,68 @@
+name: yougile-edge
+
+# HTTPS ingress on DE5130: ONLY this stack publishes ports 80/443.
+# The unused Xray listener must be stopped first, after checking its unit.
+services:
+  docker-socket-proxy:
+    image: tecnativa/docker-socket-proxy:0.5.0
+    restart: unless-stopped
+    environment:
+      CONTAINERS: "1"
+      NETWORKS: "1"
+      EVENTS: "1"
+      INFO: "1"
+      VERSION: "1"
+      POST: "0"
+      AUTH: "0"
+      BUILD: "0"
+      EXEC: "0"
+      IMAGES: "0"
+      SECRETS: "0"
+      SWARM: "0"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    expose: ["2375"]
+    networks: [socket]
+    read_only: true
+    tmpfs: ["/tmp:size=16m,mode=1777"]
+    security_opt: [no-new-privileges:true]
+
+  traefik:
+    image: traefik:v3.8
+    restart: unless-stopped
+    depends_on: [docker-socket-proxy]
+    command:
+      - --api.dashboard=false
+      - --api.insecure=false
+      - --providers.docker=true
+      - --providers.docker.endpoint=tcp://docker-socket-proxy:2375
+      - --providers.docker.exposedbydefault=false
+      - --providers.docker.network=proxy
+      - --entrypoints.web.address=:80
+      - --entrypoints.websecure.address=:443
+      - --entrypoints.web.http.redirections.entrypoint.to=websecure
+      - --entrypoints.web.http.redirections.entrypoint.scheme=https
+      - --certificatesresolvers.letsencrypt.acme.email=${ACME_EMAIL:?Provide ACME_EMAIL in .env}
+      - --certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json
+      - --certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web
+      - --log.level=INFO
+    ports:
+      - "80:80/tcp"
+      - "443:443/tcp"
+    volumes:
+      - acme_data:/letsencrypt
+    networks: [proxy, socket]
+    security_opt: [no-new-privileges:true]
+    cap_drop: [ALL]
+
+networks:
+  # This stack creates the shared network; the app references it as external.
+  proxy:
+    name: ${TRAEFIK_NETWORK:-proxy}
+    driver: bridge
+  # Docker API proxy accessible ONLY from Traefik's private network.
+  socket:
+    internal: true
+
+volumes:
+  acme_data:
