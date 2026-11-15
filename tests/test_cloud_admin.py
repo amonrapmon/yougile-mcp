@@ -53,6 +53,8 @@ class FakeAdminSignin:
 
 @unittest.skipUnless(DATABASE and VALKEY, "requires PostgreSQL and Redis services")
 class AdminHTTPTests(unittest.IsolatedAsyncioTestCase):
+    host_subjects: tuple[str, ...] = ()
+
     async def asyncSetUp(self):
         self.settings = Settings.from_env({
             "MCP_TRANSPORT": "http", "MCP_AUTH_MODE": "required",
@@ -117,6 +119,7 @@ class AdminHTTPTests(unittest.IsolatedAsyncioTestCase):
             settings=self.settings, provider=self.oauth, signin=self.signin,
             store=self.store, state=self.state, cipher=self.store._cipher,
             csrf_secret="s" * 64, yougile_transport=httpx.MockTransport(vendor),
+            host_admin_subjects=self.host_subjects,
         )
         self.started = asyncio.Event()
         self.stop = asyncio.Event()
@@ -291,6 +294,8 @@ class AdminHTTPTests(unittest.IsolatedAsyncioTestCase):
         result = await self.http.get("/admin")
         self.assertEqual(result.status_code, 303)
         self.assertEqual(result.headers["location"], "/admin/login")
+        await self.store.set_company_enabled("company-A", True)
+        self.assertEqual((await self.http.get("/admin")).status_code, 303)
 
     async def test_multi_company_admin_choice_scopes_session(self):
         self.signin.multiple = True

@@ -194,12 +194,16 @@ class CloudOAuthProvider:
     ) -> OAuthToken:
         if not await self.store.load(str(user_id)):
             raise TokenError(error="invalid_grant", error_description="Account inactive")
+        epoch = await self.store.active_account_epoch(str(user_id))
+        if epoch is None:
+            raise TokenError(error="invalid_grant", error_description="Inactive company")
         now = int(time.time())
         claims = {
             "iss": self.public_url, "aud": self.mcp_url, "sub": str(user_id),
             "client_id": client_id, "token_use": "access", "jti": new_opaque_token(),
             "iat": now, "nbf": now, "exp": now + ACCESS_TOKEN_TTL,
             "scope": " ".join(scopes),
+            "company_epoch": epoch,
         }
         token = jwt.encode(
             claims, self._signing_key, algorithm="HS256", headers={"typ": "at+jwt"},
@@ -261,7 +265,7 @@ class CloudOAuthProvider:
                 issuer=self.public_url, audience=self.mcp_url,
                 options={"require": [
                     "iss", "aud", "sub", "client_id", "token_use", "jti",
-                    "iat", "nbf", "exp",
+                    "iat", "nbf", "exp", "company_epoch",
                 ]},
             )
             if (
@@ -270,6 +274,8 @@ class CloudOAuthProvider:
                 or not claims["sub"].isascii() or not claims["sub"].isdecimal()
                 or not claims.get("client_id") or not claims.get("jti")
                 or await self.state.is_revoked(self.public_url, claims["jti"])
+                or not isinstance(claims.get("company_epoch"), int)
+                or await self.store.active_account_epoch(claims["sub"]) != claims["company_epoch"]
                 or not await self.store.load(claims["sub"])
             ):
                 return None

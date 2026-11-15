@@ -123,6 +123,14 @@ class CloudOAuthProviderTests(unittest.IsolatedAsyncioTestCase):
         self.assertIsNone(await other_issuer.verify_token(tokens.access_token))
         await self.db.set_company_enabled("c-main", False)
         self.assertIsNone(await self.oauth.verify_token(tokens.access_token))
+        await self.db.set_company_enabled("c-main", True)
+        # Re-enabling a company must not resurrect previously issued JWTs.
+        self.assertIsNone(await self.oauth.verify_token(tokens.access_token))
+        new_tokens = await self.oauth._issue(
+            user_id=int(self.person.account_id), client_id=self.client.client_id,
+            scopes=["yougile.full"],
+        )
+        self.assertIsNotNone(await self.oauth.verify_token(new_tokens.access_token))
 
     async def test_bad_redirect_resource_scopes_and_disabled_actor_denied(self):
         evil = OAuthClientInformationFull(

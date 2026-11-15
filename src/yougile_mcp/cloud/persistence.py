@@ -73,7 +73,7 @@ class PostgresCloudStore:
                 )
                 # All migrations run under the same advisory lock. Existing
                 # installations with 001 applied receive only newer migrations.
-                for name in ("001_cloud.sql", "002_admin.sql"):
+                for name in ("001_cloud.sql", "002_admin.sql", "003_host_epoch.sql"):
                     cur = await conn.execute(
                         "SELECT name FROM cloud_schema_migrations WHERE name=%s",
                         (name,),
@@ -208,8 +208,11 @@ class PostgresCloudStore:
         async with self.pool.connection() as conn:
             async with conn.transaction():
                 await conn.execute(
-                    "UPDATE cloud_companies SET enabled=%s,updated_at=now() WHERE id=%s",
-                    (enabled, company_id),
+                    "UPDATE cloud_companies "
+                    "SET enabled=%s,updated_at=now(), "
+                    "access_epoch=access_epoch + CASE WHEN enabled IS DISTINCT FROM %s "
+                    "THEN 1 ELSE 0 END WHERE id=%s",
+                    (enabled, enabled, company_id),
                 )
                 if not enabled:
                     await conn.execute(
@@ -218,6 +221,39 @@ class PostgresCloudStore:
                         (company_id,),
                     )
 
+
+
+    async def active_account_epoch(self, account_id: str) -> int | None:
+        """Company re-enable must never revive old OAuth access tokens."""
+        if not isinstance(account_id, str) or not account_id.isascii() or not (
+            account_id.isdecimal() and len(account_id) <= 18
+        ):
+            return None
+        async with self.pool.connection() as conn:
+            cur = await conn.execute(
+                "SELECT c.access_epoch FROM cloud_users u "
+                "JOIN cloud_companies c ON c.id=u.company_id "
+                "WHERE u.id=%s AND u.enabled AND c.enabled AND NOT EXISTS "
+                "(SELECT 1 FROM cloud_member_blocks b "
+                "WHERE b.company_id=u.company_id "
+                "AND b.yougile_user_id=u.yougile_user_id)",
+                (int(account_id),),
+            )
+            row = await cur.fetchone()
+        return int(row["access_epoch"]) if row else None
+
+    async def host_companies(self) -> list[dict[str, Any]]:
+        """Return multi-company metadata only; never keys or refresh tokens."""
+        async with self.pool.connection() as conn:
+            cur = await conn.execute(
+                "SELECT c.id,c.name,c.enabled,c.access_epoch,c.created_at,"
+                " (SELECT count(*) FROM cloud_users u WHERE u.company_id=c.id)"
+                " AS connected_count,"
+                " (SELECT count(*) FROM cloud_member_blocks b WHERE b.company_id=c.id)"
+                " AS blocked_count "
+                "FROM cloud_companies c ORDER BY lower(c.name),c.id"
+            )
+            return list(await cur.fetchall())
 
     async def get_company(self, company_id: str) -> dict[str, Any] | None:
         if not isinstance(company_id, str) or not company_id:

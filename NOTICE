@@ -55,3 +55,10 @@ Company administrator import/adaptation, GEN-231 / PR #26:
   employee listing, personal disconnect, preemptive block and unblock.
 - Removed original subscription billing, project/role policy controls
   (not implemented by Full Access Runtime), and Telegram tickets.
+
+Multi-company host operator UI, GEN-231 (stacked PR #27):
+- Adapted visual shell and table conventions from Indalo admin_pages.py,
+  original commit ea88a0d5c5c055262cba9cf9741fd51828481ba5.
+- Copyright (c) Indalo, AGPL-3.0-only.
+- New host_admin.py supplies distinct operator authorization, not copied
+  upstream tenancy or commercial admin.

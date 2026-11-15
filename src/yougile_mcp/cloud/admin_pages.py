@@ -26,6 +26,7 @@ class Frame:
     enabled: bool
     admin_name: str
     csrf: str
+    host_operator: bool = False
     member_count: int = 0
     connected_count: int = 0
     blocked_count: int = 0
@@ -59,6 +60,8 @@ def _shell(
 ) -> str:
     # Based on Indalo's original _shell; the shared CSS/HTML is unchanged.
     links = [("users", "/admin", "Сотрудники"), ("settings", "/admin/settings", "Настройки")]
+    if frame.host_operator:
+        links.append(("host", "/host", "Хостинг"))
     nav = "".join(
         f'<a href="{href}"{" aria-current=page" if key == current else ""}>{e(label)}</a>'
         for key, href, label in links
@@ -204,3 +207,102 @@ def user_page(
         + '<p><a href="/admin">Вернуться к сотрудникам</a></p>'
     )
     return _shell(frame, "users", person.name, body, done)
+
+
+def host_companies_page(
+    frame: Frame, companies: list[dict], *, done: str | None = None,
+) -> str:
+    """Indalo-style host overview, separate from company-admin authority."""
+    rows = []
+    for company in companies:
+        company_id = company["id"]
+        link = e("/host/companies/" + quote(company_id, safe=""))
+        current = company_id == frame.company_id
+        status = "Активна" if company["enabled"] else "Отключена"
+        button = ""
+        if not current:
+            op = "disable" if company["enabled"] else "enable"
+            label = "Отключить" if company["enabled"] else "Включить"
+            klass = "danger" if company["enabled"] else "secondary"
+            button = (
+                f'<form method="post" action="{link}/{op}">{_csrf(frame.csrf)}'
+                f'<button class="inline {klass}" type="submit">{label}</button></form>'
+            )
+        rows.append(
+            f'<tr><td><a href="{link}"><b>{e(company["name"])}</b></a>'
+            f'<div class="muted">{e(company_id)}</div></td>'
+            f'<td data-label="Состояние">{status}</td>'
+            f'<td data-label="Подключены">{int(company["connected_count"])}</td>'
+            f'<td data-label="Запрещено">{int(company["blocked_count"])}</td>'
+            f'<td>{button or "<span class=muted>Текущая компания администратора</span>"}</td></tr>'
+        )
+    notice = (
+        f'<div class="ok" role="status">{e(done)}</div>' if done else ""
+    )
+    table = (
+        "<table><thead><tr><th>Компания</th><th>Состояние</th>"
+        "<th>Подключены</th><th>Запрещено</th><th></th></tr></thead>"
+        f"<tbody>{''.join(rows)}</tbody></table>"
+        if rows else "<p class=muted>Компаний пока нет.</p>"
+    )
+    return _shell(
+        frame, "host", "Управление хостингом",
+        "<h2>Компании на сервере</h2>"
+        "<p class=hint>Это управление сервером MCP, а не компаниями в YouGile. "
+        "Доступ есть только у явно назначенного владельца хостинга. "
+        "Отключение компании прекращает OAuth-доступ всех её сотрудников.</p>"
+        + notice + table,
+    )
+
+
+def host_company_page(
+    frame: Frame, company: dict, people: list[Person],
+    *, done: str | None = None,
+) -> str:
+    """Connected users + blocks only. The host never sees vendor API keys."""
+    cid = company["id"]
+    base = "/host/companies/" + quote(cid, safe="")
+    status = "Активна" if company["enabled"] else "Отключена"
+    rows = []
+    for person in people:
+        uid = quote(person.id, safe="")
+        action = e(base + "/members/" + uid)
+        buttons = []
+        if person.connected:
+            buttons.append(
+                f'<form method="post" action="{action}/disconnect">{_csrf(frame.csrf)}'
+                '<button class="inline secondary" type="submit">Отключить</button></form>'
+            )
+        if person.blocked:
+            buttons.append(
+                f'<form method="post" action="{action}/unblock">{_csrf(frame.csrf)}'
+                '<button class="inline secondary" type="submit">Разрешить</button></form>'
+            )
+        else:
+            buttons.append(
+                f'<form method="post" action="{action}/block">{_csrf(frame.csrf)}'
+                '<button class="inline danger" type="submit">Запретить</button></form>'
+            )
+        rows.append(
+            f'<tr><td><b>{e(person.name)}</b><div class=muted>{e(person.email)}</div>'
+            f'<div class=muted>{e(person.id)}</div></td>'
+            f'<td data-label="Подключение">{"Да" if person.connected else "Нет"}</td>'
+            f'<td data-label="Запрет">{"Да" if person.blocked else "Нет"}</td>'
+            f'<td>{"".join(buttons)}</td></tr>'
+        )
+    table = (
+        "<table><thead><tr><th>Пользователь</th><th>Подключение</th>"
+        "<th>Запрет</th><th></th></tr></thead>"
+        f"<tbody>{''.join(rows)}</tbody></table>"
+        if rows else "<p class=muted>Подключений и запретов пока нет.</p>"
+    )
+    notice = f'<div class="ok" role="status">{e(done)}</div>' if done else ""
+    content = (
+        '<p><a href="/host">Все компании</a></p>'
+        f"<h2>{e(company['name'])}</h2>"
+        f'<p class=muted>Компания {e(cid)} · {status}</p>'
+        '<p class=hint>Владелец сервера видит только существующие подключения '
+        "и запреты. Список всех сотрудников в YouGile здесь не загружается.</p>"
+        + notice + table
+    )
+    return _shell(frame, "host", "Компания на хостинге", content)
