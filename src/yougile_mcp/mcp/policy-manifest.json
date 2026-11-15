@@ -1,0 +1,510 @@
+{
+  "schema_version": 1,
+  "review_note": "GEN-231 proposed tool policy; remote exposure disabled pending owner decisions",
+  "operations": {
+    "AuthKeyController_create": {
+      "domain": "auth_keys",
+      "access": "admin",
+      "risk": "credential",
+      "resource_scope": "company",
+      "approval": true
+    },
+    "AuthKeyController_delete": {
+      "domain": "auth_keys",
+      "access": "admin",
+      "risk": "credential",
+      "resource_scope": "company",
+      "approval": true
+    },
+    "AuthKeyController_search": {
+      "domain": "auth_keys",
+      "access": "admin",
+      "risk": "credential",
+      "resource_scope": "company",
+      "approval": true
+    },
+    "BoardController_create": {
+      "domain": "boards",
+      "access": "write",
+      "risk": "write",
+      "resource_scope": "project",
+      "approval": false
+    },
+    "BoardController_get": {
+      "domain": "boards",
+      "access": "read",
+      "risk": "read",
+      "resource_scope": "project",
+      "approval": false
+    },
+    "BoardController_search": {
+      "domain": "boards",
+      "access": "read",
+      "risk": "read",
+      "resource_scope": "company",
+      "approval": false
+    },
+    "BoardController_update": {
+      "domain": "boards",
+      "access": "write",
+      "risk": "write",
+      "resource_scope": "project",
+      "approval": false
+    },
+    "ChatMessageController_get": {
+      "domain": "chats",
+      "access": "read",
+      "risk": "read",
+      "resource_scope": "project",
+      "approval": false
+    },
+    "ChatMessageController_search": {
+      "domain": "chats",
+      "access": "read",
+      "risk": "read",
+      "resource_scope": "company",
+      "approval": false
+    },
+    "ChatMessageController_sendMessage": {
+      "domain": "chats",
+      "access": "write",
+      "risk": "write",
+      "resource_scope": "project",
+      "approval": false
+    },
+    "ChatMessageController_typing": {
+      "domain": "chats",
+      "access": "write",
+      "risk": "write",
+      "resource_scope": "project",
+      "approval": false
+    },
+    "ChatMessageController_update": {
+      "domain": "chats",
+      "access": "write",
+      "risk": "write",
+      "resource_scope": "project",
+      "approval": false
+    },
+    "ColumnController_create": {
+      "domain": "columns",
+      "access": "write",
+      "risk": "write",
+      "resource_scope": "project",
+      "approval": false
+    },
+    "ColumnController_get": {
+      "domain": "columns",
+      "access": "read",
+      "risk": "read",
+      "resource_scope": "project",
+      "approval": false
+    },
+    "ColumnController_search": {
+      "domain": "columns",
+      "access": "read",
+      "risk": "read",
+      "resource_scope": "company",
+      "approval": false
+    },
+    "ColumnController_update": {
+      "domain": "columns",
+      "access": "write",
+      "risk": "write",
+      "resource_scope": "project",
+      "approval": false
+    },
+    "CompanyController_get": {
+      "domain": "companies",
+      "access": "admin",
+      "risk": "administrative",
+      "resource_scope": "company",
+      "approval": true
+    },
+    "CompanyController_update": {
+      "domain": "companies",
+      "access": "admin",
+      "risk": "administrative",
+      "resource_scope": "company",
+      "approval": true
+    },
+    "CrmContactPersonsController_create": {
+      "domain": "crm",
+      "access": "write",
+      "risk": "write",
+      "resource_scope": "company",
+      "approval": false
+    },
+    "CrmExternalIdController_findContactByExternalId": {
+      "domain": "crm",
+      "access": "read",
+      "risk": "read",
+      "resource_scope": "company",
+      "approval": false
+    },
+    "DepartmentController_create": {
+      "domain": "departments",
+      "access": "write",
+      "risk": "write",
+      "resource_scope": "company",
+      "approval": false
+    },
+    "DepartmentController_get": {
+      "domain": "departments",
+      "access": "read",
+      "risk": "read",
+      "resource_scope": "company",
+      "approval": false
+    },
+    "DepartmentController_search": {
+      "domain": "departments",
+      "access": "read",
+      "risk": "read",
+      "resource_scope": "company",
+      "approval": false
+    },
+    "DepartmentController_update": {
+      "domain": "departments",
+      "access": "write",
+      "risk": "write",
+      "resource_scope": "company",
+      "approval": false
+    },
+    "FileController_uploadFile": {
+      "domain": "files",
+      "access": "write",
+      "risk": "upload",
+      "resource_scope": "company",
+      "approval": true
+    },
+    "GroupChatController_create": {
+      "domain": "chats",
+      "access": "write",
+      "risk": "write",
+      "resource_scope": "company",
+      "approval": false
+    },
+    "GroupChatController_get": {
+      "domain": "chats",
+      "access": "read",
+      "risk": "read",
+      "resource_scope": "project",
+      "approval": false
+    },
+    "GroupChatController_search": {
+      "domain": "chats",
+      "access": "read",
+      "risk": "read",
+      "resource_scope": "company",
+      "approval": false
+    },
+    "GroupChatController_update": {
+      "domain": "chats",
+      "access": "write",
+      "risk": "write",
+      "resource_scope": "project",
+      "approval": false
+    },
+    "ProjectController_create": {
+      "domain": "projects",
+      "access": "admin",
+      "risk": "administrative",
+      "resource_scope": "company",
+      "approval": true
+    },
+    "ProjectController_get": {
+      "domain": "projects",
+      "access": "read",
+      "risk": "read",
+      "resource_scope": "project",
+      "approval": false
+    },
+    "ProjectController_search": {
+      "domain": "projects",
+      "access": "read",
+      "risk": "read",
+      "resource_scope": "company",
+      "approval": false
+    },
+    "ProjectController_update": {
+      "domain": "projects",
+      "access": "admin",
+      "risk": "administrative",
+      "resource_scope": "project",
+      "approval": true
+    },
+    "ProjectRolesController_create": {
+      "domain": "roles",
+      "access": "admin",
+      "risk": "administrative",
+      "resource_scope": "project",
+      "approval": true
+    },
+    "ProjectRolesController_delete": {
+      "domain": "roles",
+      "access": "admin",
+      "risk": "administrative",
+      "resource_scope": "project",
+      "approval": true
+    },
+    "ProjectRolesController_get": {
+      "domain": "roles",
+      "access": "read",
+      "risk": "read",
+      "resource_scope": "project",
+      "approval": false
+    },
+    "ProjectRolesController_search": {
+      "domain": "roles",
+      "access": "read",
+      "risk": "read",
+      "resource_scope": "project",
+      "approval": false
+    },
+    "ProjectRolesController_update": {
+      "domain": "roles",
+      "access": "admin",
+      "risk": "administrative",
+      "resource_scope": "project",
+      "approval": true
+    },
+    "SprintStickerController_create": {
+      "domain": "stickers",
+      "access": "write",
+      "risk": "write",
+      "resource_scope": "project",
+      "approval": false
+    },
+    "SprintStickerController_getSticker": {
+      "domain": "stickers",
+      "access": "read",
+      "risk": "read",
+      "resource_scope": "project",
+      "approval": false
+    },
+    "SprintStickerController_search": {
+      "domain": "stickers",
+      "access": "read",
+      "risk": "read",
+      "resource_scope": "company",
+      "approval": false
+    },
+    "SprintStickerController_update": {
+      "domain": "stickers",
+      "access": "write",
+      "risk": "write",
+      "resource_scope": "project",
+      "approval": false
+    },
+    "SprintStickerStateController_create": {
+      "domain": "stickers",
+      "access": "write",
+      "risk": "write",
+      "resource_scope": "project",
+      "approval": false
+    },
+    "SprintStickerStateController_get": {
+      "domain": "stickers",
+      "access": "read",
+      "risk": "read",
+      "resource_scope": "project",
+      "approval": false
+    },
+    "SprintStickerStateController_update": {
+      "domain": "stickers",
+      "access": "write",
+      "risk": "write",
+      "resource_scope": "project",
+      "approval": false
+    },
+    "StringStickerController_create": {
+      "domain": "stickers",
+      "access": "write",
+      "risk": "write",
+      "resource_scope": "project",
+      "approval": false
+    },
+    "StringStickerController_get": {
+      "domain": "stickers",
+      "access": "read",
+      "risk": "read",
+      "resource_scope": "project",
+      "approval": false
+    },
+    "StringStickerController_search": {
+      "domain": "stickers",
+      "access": "read",
+      "risk": "read",
+      "resource_scope": "company",
+      "approval": false
+    },
+    "StringStickerController_update": {
+      "domain": "stickers",
+      "access": "write",
+      "risk": "write",
+      "resource_scope": "project",
+      "approval": false
+    },
+    "StringStickerStateController_create": {
+      "domain": "stickers",
+      "access": "write",
+      "risk": "write",
+      "resource_scope": "project",
+      "approval": false
+    },
+    "StringStickerStateController_get": {
+      "domain": "stickers",
+      "access": "read",
+      "risk": "read",
+      "resource_scope": "project",
+      "approval": false
+    },
+    "StringStickerStateController_update": {
+      "domain": "stickers",
+      "access": "write",
+      "risk": "write",
+      "resource_scope": "project",
+      "approval": false
+    },
+    "TaskController_create": {
+      "domain": "tasks",
+      "access": "write",
+      "risk": "write",
+      "resource_scope": "project",
+      "approval": false
+    },
+    "TaskController_get": {
+      "domain": "tasks",
+      "access": "read",
+      "risk": "read",
+      "resource_scope": "project",
+      "approval": false
+    },
+    "TaskController_getChatSubscribers": {
+      "domain": "tasks",
+      "access": "read",
+      "risk": "read",
+      "resource_scope": "project",
+      "approval": false
+    },
+    "TaskController_getLog": {
+      "domain": "tasks",
+      "access": "read",
+      "risk": "read",
+      "resource_scope": "project",
+      "approval": false
+    },
+    "TaskController_search": {
+      "domain": "tasks",
+      "access": "read",
+      "risk": "read",
+      "resource_scope": "company",
+      "approval": false
+    },
+    "TaskController_searchReversed": {
+      "domain": "tasks",
+      "access": "read",
+      "risk": "read",
+      "resource_scope": "company",
+      "approval": false
+    },
+    "TaskController_update": {
+      "domain": "tasks",
+      "access": "write",
+      "risk": "write",
+      "resource_scope": "project",
+      "approval": false
+    },
+    "TaskController_updateChatSubscribers": {
+      "domain": "tasks",
+      "access": "write",
+      "risk": "write",
+      "resource_scope": "project",
+      "approval": false
+    },
+    "UserController_clearCustomStatus": {
+      "domain": "users",
+      "access": "destructive",
+      "risk": "destructive",
+      "resource_scope": "company",
+      "approval": true
+    },
+    "UserController_create": {
+      "domain": "users",
+      "access": "admin",
+      "risk": "administrative",
+      "resource_scope": "company",
+      "approval": true
+    },
+    "UserController_delete": {
+      "domain": "users",
+      "access": "admin",
+      "risk": "administrative",
+      "resource_scope": "company",
+      "approval": true
+    },
+    "UserController_get": {
+      "domain": "users",
+      "access": "read",
+      "risk": "read",
+      "resource_scope": "company",
+      "approval": false
+    },
+    "UserController_getMe": {
+      "domain": "users",
+      "access": "read",
+      "risk": "read",
+      "resource_scope": "company",
+      "approval": false
+    },
+    "UserController_search": {
+      "domain": "users",
+      "access": "read",
+      "risk": "read",
+      "resource_scope": "company",
+      "approval": false
+    },
+    "UserController_setCustomStatus": {
+      "domain": "users",
+      "access": "write",
+      "risk": "write",
+      "resource_scope": "company",
+      "approval": false
+    },
+    "UserController_update": {
+      "domain": "users",
+      "access": "admin",
+      "risk": "administrative",
+      "resource_scope": "company",
+      "approval": true
+    },
+    "WebhookController_create": {
+      "domain": "webhooks",
+      "access": "admin",
+      "risk": "administrative",
+      "resource_scope": "company",
+      "approval": true
+    },
+    "WebhookController_put": {
+      "domain": "webhooks",
+      "access": "admin",
+      "risk": "administrative",
+      "resource_scope": "company",
+      "approval": true
+    },
+    "WebhookController_search": {
+      "domain": "webhooks",
+      "access": "read",
+      "risk": "read",
+      "resource_scope": "company",
+      "approval": false
+    },
+    "getCompanies": {
+      "domain": "companies",
+      "access": "admin",
+      "risk": "credential",
+      "resource_scope": "company",
+      "approval": true
+    }
+  }
+}
