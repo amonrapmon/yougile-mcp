@@ -37,6 +37,7 @@ class DockerDeploymentTests(unittest.TestCase):
         self.assertIn("cloudflared-token:ro", source)
         self.assertIn("internal: true", source)
         self.assertIn("networks: [storage, edge]", source)
+
     def test_dedicated_traefik_uses_only_public_80_and_443(self):
         source = (ROOT / "deploy/compose.edge.yml").read_text(encoding="utf-8")
         self.assertIn('80:80/tcp', source)
@@ -44,6 +45,9 @@ class DockerDeploymentTests(unittest.TestCase):
         self.assertIn('providers.docker.exposedbydefault=false', source)
         self.assertIn('acme.httpchallenge.entrypoint=web', source)
         self.assertIn('docker-socket-proxy', source)
+        # HAProxy v3.4 writes /run/haproxy.pid even with a read-only root filesystem.
+        self.assertIn('"/run:size=4m,mode=755"', source)
+        self.assertIn('read_only: true', source)
         self.assertNotIn('api.insecure=true', source)
         self.assertIn('POST: "0"', source)
         self.assertIn('internal: true', source)

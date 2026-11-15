@@ -24,7 +24,10 @@ services:
     expose: ["2375"]
     networks: [socket]
     read_only: true
-    tmpfs: ["/tmp:size=16m,mode=1777"]
+    # HAProxy writes /run/haproxy.pid; read_only rootfs needs a writable runtime mount.
+    tmpfs:
+      - "/tmp:size=16m,mode=1777"
+      - "/run:size=4m,mode=755"
     security_opt: [no-new-privileges:true]
 
   traefik:

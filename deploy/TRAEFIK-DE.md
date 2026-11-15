@@ -100,6 +100,27 @@ Never run compose down -v: that deletes database/certificate state.
 Never apply both the Cloudflare Tunnel and Traefik ingress variants
 to the same app at once.
 
+## D.1. Socket proxy startup fix (15 Nov 2026)
+
+The first DE smoke test showed a HAProxy startup error:
+`Cannot create pidfile /run/haproxy.pid`. The container was
+configured `read_only: true` and had only a writable `/tmp`.
+Compose now mounts a small writable tmpfs on `/run`; do not
+remove read-only root or give Traefik the Docker socket directly.
+
+When updating an existing checkout of this deployment branch:
+
+    git pull --ff-only
+    docker compose --env-file .env -f deploy/compose.edge.yml config -q
+    docker compose --env-file .env -f deploy/compose.edge.yml up -d --no-deps --force-recreate docker-socket-proxy
+    docker compose --env-file .env -f deploy/compose.edge.yml ps
+    docker compose --env-file .env -f deploy/compose.edge.yml logs --tail=50 docker-socket-proxy
+
+The running Traefik service can recover its Docker provider after the
+proxy comes up; inspect its logs. A default self-signed TLS
+certificate means the real router/ACME certificate still needs checking.
+Do not use an insecure curl flag as proof of working production TLS.
+
 ## E. Acceptance testing before external users
 
 Confirm all of the following:
