@@ -1,14 +1,14 @@
-# VS Code / GitHub Copilot agents
+# Подключение к VS Code / GitHub Copilot
 
-**Transports:** remote Streamable HTTP with OAuth, or local stdio. **Status:** configuration guide; this repository has not completed live VS Code/Copilot E2E.
+**Транспорты:** удалённый Streamable HTTP + OAuth либо локальный stdio. **Статус:** руководство по конфигурации, без завершённого E2E с нашим сервером.
 
-## Recommended: Copilot harness remote MCP
+## Удалённый MCP
 
-In current VS Code, use **Chat: Open Customizations → MCP Servers → Add Server**. Choose HTTP and enter `https://YOUR-HOST.example/mcp`. Select the personal or workspace destination and follow the OAuth sign-in flow.
+В актуальной версии VS Code откройте **Chat: Open Customizations → MCP Servers → Add Server**. Выберите HTTP и укажите `https://YOUR-HOST.example/mcp`. Выберите область хранения конфигурации и завершите OAuth-вход в браузере.
 
-For the **native Copilot harness**, global configuration is `~/.copilot/mcp-config.json` (or `$COPILOT_HOME/mcp-config.json`), and shared project configuration is a workspace-root `.mcp.json` where supported. Example:
+Для нативного Copilot harness глобальная конфигурация может храниться в `~/.copilot/mcp-config.json` (или `$COPILOT_HOME/mcp-config.json`). Поддерживаемые версии также позволяют использовать `.mcp.json` в корне рабочего пространства:
 
-~~~json
+```json
 {
   "mcpServers": {
     "yougile": {
@@ -18,18 +18,18 @@ For the **native Copilot harness**, global configuration is `~/.copilot/mcp-conf
     }
   }
 }
-~~~
+```
 
-Replace the placeholder URL, authenticate with your YouGile account, select a company if requested, and verify the connection with a read-only tool.
+Замените пример URL на действительный HTTPS-адрес, авторизуйтесь в YouGile и выполните безопасную операцию чтения.
 
-**Do not confuse configuration formats:** older editor-managed `.vscode/mcp.json` files use a top-level `servers` object and belong to the deprecated Local harness; the new portable Copilot configuration uses `mcpServers`. For new setups, use the native harness route above.
+**Обратите внимание на формат:** старый редакторский конфиг `.vscode/mcp.json` использует объект `servers` и относится к другому механизму подключения. Не смешивайте его с конфигурацией `mcpServers` нативного Copilot harness.
 
-The server must accept the exact trusted redirect used by the host. Configure `CLOUD_OAUTH_REDIRECT_ORIGINS` only after observing and verifying that callback; do not loosen the server's redirect policy.
+OAuth требует разрешённого адреса возврата. Оператор должен проверить реальный callback и при необходимости добавить точный доверенный origin в `CLOUD_OAUTH_REDIRECT_ORIGINS`.
 
-## Local stdio
+## Локальный stdio
 
-The Copilot harness also supports an installed local executable. See [local stdio setup](local-stdio.md); configure `type: "stdio"`, an absolute `command` path and protected environment injection. Local runtimes and credentials must exist on the machine where the agent harness actually runs.
+Для локального процесса также предусмотрена конфигурация `type: "stdio"`, `command` и защищённое окружение. Сначала выполните [инструкцию локальной установки](local-stdio.md). Учтите, что файлы и секреты должны существовать на той машине, где реально запускается агент.
 
-Official reference: [VS Code MCP configuration](https://code.visualstudio.com/docs/agents/reference/mcp-configuration).
+Официальная документация: [VS Code MCP](https://code.visualstudio.com/docs/agents/reference/mcp-configuration).
 
-[Back to client index](README.md)
+[Общий обзор подключения](README.md)
