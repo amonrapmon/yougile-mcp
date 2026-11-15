@@ -1,210 +1,93 @@
 # YouGile MCP
 
-**Open-source · AGPL-3.0-only · self-hosted (pre-release)**
+**An open-source Model Context Protocol server for YouGile.**
 
-A YouGile MCP server exposing all 72 official REST v2 operations as
-agent-friendly direct tools. Local authenticated stdio and a private
-OAuth-protected Streamable HTTP server are implemented. The hosted shell
-reuses Indalo's YouGile login, company selection and administration UI.
+Connect MCP-compatible AI clients to your YouGile workspace with direct access to the official REST API v2 through authenticated local or remote transports.
 
-Project: https://linear.app/amonrapmon/project/yougile-mcp-2e18d5b92b45
+**Status:** pre-release · **License:** [AGPL-3.0-only](LICENSE) · **Runtime:** Python 3.11+ · **API catalog:** 72 official REST v2 operations
 
-> **Not yet a public release.** The cloud server binds to a loopback
-> address. Real ChatGPT/Codex interoperability, HTTPS/Traefik deployment,
-> rate-limit hardening and vendor live checks are release gates. Do not
-> publish its port directly to the internet.
+> **Not yet a public hosted service.** Local authenticated stdio and the private OAuth-backed Streamable HTTP shell are implemented. Public HTTPS deployment, actual AI-client interoperability and selected live/vendor checks are still release gates. There is no published production endpoint to paste into an AI client.
 
-## Functional baseline
+## Overview
 
-The historical inspiration was the 75 tool names registered by
-https://github.com/justrussian/yougile-mcp/pull/5 (commit
-6a1c79c3917320a23654681333741d0580c29ba1). No implementation code from
-that unlicensed PR has been imported. The pinned official OpenAPI 3.0.0
-document describes 72 YouGile REST API v2 operations. The previous 70-operation
-snapshot had no removals and lacked two operations added by the official source;
-five operations remain outside the PR #5 inventory. All 72 operations now have
-per-operation MockTransport coverage. The catalog keeps this mock status
-separate from live-client evidence; the GEN-229 report records 65 PASS, 1 FAIL,
-4 BLOCKED, 2 SKIPPED and 0 NOT RUN across the 72 operations. Five operations
-also have separately recorded owner-run curl observations. A no-op
-`CompanyController_update` request returned HTTP 200 against the disposable
-test company and left the title unchanged. See catalog/, the
-[GEN-229 live report](docs/verification/gen-229-live-e2e.md), and
-docs/PROVENANCE.md.
+YouGile MCP exposes API-backed tools for reading and changing YouGile data within a selected company. Both transports share the same OpenAPI-driven tool registry, validated API client, authorization checks and structured errors. Client configurations are provided for popular AI agents, but live interoperability is not yet certified.
 
-An importable asynchronous API client currently covers mock-tested read
-operations for users, projects and roles, departments, boards, columns, tasks,
-stickers, group chats, chat messages and CRM lookup. It also covers create,
-update and delete operations across those resources, API-key creation, user
-status and chat typing, company listing/detail/update, webhook create/update/
-search, multipart file upload and column creation.
-Company listing sends credentials in its documented request body without a
-bearer API key. The generic `request(operation_id, path=..., query=...,
-body=...)` entry point validates JSON requests and responses against the pinned
-OpenAPI contract. The upload method sends immutable bytes as multipart field
-`file` through that same client. A hash-pinned compatibility overlay adapts
-confirmed live response differences without changing the official snapshot;
-the verification report describes the observed differences.
+## Functionality
 
-## API client slice
+| Area | Direct REST v2 coverage |
+| --- | --- |
+| **Projects and workspace** | Projects, boards, columns, organizational structure |
+| **Tasks** | Task search, reading and mutations, task-related metadata |
+| **Users and access** | Users, roles, departments, account and company operations |
+| **Communication** | Group chats and messages |
+| **Files** | Multipart upload through the API client, with additional MCP input limits |
+| **CRM** | Contact and other available CRM endpoints |
+| **Integrations** | Webhook management and supported API operations |
+| **Administration** | Company user sessions, disconnect/block controls and a separate host operator panel |
 
-The client loads its typed operation definitions and runtime DTO validation
-from the pinned OAS 3.0.0 source. A normal read uses the API key from
-`YOUGILE_API_KEY`:
+The server registers **72 direct tool descriptors** from the official OpenAPI catalog; this is API parity, **not** 72 high-level AI workflows. Access depends on the authenticated YouGile account and server policy. Approval-gated/destructive or credential-dependent operations may reject calls when the required server-side provider is not present. The direct tool layer currently should not be described as a completed smart task/bulk-operation framework.
 
-```python
-from yougile_mcp.api import YouGileClient
-from yougile_mcp.config import Settings
+For implementation details, see [Architecture](docs/ARCHITECTURE.md), [API provenance](docs/PROVENANCE.md) and [live verification](docs/verification/gen-229-live-e2e.md).
 
+## Connection options
 
-async def read_boards():
-    async with YouGileClient(Settings.from_env()) as api:
-        return await api.search_boards({"limit": 50, "offset": 0})
+| Mode | Typical client | Authentication | Status |
+| --- | --- | --- | --- |
+| **Remote MCP** | ChatGPT, Codex, Claude, Cursor, VS Code | OAuth sign-in, personal YouGile account | Private-loopback implementation; public deployment / client E2E pending |
+| **Local MCP** | Locally running coding agents | Per-agent identity file plus company-scoped API key | Implemented, requires trusted manual provisioning |
 
-async def read_current_user():
-    async with YouGileClient(Settings.from_env()) as api:
-        return await api.request("UserController_getMe")
-```
+**Installation and setup guides:**
 
-Protected calls require both `YOUGILE_API_KEY` and `YOUGILE_COMPANY_ID`; a
-missing value fails before sending a request. `get_companies` can run before
-the company ID is known. The `doctor` command remains offline. `create_column`
-is the current write example; its body is validated against the official schema and is tested
-only through a fake HTTP transport. Do not use it against a real company
-without separate authorization. See `tests/test_api_client.py` for the mocked
-write examples.
+- [ChatGPT](docs/clients/chatgpt.md)
+- [Codex CLI / IDE](docs/clients/codex.md)
+- [Claude Code](docs/clients/claude-code.md)
+- [Claude web / Desktop](docs/clients/claude.md)
+- [Cursor](docs/clients/cursor.md)
+- [VS Code / GitHub Copilot](docs/clients/vscode.md)
+- [Local stdio installation](docs/clients/local-stdio.md)
 
-File uploads use buffered `bytes`, not local paths or streaming input. The
-default local policy is 10 MiB and a `text/plain` allowlist; these are client
-limits, not verified YouGile limits. Set the constructor options to allow PDF,
-image and other MIME types, for example:
+See the [client compatibility and prerequisites index](docs/clients/README.md) before connecting. Example remote addresses are placeholders, not public YouGile MCP hosting URLs.
 
-```python
-async with YouGileClient(
-    Settings.from_env(),
-    max_upload_bytes=25 * 1024 * 1024,
-    allowed_upload_content_types={
-        "application/pdf",
-        "image/jpeg",
-        "image/png",
-        "image/webp",
-        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-    },
-) as api:
-    await api.upload_file(
-        filename="report.pdf", content=pdf_bytes, content_type="application/pdf"
-    )
-```
+## Local developer quick start
 
-Uploads reject unsafe filenames, content over the configured limit and MIME
-types outside the allowlist. A timeout has an uncertain result and is never
-retried.
+Requirements: Python 3.11+ and [uv](https://docs.astral.sh/uv/).
 
-Clients with the same `YOUGILE_COMPANY_ID` share a process-local budget of at
-most 50 requests per minute, matching the
-[official company limit](https://docs.yougile.com/docs/admin-guide-linux/api/).
-Read operations may retry a bounded 429 response when `Retry-After` fits the
-wait budget. A write timeout raises an uncertain-write error and is never
-retried.
+~~~sh
+git clone https://github.com/amonrapmon/yougile-mcp.git
+cd yougile-mcp
+uv sync --locked --all-extras
+uv run --locked yougile-mcp doctor
+uv run --locked python scripts/check_catalog.py
+uv run --locked python -m unittest discover -s tests -v
+~~~
 
-The API client requests `Accept-Encoding: identity` by default. On 2026-11-14
-a live read through HTTPX received HTTP 200 but failed while decoding the
-response body (`httpx.DecodingError`); requesting an uncompressed response
-allowed that same SDK call to succeed. The exact vendor-side compression
-problem remains unconfirmed. Uncompressed responses may use more bandwidth,
-but this avoids the reproduced failure on the affected YouGile endpoint.
+The `doctor` command validates configuration **offline**, without connecting to YouGile. To actually launch local MCP, provision a private agent identity and credentials, then start `yougile-mcp serve` according to the [stdio guide](docs/clients/local-stdio.md). Do not place real API keys in committed configuration or documentation.
 
-Multiple server replicas need a distributed limiter. `list_all` uses
-bounded offset pagination and the task-log timestamp cursor (100 pages and
-10,000 items); it raises on a stalled cursor or budget overflow instead of
-returning a partial result.
+The Docker image and `compose.yaml` currently provide an offline verification scaffold, **not** a deployable public MCP endpoint.
 
-## Verify the foundation
+## Architecture and access
 
-Python 3.11+:
+- One schema-validated YouGile API v2 client backs both transports.
+- Direct MCP tools use per-operation policy, actor/company checks and sanitized errors.
+- Remote OAuth uses individual YouGile sign-in, company selection, encrypted persistence in PostgreSQL and ephemeral state in Valkey.
+- The hosted UI provides company-level administration and a separate allowlisted host-operator area.
+- Cloud access is currently **Full Access within the signed-in user's own YouGile permissions**, not granular per-project OAuth scopes. Sensitive operations lacking a configured approval/secret provider fail closed.
+- Public remote traffic must pass through a separately reviewed HTTPS reverse proxy; the current cloud process binds to loopback.
 
-1. Install uv from <https://docs.astral.sh/uv/>.
-2. Install the locked project and development dependencies: `uv sync --locked --all-extras`.
-3. Run: `uv run --locked python -m yougile_mcp doctor`.
-4. Run: `uv run --locked python scripts/check_catalog.py`.
-5. Run: `uv run --locked python -m unittest discover -s tests -v`.
-6. Run: `uv run --locked ruff check .`.
+Read the [architecture and release boundaries](docs/ARCHITECTURE.md) and the [administration verification notes](docs/verification/gen-231-indalo-company-admin.md).
 
-Docker:
+## Documentation
 
-- docker build -t yougile-mcp:foundation .
-- docker run --rm yougile-mcp:foundation
-- docker compose --profile verify run --rm config-check
+| Topic | Reference |
+| --- | --- |
+| Client connection | [AI client installation guides](docs/clients/README.md) |
+| Architecture | [Architecture](docs/ARCHITECTURE.md) |
+| Live API validation | [GEN-229 verification](docs/verification/gen-229-live-e2e.md) |
+| API provenance and legal attribution | [Provenance](docs/PROVENANCE.md) |
+| Engineering roadmap | [Roadmap](docs/ROADMAP.md) |
+| Agent development rules | [AGENTS.md](AGENTS.md) and [contracts](docs/contracts/README.md) |
+| Contributions | [Contributing](CONTRIBUTING.md) |
 
-No Docker ports are exposed. The `serve` command runs authenticated local
-stdio with an explicit private identity file; `cloud-serve` runs the OAuth
-HTTP shell only on a private loopback address. Neither command
-constitutes approval for public exposure.
+## Development and licensing
 
-## Hosted cloud and Indalo admin (pre-release)
-
-Use the optional cloud dependencies (`uv sync --locked --extra cloud`) and
-configure real PostgreSQL and Valkey services on private interfaces.
-The `cloud-serve` command requires `MCP_TRANSPORT=http`,
-`MCP_AUTH_MODE=required`, `MCP_HOST=127.0.0.1`, an HTTPS
-`MCP_PUBLIC_URL`, `CLOUD_DATABASE_URL`, `CLOUD_VALKEY_URL`,
-`CLOUD_JWT_SECRET` and `CLOUD_ENCRYPTION_KEYS` (Fernet).
-Never commit any of those secrets.
-
-Indalo-derived pages are mounted inside the OAuth shell:
-
-- `/admin/login`: a YouGile company administrator signs in, chooses
-  a company if necessary, and opens `/admin`.
-- `/admin` and `/admin/users/{id}`: actual connected staff list,
-  vendor-role-verified actions to disconnect, ban or unban. Staff not
-  previously connected can be preemptively blocked.
-- `/admin/settings`: true company state and Full Access explanation.
-  Upstream role/project/workflow forms are intentionally **not** displayed
-  without their original policy engine; do not assume they work.
-- `/host`: a separate multi-company operator console, enabled **only**
-  with an explicit `CLOUD_HOST_ADMIN_SUBJECTS` allowlist of exact
-  `companyId:yougileUserId` values. Host access is not inherited from
-  being an administrator of a YouGile company.
-- `/mcp`: authenticated Streamable HTTP with all 72 direct tool descriptors.
-
-Company blocks and sessions are stored in PostgreSQL and Valkey. Revoking
-access removes refresh tokens and prevents further per-company MCP calls.
-After disabling and re-enabling a company, pre-existing access tokens and
-admin sessions remain invalid.
-
-See `docs/verification/gen-231-indalo-company-admin.md` and
-`docs/verification/gen-231-indalo-host-control.md`. Public HTTPS/Traefik
-deployment and genuine vendor/client E2E have **not** yet been completed.
-
-## Environment
-
-Copy .env.example to .env for Docker Compose interpolation. The Python CLI reads
-its process environment, so export values explicitly when testing locally.
-Never commit live credentials,
-test workspace exports, or secrets. The doctor command reports only booleans
-indicating whether credentials are present, never credential values.
-
-## Agent governance (Astryx-inspired)
-
-The canonical entry point is AGENTS.md. Nearest nested AGENTS.md files add
-subsystem rules; .agents/rules/ holds cross-cutting constraints,
-.agents/workflows/ holds repeatable processes and .agents/skills/ holds
-task-specific recipes. Durable behavior lives in docs/contracts/ with
-draft/current/archived authority. Only current records are binding.
-
-- python scripts/agent_contracts.py check
-- python scripts/agent_contracts.py for src/yougile_mcp/config.py
-- python scripts/agent_contracts.py diff origin/main
-
-This arrangement is inspired by the governance model in Meta Astryx
-(https://github.com/meta/astryx), but its rules and implementation are original.
-
-## Development contract
-
-Read AGENTS.md, docs/ARCHITECTURE.md, docs/PROVENANCE.md,
-docs/ROADMAP.md and CONTRIBUTING.md before opening a PR.
-
-## License
-
-Original code: GNU AGPL-3.0-only (LICENSE). A license declaration on this
-repository does not grant rights to copy the unlicensed PR #5 sources.
+Contributions must follow [CONTRIBUTING.md](CONTRIBUTING.md) and the repository's [AGENTS.md](AGENTS.md). Original code is released under **GNU AGPL-3.0-only**. Adapted Indalo components retain their required notices and attribution. A license on this project does **not** authorize copying unlicensed third-party implementation code; see [PROVENANCE.md](docs/PROVENANCE.md). The redistribution status of the pinned vendor OpenAPI document remains a release review item.
