@@ -28,7 +28,7 @@ where = ["src"]
 include = ["yougile_mcp*"]
 
 [tool.setuptools.package-data]
-yougile_mcp = ["api/*.json"]
+yougile_mcp = ["api/*.json", "mcp/*.json"]
 
 [tool.ruff]
 line-length = 100
