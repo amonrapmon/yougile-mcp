@@ -1,30 +1,30 @@
-# Claude Code
+# Подключение к Claude Code
 
-**Transports:** remote Streamable HTTP with OAuth, or local stdio. **Status:** configuration guide; real YouGile MCP interoperability has not been verified.
+**Транспорты:** удалённый Streamable HTTP + OAuth либо локальный stdio. **Статус:** примеры конфигурации без подтверждённого E2E с нашим сервером.
 
-## Remote HTTPS
+## Удалённый MCP
 
-~~~sh
+```sh
 claude mcp add --transport http yougile https://YOUR-HOST.example/mcp
 claude mcp list
-~~~
+```
 
-Replace the placeholder with your own deployed endpoint. In Claude Code run `/mcp` to inspect the server and complete its OAuth browser sign-in. The YouGile login screen authenticates the individual account; select a company when asked. Verify using a harmless read operation.
+Замените адрес на URL реально развёрнутого HTTPS-сервера. Запустите `/mcp` в Claude Code, откройте подключение и завершите вход через браузер. Авторизация выполняется под личной учётной записью YouGile, с выбором компании при необходимости.
 
-The cloud OAuth server already permits loopback native-client callbacks, as well as approved Claude web origins. A different callback must be explicitly allowlisted by the server operator.
+Сервер разрешает локальные loopback callback по умолчанию. Если Claude использует другой адрес возврата OAuth, оператор должен добавить только этот доверенный origin.
 
-## Local stdio
+## Локальный stdio
 
-Follow [local stdio setup](local-stdio.md) to install the server, securely inject `YOUGILE_API_KEY`, and create the per-agent identity file. Then configure a local server with a command like:
+Выполните [локальную установку](local-stdio.md), настройте защищённый файл идентичности и приватную передачу `YOUGILE_API_KEY`. После этого:
 
-~~~sh
+```sh
 claude mcp add --transport stdio yougile-local -- /absolute/path/to/yougile-mcp/.venv/bin/yougile-mcp serve
-~~~
+```
 
-The server process **must inherit** `MCP_TRANSPORT=stdio`, `YOUGILE_COMPANY_ID`, `YOUGILE_API_KEY` and `MCP_STDIO_IDENTITY_FILE` from a private trusted launcher/environment. Simply adding a command without those settings will fail closed. On Windows, use the installed `.venv\\Scripts\\yougile-mcp.exe` path. You can alternatively use Claude Code's `--env` options for **nonsecret** values.
+Дочернему процессу должны быть переданы `MCP_TRANSPORT=stdio`, `YOUGILE_COMPANY_ID`, `YOUGILE_API_KEY`, `MCP_STDIO_IDENTITY_FILE`. Без них сервер не запустится. В Windows используйте полный путь к `.venv\Scripts\yougile-mcp.exe`.
 
-Check `claude mcp list` or `/mcp` and test a read-only operation.
+Проверьте подключение через `claude mcp list` или `/mcp` и сначала выполните операцию чтения.
 
-Official reference: [Claude Code MCP](https://code.claude.com/docs/en/mcp).
+Официальная документация: [Claude Code MCP](https://code.claude.com/docs/en/mcp).
 
-[Back to client index](README.md)
+[Общий обзор подключения](README.md)
