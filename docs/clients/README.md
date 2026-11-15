@@ -1,50 +1,50 @@
-# Connect an AI client
+# Подключение AI-клиентов
 
-YouGile MCP currently provides two distinct transports:
+YouGile MCP поддерживает два независимых транспорта.
 
-| Transport | Intended clients | Credentials | Availability |
+| Транспорт | Примеры клиентов | Авторизация | Состояние |
 | --- | --- | --- | --- |
-| **Remote Streamable HTTP** | ChatGPT, Codex, Claude, Cursor, VS Code Copilot | OAuth sign-in with an individual YouGile account | Implemented as a **private-loopback pre-release service**; public deployment and real client E2E remain release gates |
-| **Local stdio** | Locally launched MCP agents (for example Codex CLI and Claude Code) | Company-scoped YouGile API key and a private per-agent identity file | Implemented; requires explicit operator setup |
+| **Удалённый Streamable HTTP** | ChatGPT, Codex, Claude, Cursor, VS Code | OAuth-вход под личной учётной записью YouGile | Реализован приватный HTTP-сервер; публичное развёртывание и E2E-проверки клиентов продолжаются |
+| **Локальный stdio** | Локальные агенты, например Codex CLI и Claude Code | API-ключ компании и приватный файл идентичности агента | Реализован, требует предварительной конфигурации |
 
-There is **no published production YouGile MCP endpoint** in this repository. Examples below use `https://YOUR-HOST.example/mcp` as a placeholder, **not a usable service URL**. The host must first be deployed behind reviewed HTTPS and be accessible to the selected client.
+**Публичный адрес подключения пока не опубликован.** Во всех примерах используется `https://YOUR-HOST.example/mcp`, который необходимо заменить адресом собственного проверенного HTTPS-сервера. Это не работающий адрес.
 
-## Client-specific guides
+## Инструкции для разных клиентов
 
-| Client | Guide | Recommended transport |
+| Клиент | Инструкция | Рекомендуемый способ |
 | --- | --- | --- |
-| ChatGPT (web) | [ChatGPT](chatgpt.md) | Remote HTTPS + OAuth |
-| Codex CLI / IDE | [Codex](codex.md) | Remote HTTPS + OAuth; local stdio also supported |
-| Claude Code | [Claude Code](claude-code.md) | Remote HTTPS + OAuth; local stdio also supported |
-| Claude web / Desktop | [Claude](claude.md) | Remote HTTPS + OAuth |
-| Cursor | [Cursor](cursor.md) | Remote HTTPS + OAuth; local stdio supported |
-| VS Code / GitHub Copilot | [VS Code](vscode.md) | Remote HTTPS + OAuth; local stdio supported |
-| Locally installed agents | [Local stdio](local-stdio.md) | Local stdio |
+| ChatGPT | [Подключение](chatgpt.md) | HTTPS + OAuth |
+| Codex CLI / IDE | [Подключение](codex.md) | HTTPS + OAuth, также stdio |
+| Claude Code | [Подключение](claude-code.md) | HTTPS + OAuth, также stdio |
+| Claude Web / Desktop | [Подключение](claude.md) | HTTPS + OAuth |
+| Cursor | [Подключение](cursor.md) | HTTPS + OAuth, также stdio |
+| VS Code / GitHub Copilot | [Подключение](vscode.md) | HTTPS + OAuth, также stdio |
+| Другие локальные агенты | [Установка stdio](local-stdio.md) | stdio |
 
-## Remote connection prerequisites
+## Требования для удалённого подключения
 
-1. A server operator has deployed and verified an authenticated public HTTPS reverse proxy for the cloud application, with the MCP endpoint at `https://YOUR-HOST.example/mcp`. **The checked-in Dockerfile and compose.yaml do not deploy or publish this endpoint.**
-2. You have a YouGile account permitted to access the selected company; OAuth uses that person's account, not a shared global API key.
-3. The OAuth redirect origin used by the client is permitted by the server. The default includes `https://claude.ai` and `https://claude.com`, as well as loopback native-client callbacks. The operator can explicitly allow additional known callback origins or app schemes via `CLOUD_OAUTH_REDIRECT_ORIGINS`. **Do not add wildcard or untrusted origins.**
-4. Authenticate in the client's browser-based OAuth flow and choose a company when prompted. Do not enter your YouGile password into an MCP JSON configuration.
+1. Администратор сервера развернул приложение за проверенным HTTPS reverse proxy. **Текущие `Dockerfile` и `compose.yaml` не публикуют MCP-сервер.**
+2. У вас есть учётная запись YouGile с доступом к выбранной компании. Для облачного MCP используются личные полномочия пользователя, а не общий API-ключ сервера.
+3. Адрес возврата OAuth (redirect URI) разрешён сервером. По умолчанию допускаются `https://claude.ai`, `https://claude.com` и callback на локальные loopback-адреса. Дополнительные доверенные адреса задаются оператором через `CLOUD_OAUTH_REDIRECT_ORIGINS`. Добавлять произвольные адреса или маски нельзя.
+4. Завершите OAuth-вход в браузере и, если потребуется, выберите компанию. Пароль YouGile не нужно вставлять в JSON-конфигурацию агента.
 
-## Current capability and safety boundaries
+## Текущие ограничения
 
-- The server registers descriptors for the 72 official YouGile REST API v2 operations; some may be unavailable at execution time due to policy, permissions or missing approval/credential providers. Registration is not a guarantee that every write is executable.
-- Cloud access is **Full Access within the signed-in user's YouGile account and selected company**, not a customizable project-scoped RBAC product. Sensitive actions that require server-side approval currently fail closed without an approval provider.
-- MCP clients may ask for user confirmation for write actions. Such UI confirmations do not automatically satisfy server-side approval requirements.
-- The vendor live verification matrix and real ChatGPT/Codex/Claude/Cursor/VS Code interoperability are separate. Follow [release verification](../verification/gen-229-live-e2e.md); do not present these example configurations as tested E2E.
-- A tool list appearing in an AI client proves discovery, not authorization of a particular write. Test with harmless read operations first.
+- Зарегистрированы 72 прямых MCP-инструмента, соответствующих официальному YouGile REST API v2. Некоторые инструменты могут быть недоступны для выполнения из-за прав, политик или отсутствия серверного механизма подтверждения.
+- Облачный режим предоставляет **Full Access в рамках разрешений пользователя YouGile и выбранной компании**. Настраиваемые права OAuth на отдельные проекты пока не предусмотрены.
+- Подтверждение операции в интерфейсе AI-клиента не заменяет требуемое серверное подтверждение.
+- Проверка API YouGile и E2E-подключение конкретных AI-клиентов являются разными задачами. Результаты тестирования API: [отчёт GEN-229](../verification/gen-229-live-e2e.md).
+- Успешное обнаружение инструментов не означает разрешение всех записывающих операций. Начинайте проверку с безопасных операций чтения.
 
-## Troubleshooting
+## Частые проблемы
 
-| Symptom | Check |
+| Симптом | Что проверить |
 | --- | --- |
-| HTTP connection fails | Ensure the server is actually deployed behind trusted HTTPS, correct `/mcp` path, valid TLS and external reachability |
-| OAuth reports invalid redirect | Have the operator inspect the **exact** callback origin and configure `CLOUD_OAUTH_REDIRECT_ORIGINS` for that trusted client; do not disable redirect validation |
-| Login succeeds, but no tools | Check company/account state, OAuth token validity and server access. Inspect sanitized server logs |
-| Tool returns `permission_denied` or `approval_required` | Check YouGile permissions and the server-side dispatcher policy, not just the client's confirmation dialog |
-| Remote client attempts local `127.0.0.1` | Hosted AI clients cannot access the server operator's loopback address. Use reviewed HTTPS deployment or the client's supported private-tunnel mechanism |
-| Local stdio fails to start | See [local stdio](local-stdio.md), including environment, protected identity file and OS ownership checks |
+| Нет HTTP-соединения | Адрес `/mcp`, доступность HTTPS, корректность TLS и reverse proxy |
+| OAuth сообщает о недопустимом redirect | Точный callback клиента и `CLOUD_OAUTH_REDIRECT_ORIGINS`; не отключайте проверку redirect URI |
+| Вход успешен, но инструментов нет | Статус учётной записи и компании, токен OAuth и серверные ограничения |
+| `permission_denied` или `approval_required` | Полномочия пользователя YouGile и политику диспетчера MCP |
+| Удалённый клиент пытается обратиться к `127.0.0.1` | Облачный клиент не может обращаться к локальному порту оператора. Необходим внешний HTTPS-адрес или поддерживаемый безопасный туннель |
+| Не стартует stdio | [Проверка локальной установки](local-stdio.md), файл идентичности, переменные окружения и права на файл |
 
-Official client documentation is linked inside each guide. Client UI and command syntax may change independently from this project.
+Синтаксис команд и интерфейсы AI-клиентов могут изменяться. Ссылки на официальную документацию приведены в соответствующих инструкциях.
