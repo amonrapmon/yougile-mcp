@@ -11,6 +11,26 @@ from typing import Mapping
 from urllib.parse import urlparse
 
 
+def is_https_service_url(value: str) -> bool:
+    """Validate a configured HTTPS issuer/resource URL without network access."""
+    if not isinstance(value, str):
+        return False
+    parsed = urlparse(value)
+    try:
+        port = parsed.port
+    except ValueError:
+        return False
+    return (
+        parsed.scheme == "https"
+        and bool(parsed.hostname)
+        and not parsed.username
+        and not parsed.password
+        and not parsed.query
+        and not parsed.fragment
+        and (port is None or 1 <= port <= 65535)
+    )
+
+
 class ConfigError(ValueError):
     """Configuration is invalid or unsafe."""
 
