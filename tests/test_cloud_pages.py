@@ -49,6 +49,15 @@ class CloudPageTests(unittest.TestCase):
         self.assertNotIn('landing-endpoint-tag', html)
         self.assertLess(html.index('Адрес MCP-сервера'), html.index('class="landing-endpoint"'))
         self.assertIn('navigator.clipboard.writeText', pages.LANDING_COPY_JS)
+        self.assertIn('Один адрес. Семьдесят два инструмента. Никакого шаманского бубна.', html)
+        self.assertIn('Коты и собаки в списке поддерживаемых', html)
+        self.assertIn('пока проходят испытательный срок.', html)
+        self.assertLess(html.index('class="landing-endpoint"'), html.index('Никакого шаманского бубна'))
+        self.assertLess(html.index('Никакого шаманского бубна'), html.index('class="landing-steps"'))
+        self.assertLess(html.index('class="landing-steps"'), html.index('class="landing-disclaimer"'))
+        self.assertIn('Скопировано. Вербуйте своего агента!', pages.LANDING_COPY_JS)
+        self.assertIn('hint.textContent = originalHint', pages.LANDING_COPY_JS)
+        self.assertIn('delete hint.dataset.copied', pages.LANDING_COPY_JS)
 
     def test_landing_escapes_untrusted_endpoint(self):
         injected = 'https://example.test/?a=<script>alert(1)</script>&x="'

@@ -109,6 +109,11 @@ stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .landing-copy .landing-check{display:none}
 .landing-copy[data-copied="true"] .landing-check{display:block}
 .landing-copy[data-copied="true"] .landing-copy-icon{display:none}
+.landing-endpoint-hint{min-height:19px;margin:10px 2px 0;font-size:12px;line-height:1.55;
+color:var(--muted);transition:color .2s}
+.landing-endpoint-hint[data-copied="true"]{color:#138453;font-weight:650}
+.landing-disclaimer{padding-top:19px;margin:27px 0 0;border-top:1px solid var(--line);
+text-align:center;font-size:12px;color:var(--muted);line-height:1.6}
 .visually-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;
 overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 .landing-steps{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px 28px;
@@ -143,7 +148,9 @@ LANDING_COPY_JS = r"""
   const button = document.querySelector("[data-copy-mcp]");
   const value = document.getElementById("mcp-url");
   const status = document.getElementById("copy-status");
-  if (!button || !value || !status) return;
+  const hint = document.getElementById("copy-hint");
+  if (!button || !value || !status || !hint) return;
+  const originalHint = hint.textContent;
 
   let resetTimer = null;
   button.addEventListener("click", async () => {
@@ -155,12 +162,16 @@ LANDING_COPY_JS = r"""
       window.clearTimeout(resetTimer);
       button.dataset.copied = "true";
       button.setAttribute("aria-label", "Адрес MCP скопирован");
-      button.title = "Скопировано";
-      status.textContent = "Адрес MCP скопирован";
+      button.title = "Скопировано. Вербуйте своего агента!";
+      hint.textContent = "Скопировано. Вербуйте своего агента!";
+      hint.dataset.copied = "true";
+      status.textContent = "Адрес MCP скопирован. Вербуйте своего агента!";
       resetTimer = window.setTimeout(() => {
         delete button.dataset.copied;
         button.setAttribute("aria-label", "Скопировать адрес MCP-сервера");
         button.title = "Скопировать адрес";
+        hint.textContent = originalHint;
+        delete hint.dataset.copied;
       }, 2200);
     } catch (_err) {
       const range = document.createRange();
@@ -170,6 +181,8 @@ LANDING_COPY_JS = r"""
         selection.removeAllRanges();
         selection.addRange(range);
       }
+      hint.textContent = "Автокопирование недоступно. Адрес выделен для ручного копирования.";
+      delete hint.dataset.copied;
       status.textContent = "Не удалось скопировать автоматически. Адрес выделен для ручного копирования.";
     }
   });
@@ -301,6 +314,8 @@ def home_page(mcp_url: str) -> str:
         '<svg class="landing-check" viewBox="0 0 24 24" aria-hidden="true">'
         '<path d="m5 12 4 4L19 6"></path></svg>'
         '</button></section>'
+        '<p id="copy-hint" class="landing-endpoint-hint">'
+        'Один адрес. Семьдесят два инструмента. Никакого шаманского бубна.</p>'
         '<span id="copy-status" class="visually-hidden" role="status" aria-live="polite"></span>'
         '<div class="landing-steps" aria-label="Как подключиться">'
         '<div class="landing-step"><span class="landing-step-num">01/</span>'
@@ -311,7 +326,9 @@ def home_page(mcp_url: str) -> str:
         '<b>Выберите компанию</b>Если у вас их несколько, укажите нужную.</div>'
         '<div class="landing-step"><span class="landing-step-num">04/</span>'
         '<b>Откиньтесь в кресле</b>Отправляйте пионов в работу.</div>'
-        '</div>',
+        '</div>'
+        '<p class="landing-disclaimer">🐾 Коты и собаки в списке поддерживаемых '
+        'агентов пока проходят испытательный срок.</p>',
         landing=True,
     )
 
