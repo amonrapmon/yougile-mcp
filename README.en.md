@@ -1,95 +1,151 @@
-[Русский](README.md) | **English**
+<p align="right"><a href="README.md">Русский</a> · <strong>English</strong></p>
 
-# YouGile MCP
+<h1 align="center">YouGile MCP</h1>
 
-**An open-source Model Context Protocol server for YouGile.**
+<p align="center"><strong>Connect AI agents to YouGile through the Model Context Protocol</strong></p>
 
-Connect MCP-compatible AI clients to your YouGile workspace with direct access to the official REST API v2 through authenticated local or remote transports.
+<p align="center">One MCP server for tasks, projects, people, and other YouGile REST API v2 capabilities.</p>
 
-**Status:** pre-release · **License:** [AGPL-3.0-only](LICENSE) · **Runtime:** Python 3.11+ · **API catalog:** 72 official REST v2 operations
+<p align="center">
+  <a href="https://github.com/amonrapmon/yougile-mcp/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/amonrapmon/yougile-mcp/actions/workflows/ci.yml/badge.svg?branch=main"></a>
+  <a href="LICENSE"><img alt="AGPL-3.0" src="https://img.shields.io/badge/license-AGPL--3.0-0f766e"></a>
+  <img alt="Python 3.11+" src="https://img.shields.io/badge/Python-3.11%2B-3776AB">
+  <img alt="72 REST API v2 operations" src="https://img.shields.io/badge/REST%20API%20v2-72%20operations-555e75">
+  <img alt="Pre-release" src="https://img.shields.io/badge/status-pre--release-a16207">
+</p>
 
-> **Not yet a public hosted service.** Local authenticated stdio and the private OAuth-backed Streamable HTTP shell are implemented. Public HTTPS deployment, actual AI-client interoperability and selected live/vendor checks are still release gates. There is no published production endpoint to paste into an AI client.
+<p align="center">
+  <a href="#capabilities">Capabilities</a> ·
+  <a href="#connect">Connect</a> ·
+  <a href="#quick-start">Quick start</a> ·
+  <a href="#architecture">Architecture</a> ·
+  <a href="#documentation">Documentation</a>
+</p>
 
-## Overview
+---
 
-YouGile MCP exposes API-backed tools for reading and changing YouGile data within a selected company. Both transports share the same OpenAPI-driven tool registry, validated API client, authorization checks and structured errors. Client configurations are provided for popular AI agents, but live interoperability is not yet certified.
+> [!IMPORTANT]
+> **Preparing for public release.** Authenticated local stdio and a private OAuth-backed Streamable HTTP server are implemented. Public HTTPS deployment and real-client interoperability testing are still in progress. There is no published production endpoint yet.
 
-## Functionality
+## Capabilities
 
-| Area | Direct REST v2 coverage |
-| --- | --- |
-| **Projects and workspace** | Projects, boards, columns, organizational structure |
-| **Tasks** | Task search, reading and mutations, task-related metadata |
-| **Users and access** | Users, roles, departments, account and company operations |
-| **Communication** | Group chats and messages |
-| **Files** | Multipart upload through the API client, with additional MCP input limits |
-| **CRM** | Contact and other available CRM endpoints |
-| **Integrations** | Webhook management and supported API operations |
-| **Administration** | Company user sessions, disconnect/block controls and a separate host operator panel |
+### Workspace
 
-The server registers **72 direct tool descriptors** from the official OpenAPI catalog; this is API parity, **not** 72 high-level AI workflows. Access depends on the authenticated YouGile account and server policy. Approval-gated/destructive or credential-dependent operations may reject calls when the required server-side provider is not present. The direct tool layer currently should not be described as a completed smart task/bulk-operation framework.
+**Projects, boards, and columns:** read and update the workspace structure through the official REST API.
 
-For implementation details, see [Architecture](docs/ARCHITECTURE.md), [API provenance](docs/PROVENANCE.md) and [live verification](docs/verification/gen-229-live-e2e.md).
+**Tasks:** search, view, create, and edit tasks and related data.
 
-## Connection options
+### People and communication
 
-| Mode | Typical client | Authentication | Status |
-| --- | --- | --- | --- |
-| **Remote MCP** | ChatGPT, Codex, Claude, Cursor, VS Code | OAuth sign-in, personal YouGile account | Private-loopback implementation; public deployment / client E2E pending |
-| **Local MCP** | Locally running coding agents | Per-agent identity file plus company-scoped API key | Implemented, requires trusted manual provisioning |
+**Users, roles, and departments:** supported employee and organization operations.
 
-**Installation and setup guides (currently in Russian):**
+**Chats and messages:** group chat and message operations.
 
-- [ChatGPT](docs/clients/chatgpt.md)
-- [Codex CLI / IDE](docs/clients/codex.md)
-- [Claude Code](docs/clients/claude-code.md)
-- [Claude web / Desktop](docs/clients/claude.md)
-- [Cursor](docs/clients/cursor.md)
-- [VS Code / GitHub Copilot](docs/clients/vscode.md)
-- [Local stdio installation](docs/clients/local-stdio.md)
+### Integrations and administration
 
-See the [client compatibility and prerequisites index](docs/clients/README.md) before connecting. Example remote addresses are placeholders, not public YouGile MCP hosting URLs.
+**CRM, files, and webhooks:** supported CRM operations, file uploads, and webhook management.
 
-## Local developer quick start
+**MCP access administration:** employee connections, access revocation, blocking, and a separate host-operator console.
 
-Requirements: Python 3.11+ and [uv](https://docs.astral.sh/uv/).
+<details>
+<summary><strong>What does support for 72 API operations mean?</strong></summary>
 
-~~~sh
+The server registers **72 direct MCP tool descriptors** derived from the official YouGile REST API v2 operations. This does not mean 72 agent-friendly compound workflows. High-level agent tools are a separate development track.
+
+Tool discovery does not guarantee execution. User permissions, server policy, and required approvals are checked on every call. Operations requiring unavailable approval or secret-injection providers fail closed.
+
+More: [architecture](docs/ARCHITECTURE.md) · [live API verification](docs/verification/gen-229-live-e2e.md) · [API provenance](docs/PROVENANCE.md).
+
+</details>
+
+## Connect
+
+Choose the transport according to where your AI client runs.
+
+### Remote server · Streamable HTTP + OAuth
+
+For ChatGPT, Codex, Claude, Cursor, and VS Code. Each person signs in with their own YouGile account and selects a company. Example address after a reviewed HTTPS deployment:
+
+`https://YOUR-HOST.example/mcp`
+
+**Client guides** (currently available in Russian)
+
+[ChatGPT](docs/clients/chatgpt.md) ·
+[Codex CLI / IDE](docs/clients/codex.md) ·
+[Claude Code](docs/clients/claude-code.md) ·
+[Claude Web / Desktop](docs/clients/claude.md) ·
+[Cursor](docs/clients/cursor.md) ·
+[VS Code / GitHub Copilot](docs/clients/vscode.md)
+
+> The URL above is a placeholder, not a hosted service. The current Dockerfile and Compose configuration do not publish an MCP endpoint.
+
+### Local server · stdio
+
+For agents running an MCP child process on the user's computer. Requires a company-scoped YouGile API key, company ID, and private per-agent identity file.
+
+**[Local stdio setup →](docs/clients/local-stdio.md)** (in Russian)
+
+For transport comparison, OAuth requirements, and troubleshooting, see the **[client guide index](docs/clients/README.md)**.
+
+## Quick start
+
+Install **Python 3.11+** and [uv](https://docs.astral.sh/uv/).
+
+~~~bash
 git clone https://github.com/amonrapmon/yougile-mcp.git
 cd yougile-mcp
+
 uv sync --locked --all-extras
 uv run --locked yougile-mcp doctor
-uv run --locked python scripts/check_catalog.py
-uv run --locked python -m unittest discover -s tests -v
 ~~~
 
-The `doctor` command validates configuration **offline**, without connecting to YouGile. To actually launch local MCP, provision a private agent identity and credentials, then start `yougile-mcp serve` according to the [stdio guide](docs/clients/local-stdio.md). Do not place real API keys in committed configuration or documentation.
+The `doctor` command validates configuration **offline** without contacting YouGile. To run a working local MCP server, configure credentials and the identity file as described in the [stdio guide](docs/clients/local-stdio.md).
 
-The Docker image and `compose.yaml` currently provide an offline verification scaffold, **not** a deployable public MCP endpoint.
+<details>
+<summary><strong>Catalog checks, tests, and linting</strong></summary>
 
-## Architecture and access
+~~~bash
+uv run --locked python scripts/check_catalog.py
+uv run --locked python -m unittest discover -s tests -v
+uv run --locked ruff check .
+~~~
 
-- One schema-validated YouGile API v2 client backs both transports.
-- Direct MCP tools use per-operation policy, actor/company checks and sanitized errors.
-- Remote OAuth uses individual YouGile sign-in, company selection, encrypted persistence in PostgreSQL and ephemeral state in Valkey.
-- The hosted UI provides company-level administration and a separate allowlisted host-operator area.
-- Cloud access is currently **Full Access within the signed-in user's own YouGile permissions**, not granular per-project OAuth scopes. Sensitive operations lacking a configured approval/secret provider fail closed.
-- Public remote traffic must pass through a separately reviewed HTTPS reverse proxy; the current cloud process binds to loopback.
+The complete developer verification workflow is described in [AGENTS.md](AGENTS.md).
 
-Read the [architecture and release boundaries](docs/ARCHITECTURE.md) and the [administration verification notes](docs/verification/gen-231-indalo-company-admin.md).
+</details>
+
+## Architecture
+
+~~~mermaid
+flowchart LR
+    L["Local AI agents"] --> S["stdio"]
+    R["Remote AI clients"] --> H["Streamable HTTP + OAuth"]
+    subgraph MCP["YouGile MCP"]
+        S --> T["Tool registry"]
+        H --> T
+        T --> P["Authorization · policy · validation"]
+        P --> C["Unified API client"]
+    end
+    C --> Y["YouGile REST API v2"]
+~~~
+
+Both transports share the same tool registry and API client. Each invocation checks the actor, company, permissions, and resource ownership. Errors are normalized, and credentials are never returned in tool results.
+
+Cloud OAuth is bound to each person's YouGile permissions. Configurable per-project OAuth access is not implemented. PostgreSQL and Valkey hold cloud authorization/connection state; company administration and host-operator administration are separate trust boundaries.
+
+**[Architecture and security boundaries →](docs/ARCHITECTURE.md)**
 
 ## Documentation
 
-| Topic | Reference |
-| --- | --- |
-| Client connection | [AI client installation guides](docs/clients/README.md) |
-| Architecture | [Architecture](docs/ARCHITECTURE.md) |
-| Live API validation | [GEN-229 verification](docs/verification/gen-229-live-e2e.md) |
-| API provenance and legal attribution | [Provenance](docs/PROVENANCE.md) |
-| Engineering roadmap | [Roadmap](docs/ROADMAP.md) |
-| Agent development rules | [AGENTS.md](AGENTS.md) and [contracts](docs/contracts/README.md) |
-| Contributions | [Contributing](CONTRIBUTING.md) |
+**Connecting and operating**  
+[AI clients](docs/clients/README.md) · [Local stdio](docs/clients/local-stdio.md) · [Architecture](docs/ARCHITECTURE.md)
 
-## Development and licensing
+**Capabilities and verification**  
+[Live API verification](docs/verification/gen-229-live-e2e.md) · [Administration verification](docs/verification/gen-231-indalo-company-admin.md) · [Roadmap](docs/ROADMAP.md)
 
-Contributions must follow [CONTRIBUTING.md](CONTRIBUTING.md) and the repository's [AGENTS.md](AGENTS.md). Original code is released under **GNU AGPL-3.0-only**. Adapted Indalo components retain their required notices and attribution. A license on this project does **not** authorize copying unlicensed third-party implementation code; see [PROVENANCE.md](docs/PROVENANCE.md). The redistribution status of the pinned vendor OpenAPI document remains a release review item.
+**Development and licensing**  
+[Contributing](CONTRIBUTING.md) · [Agent rules](AGENTS.md) · [Contracts](docs/contracts/README.md) · [Provenance](docs/PROVENANCE.md)
+
+---
+
+<sub>Original code is licensed under <a href="LICENSE">GNU AGPL-3.0-only</a>. Adapted Indalo modules preserve their attribution. Third-party licensing and the vendor OpenAPI snapshot distribution review are recorded in <a href="docs/PROVENANCE.md">PROVENANCE.md</a>.</sub>
