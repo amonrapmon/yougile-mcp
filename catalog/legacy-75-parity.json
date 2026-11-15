@@ -1,0 +1,551 @@
+{
+  "schema_version": 1,
+  "source": "catalog/tools-75.json (names only)",
+  "source_commit": "6a1c79c3917320a23654681333741d0580c29ba1",
+  "caution": "Inventory coverage is not an implementation claim. Non-direct tools require verified smart adapters.",
+  "summary": {
+    "direct": 66,
+    "smart": 2,
+    "write_adapter": 5,
+    "needs_api_verification": 2
+  },
+  "tools": [
+    {
+      "legacy_name": "get_companies",
+      "kind": "direct",
+      "operation_ids": [
+        "getCompanies"
+      ]
+    },
+    {
+      "legacy_name": "create_api_key",
+      "kind": "direct",
+      "operation_ids": [
+        "AuthKeyController_create"
+      ]
+    },
+    {
+      "legacy_name": "list_api_keys",
+      "kind": "direct",
+      "operation_ids": [
+        "AuthKeyController_search"
+      ]
+    },
+    {
+      "legacy_name": "delete_api_key",
+      "kind": "direct",
+      "operation_ids": [
+        "AuthKeyController_delete"
+      ]
+    },
+    {
+      "legacy_name": "get_user_context",
+      "kind": "direct",
+      "operation_ids": [
+        "UserController_getMe"
+      ]
+    },
+    {
+      "legacy_name": "get_company_details",
+      "kind": "direct",
+      "operation_ids": [
+        "CompanyController_get"
+      ]
+    },
+    {
+      "legacy_name": "update_company",
+      "kind": "direct",
+      "operation_ids": [
+        "CompanyController_update"
+      ]
+    },
+    {
+      "legacy_name": "list_users",
+      "kind": "direct",
+      "operation_ids": [
+        "UserController_search"
+      ]
+    },
+    {
+      "legacy_name": "invite_user",
+      "kind": "direct",
+      "operation_ids": [
+        "UserController_create"
+      ]
+    },
+    {
+      "legacy_name": "get_user",
+      "kind": "direct",
+      "operation_ids": [
+        "UserController_get"
+      ]
+    },
+    {
+      "legacy_name": "update_user",
+      "kind": "direct",
+      "operation_ids": [
+        "UserController_update"
+      ]
+    },
+    {
+      "legacy_name": "remove_user",
+      "kind": "direct",
+      "operation_ids": [
+        "UserController_delete"
+      ]
+    },
+    {
+      "legacy_name": "list_departments",
+      "kind": "direct",
+      "operation_ids": [
+        "DepartmentController_search"
+      ]
+    },
+    {
+      "legacy_name": "create_department",
+      "kind": "direct",
+      "operation_ids": [
+        "DepartmentController_create"
+      ]
+    },
+    {
+      "legacy_name": "get_department",
+      "kind": "direct",
+      "operation_ids": [
+        "DepartmentController_get"
+      ]
+    },
+    {
+      "legacy_name": "update_department",
+      "kind": "direct",
+      "operation_ids": [
+        "DepartmentController_update"
+      ]
+    },
+    {
+      "legacy_name": "list_projects",
+      "kind": "direct",
+      "operation_ids": [
+        "ProjectController_search"
+      ]
+    },
+    {
+      "legacy_name": "create_project",
+      "kind": "direct",
+      "operation_ids": [
+        "ProjectController_create"
+      ]
+    },
+    {
+      "legacy_name": "get_project",
+      "kind": "direct",
+      "operation_ids": [
+        "ProjectController_get"
+      ]
+    },
+    {
+      "legacy_name": "update_project",
+      "kind": "direct",
+      "operation_ids": [
+        "ProjectController_update"
+      ]
+    },
+    {
+      "legacy_name": "list_project_roles",
+      "kind": "direct",
+      "operation_ids": [
+        "ProjectRolesController_search"
+      ]
+    },
+    {
+      "legacy_name": "create_project_role",
+      "kind": "direct",
+      "operation_ids": [
+        "ProjectRolesController_create"
+      ]
+    },
+    {
+      "legacy_name": "get_project_role",
+      "kind": "direct",
+      "operation_ids": [
+        "ProjectRolesController_get"
+      ]
+    },
+    {
+      "legacy_name": "update_project_role",
+      "kind": "direct",
+      "operation_ids": [
+        "ProjectRolesController_update"
+      ]
+    },
+    {
+      "legacy_name": "delete_project_role",
+      "kind": "direct",
+      "operation_ids": [
+        "ProjectRolesController_delete"
+      ]
+    },
+    {
+      "legacy_name": "list_boards",
+      "kind": "direct",
+      "operation_ids": [
+        "BoardController_search"
+      ]
+    },
+    {
+      "legacy_name": "create_board",
+      "kind": "direct",
+      "operation_ids": [
+        "BoardController_create"
+      ]
+    },
+    {
+      "legacy_name": "get_board",
+      "kind": "direct",
+      "operation_ids": [
+        "BoardController_get"
+      ]
+    },
+    {
+      "legacy_name": "update_board",
+      "kind": "direct",
+      "operation_ids": [
+        "BoardController_update"
+      ]
+    },
+    {
+      "legacy_name": "list_columns",
+      "kind": "direct",
+      "operation_ids": [
+        "ColumnController_search"
+      ]
+    },
+    {
+      "legacy_name": "create_column",
+      "kind": "direct",
+      "operation_ids": [
+        "ColumnController_create"
+      ]
+    },
+    {
+      "legacy_name": "get_column",
+      "kind": "direct",
+      "operation_ids": [
+        "ColumnController_get"
+      ]
+    },
+    {
+      "legacy_name": "update_column",
+      "kind": "direct",
+      "operation_ids": [
+        "ColumnController_update"
+      ]
+    },
+    {
+      "legacy_name": "list_task_summaries",
+      "kind": "direct",
+      "operation_ids": [
+        "TaskController_search"
+      ]
+    },
+    {
+      "legacy_name": "list_tasks",
+      "kind": "direct",
+      "operation_ids": [
+        "TaskController_search"
+      ]
+    },
+    {
+      "legacy_name": "create_task",
+      "kind": "direct",
+      "operation_ids": [
+        "TaskController_create"
+      ]
+    },
+    {
+      "legacy_name": "get_task",
+      "kind": "direct",
+      "operation_ids": [
+        "TaskController_get"
+      ]
+    },
+    {
+      "legacy_name": "get_tasks_by_date",
+      "kind": "smart",
+      "operation_ids": [
+        "TaskController_search"
+      ],
+      "note": "Date filtering and pagination semantics require verified design"
+    },
+    {
+      "legacy_name": "update_task",
+      "kind": "direct",
+      "operation_ids": [
+        "TaskController_update"
+      ]
+    },
+    {
+      "legacy_name": "delete_task",
+      "kind": "write_adapter",
+      "operation_ids": [
+        "TaskController_update"
+      ],
+      "note": "Set deleted=true with destructive scope and one-shot approval"
+    },
+    {
+      "legacy_name": "set_task_deadline",
+      "kind": "write_adapter",
+      "operation_ids": [
+        "TaskController_update"
+      ],
+      "note": "Task DTO deadline update needs safe patch adapter"
+    },
+    {
+      "legacy_name": "set_task_time_tracking",
+      "kind": "write_adapter",
+      "operation_ids": [
+        "TaskController_update"
+      ],
+      "note": "Task DTO timeTracking update needs safe patch adapter"
+    },
+    {
+      "legacy_name": "set_task_custom_stickers",
+      "kind": "write_adapter",
+      "operation_ids": [
+        "TaskController_update"
+      ],
+      "note": "Patch sticker assignment after validating state semantics"
+    },
+    {
+      "legacy_name": "remove_task_sticker",
+      "kind": "write_adapter",
+      "operation_ids": [
+        "TaskController_update"
+      ],
+      "note": "Remove assigned sticker from task DTO using safe patch"
+    },
+    {
+      "legacy_name": "get_task_chat_subscribers",
+      "kind": "direct",
+      "operation_ids": [
+        "TaskController_getChatSubscribers"
+      ]
+    },
+    {
+      "legacy_name": "update_task_chat_subscribers",
+      "kind": "direct",
+      "operation_ids": [
+        "TaskController_updateChatSubscribers"
+      ]
+    },
+    {
+      "legacy_name": "list_string_stickers",
+      "kind": "direct",
+      "operation_ids": [
+        "StringStickerController_search"
+      ]
+    },
+    {
+      "legacy_name": "create_string_sticker",
+      "kind": "direct",
+      "operation_ids": [
+        "StringStickerController_create"
+      ]
+    },
+    {
+      "legacy_name": "get_string_sticker",
+      "kind": "direct",
+      "operation_ids": [
+        "StringStickerController_get"
+      ]
+    },
+    {
+      "legacy_name": "update_string_sticker",
+      "kind": "direct",
+      "operation_ids": [
+        "StringStickerController_update"
+      ]
+    },
+    {
+      "legacy_name": "get_string_sticker_state",
+      "kind": "direct",
+      "operation_ids": [
+        "StringStickerStateController_get"
+      ]
+    },
+    {
+      "legacy_name": "create_string_sticker_state",
+      "kind": "direct",
+      "operation_ids": [
+        "StringStickerStateController_create"
+      ]
+    },
+    {
+      "legacy_name": "update_string_sticker_state",
+      "kind": "direct",
+      "operation_ids": [
+        "StringStickerStateController_update"
+      ]
+    },
+    {
+      "legacy_name": "list_sprint_stickers",
+      "kind": "direct",
+      "operation_ids": [
+        "SprintStickerController_search"
+      ]
+    },
+    {
+      "legacy_name": "create_sprint_sticker",
+      "kind": "direct",
+      "operation_ids": [
+        "SprintStickerController_create"
+      ]
+    },
+    {
+      "legacy_name": "get_sprint_sticker",
+      "kind": "direct",
+      "operation_ids": [
+        "SprintStickerController_getSticker"
+      ]
+    },
+    {
+      "legacy_name": "update_sprint_sticker",
+      "kind": "direct",
+      "operation_ids": [
+        "SprintStickerController_update"
+      ]
+    },
+    {
+      "legacy_name": "get_sprint_sticker_state",
+      "kind": "direct",
+      "operation_ids": [
+        "SprintStickerStateController_get"
+      ]
+    },
+    {
+      "legacy_name": "create_sprint_sticker_state",
+      "kind": "direct",
+      "operation_ids": [
+        "SprintStickerStateController_create"
+      ]
+    },
+    {
+      "legacy_name": "update_sprint_sticker_state",
+      "kind": "direct",
+      "operation_ids": [
+        "SprintStickerStateController_update"
+      ]
+    },
+    {
+      "legacy_name": "decode_task_stickers",
+      "kind": "smart",
+      "operation_ids": [
+        "TaskController_get",
+        "StringStickerController_get",
+        "SprintStickerController_getSticker"
+      ],
+      "note": "Task + sticker-state enrichment requires composition"
+    },
+    {
+      "legacy_name": "list_group_chats",
+      "kind": "direct",
+      "operation_ids": [
+        "GroupChatController_search"
+      ]
+    },
+    {
+      "legacy_name": "create_group_chat",
+      "kind": "direct",
+      "operation_ids": [
+        "GroupChatController_create"
+      ]
+    },
+    {
+      "legacy_name": "get_group_chat",
+      "kind": "direct",
+      "operation_ids": [
+        "GroupChatController_get"
+      ]
+    },
+    {
+      "legacy_name": "update_group_chat",
+      "kind": "direct",
+      "operation_ids": [
+        "GroupChatController_update"
+      ]
+    },
+    {
+      "legacy_name": "get_chat_messages",
+      "kind": "direct",
+      "operation_ids": [
+        "ChatMessageController_search"
+      ]
+    },
+    {
+      "legacy_name": "send_chat_message",
+      "kind": "direct",
+      "operation_ids": [
+        "ChatMessageController_sendMessage"
+      ]
+    },
+    {
+      "legacy_name": "get_chat_message",
+      "kind": "direct",
+      "operation_ids": [
+        "ChatMessageController_get"
+      ]
+    },
+    {
+      "legacy_name": "update_chat_message",
+      "kind": "direct",
+      "operation_ids": [
+        "ChatMessageController_update"
+      ]
+    },
+    {
+      "legacy_name": "get_task_comments",
+      "kind": "needs_api_verification",
+      "operation_ids": [
+        "TaskController_getLog",
+        "ChatMessageController_search"
+      ],
+      "note": "Task comment source cannot be proven from names alone"
+    },
+    {
+      "legacy_name": "add_task_comment",
+      "kind": "needs_api_verification",
+      "operation_ids": [
+        "ChatMessageController_sendMessage"
+      ],
+      "note": "Task comment link and target chat need verified vendor contract"
+    },
+    {
+      "legacy_name": "upload_file",
+      "kind": "direct",
+      "operation_ids": [
+        "FileController_uploadFile"
+      ]
+    },
+    {
+      "legacy_name": "list_webhooks",
+      "kind": "direct",
+      "operation_ids": [
+        "WebhookController_search"
+      ]
+    },
+    {
+      "legacy_name": "create_webhook",
+      "kind": "direct",
+      "operation_ids": [
+        "WebhookController_create"
+      ]
+    },
+    {
+      "legacy_name": "update_webhook",
+      "kind": "direct",
+      "operation_ids": [
+        "WebhookController_put"
+      ]
+    }
+  ]
+}
