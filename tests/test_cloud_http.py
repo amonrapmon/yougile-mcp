@@ -1,6 +1,7 @@
 """HTTP login/OAuth/streamable boundary through real PostgreSQL and Valkey."""
 from __future__ import annotations
 
+import asyncio
 import base64
 import hashlib
 import os
@@ -100,8 +101,18 @@ class CloudHTTPTests(unittest.IsolatedAsyncioTestCase):
             store=self.store, state=self.state, cipher=self.cipher,
             csrf_secret="s" * 64, yougile_transport=httpx.MockTransport(yougile),
         )
-        self.lifespan = app.router.lifespan_context(app)
-        await self.lifespan.__aenter__()
+        # AnyIO TaskGroup cancel scopes must enter/exit in the SAME asyncio task.
+        # unittest's asyncSetUp/asyncTearDown run in different tasks.
+        self._started = asyncio.Event()
+        self._stop = asyncio.Event()
+
+        async def lifetime():
+            async with app.router.lifespan_context(app):
+                self._started.set()
+                await self._stop.wait()
+
+        self._lifespan_task = asyncio.create_task(lifetime())
+        await self._started.wait()
         self.http = httpx.AsyncClient(
             transport=httpx.ASGITransport(app=app),
             base_url=ORIGIN, follow_redirects=False,
@@ -117,7 +128,8 @@ class CloudHTTPTests(unittest.IsolatedAsyncioTestCase):
 
     async def asyncTearDown(self):
         await self.http.aclose()
-        await self.lifespan.__aexit__(None, None, None)
+        self._stop.set()
+        await self._lifespan_task
         await self.state.close()
         await self.store.close()
 
