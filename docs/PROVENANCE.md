@@ -126,3 +126,11 @@ This repo's independent cloud modules are `cloud/crypto.py`,
 paid plans, tickets bot and unrelated admin UI. This migration introduces
 separate `cloud_*` tables; it is not a drop-in migration of Indalo's
 existing database. PostgreSQL/Redis dependencies are optional extras.
+
+## Hosted OAuth provider port (GEN-231, PR #24)
+
+Reference implementation: https://github.com/indalo-tech/yougile-mcp-cloud/blob/ea88a0d5c5c055262cba9cf9741fd51828481ba5/src/yougile_cloud/oauth.py,
+Copyright (c) Indalo, AGPL-3.0-only. Adapted OAuth token, authorization
+code, refresh rotation and revocation flows to the official MCP Python SDK
+v2, with in-house PyJWT JWT issuance and the new project PostgreSQL/Valkey
+backends. Not a deployment of the upstream HTTP/OAuth app.

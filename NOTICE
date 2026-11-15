@@ -33,3 +33,8 @@ Hosted persistence adaptation, GEN-231 #23:
 - Modules: cloud/crypto.py, cloud/persistence.py, cloud/valkey.py,
   cloud/migrations/001_cloud.sql.
 - Removed subscription and billing fields; different storage schema.
+
+Cloud OAuth adaptation, GEN-231 #24:
+- OAuth provider flow derives from indalo-tech/yougile-mcp-cloud/oauth.py,
+  pinned upstream ea88a0d5c5c055262cba9cf9741fd51828481ba5.
+- Copyright (c) Indalo; AGPL-3.0-only. Ported to official MCP SDK v2.
