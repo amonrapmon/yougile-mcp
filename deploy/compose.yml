@@ -1,0 +1,82 @@
+name: yougile-mcp
+
+# External Traefik owns public 80/443. No app or storage port is published.
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ygcloud
+      POSTGRES_DB: ygcloud
+      POSTGRES_PASSWORD: ${CLOUD_DB_PASSWORD:?Set CLOUD_DB_PASSWORD in .env}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks: [storage]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ygcloud -d ygcloud"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    security_opt: [no-new-privileges:true]
+
+  valkey:
+    image: valkey/valkey:8.1.11-alpine
+    command: ["valkey-server", "--appendonly", "yes", "--save", "60", "1"]
+    restart: unless-stopped
+    volumes:
+      - valkey_data:/data
+    networks: [storage]
+    healthcheck:
+      test: ["CMD", "valkey-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    security_opt: [no-new-privileges:true]
+
+  mcp:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    command: ["yougile-mcp", "cloud-serve"]
+    depends_on:
+      postgres: {condition: service_healthy}
+      valkey: {condition: service_healthy}
+    environment:
+      MCP_TRANSPORT: http
+      MCP_AUTH_MODE: required
+      MCP_HOST: 0.0.0.0
+      MCP_PORT: "8000"
+      MCP_PUBLIC_URL: https://${MCP_DOMAIN:?Set MCP_DOMAIN in .env}
+      CLOUD_PRIVATE_CONTAINER_BIND: "1"
+      CLOUD_DATABASE_URL: postgresql://ygcloud:${CLOUD_DB_PASSWORD:?Set CLOUD_DB_PASSWORD in .env}@postgres:5432/ygcloud
+      CLOUD_VALKEY_URL: redis://valkey:6379/0
+      CLOUD_JWT_SECRET: ${CLOUD_JWT_SECRET:?Set CLOUD_JWT_SECRET in .env}
+      CLOUD_ENCRYPTION_KEYS: ${CLOUD_ENCRYPTION_KEYS:?Set CLOUD_ENCRYPTION_KEYS in .env}
+      CLOUD_OAUTH_REDIRECT_ORIGINS: ${CLOUD_OAUTH_REDIRECT_ORIGINS:-}
+      CLOUD_HOST_ADMIN_SUBJECTS: ${CLOUD_HOST_ADMIN_SUBJECTS:-}
+    expose: ["8000"]
+    networks: [storage, proxy]
+    read_only: true
+    tmpfs: ["/tmp:size=64m,mode=1777"]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=${TRAEFIK_NETWORK:-proxy}
+      - traefik.http.routers.yougile-mcp.rule=Host(`${MCP_DOMAIN:?Set MCP_DOMAIN in .env}`)
+      - traefik.http.routers.yougile-mcp.entrypoints=${TRAEFIK_HTTPS_ENTRYPOINT:-websecure}
+      - traefik.http.routers.yougile-mcp.tls=true
+      - traefik.http.routers.yougile-mcp.tls.certresolver=${TRAEFIK_CERTRESOLVER:?Set TRAEFIK_CERTRESOLVER in .env}
+      - traefik.http.services.yougile-mcp.loadbalancer.server.port=8000
+      - traefik.http.services.yougile-mcp.loadbalancer.passhostheader=true
+
+networks:
+  storage: {internal: true}
+  proxy:
+    external: true
+    name: ${TRAEFIK_NETWORK:-proxy}
+
+volumes:
+  postgres_data:
+  valkey_data:

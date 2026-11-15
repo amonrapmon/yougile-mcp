@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import hashlib
 import hmac
+import logging
 import time
 from datetime import UTC, datetime, timedelta
 from urllib.parse import urlparse
@@ -32,6 +33,7 @@ AUTH_CODE_TTL = 5 * 60
 ACCESS_TOKEN_TTL = 3600
 REFRESH_TOKEN_TTL = 30 * 24 * 3600
 _SCOPE = "yougile.full"
+_LOG = logging.getLogger("uvicorn.error")
 
 
 class CloudOAuthProvider:
@@ -120,6 +122,8 @@ class CloudOAuthProvider:
         )
         if not ok:
             raise AuthorizeError(error="server_error", error_description="Unable to open login")
+        # Correlation only: never log the raw flow token, client ID or redirect URI.
+        _LOG.info("oauth_flow stage=authorization_created flow_ref=%s", hash_token(flow)[:12])
         return self.public_url + "/signin?flow=" + flow
 
     async def pending_request(self, flow: str) -> dict | None:

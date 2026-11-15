@@ -140,6 +140,11 @@ flowchart LR
 **Подключение и эксплуатация**  
 [AI-клиенты](docs/clients/README.md) · [Локальный stdio](docs/clients/local-stdio.md) · [Архитектура](docs/ARCHITECTURE.md)
 
+**Самостоятельное серверное развёртывание (pre-release)**  
+[Docker Compose](deploy/README.md) · [Traefik на DE](deploy/TRAEFIK-DE.md) · [Cloudflare Tunnel](deploy/CLOUDFLARE.md)
+
+Публикация сервера требует проверки OAuth с AI-клиентом, ограничений запросов и резервного восстановления.
+
 **Возможности и проверки**  
 [Отчёт о live-проверках API](docs/verification/gen-229-live-e2e.md) · [Проверка администрирования](docs/verification/gen-231-indalo-company-admin.md) · [План развития](docs/ROADMAP.md)
 

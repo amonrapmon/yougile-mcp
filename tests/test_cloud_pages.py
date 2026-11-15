@@ -19,8 +19,133 @@ class CloudPageTests(unittest.TestCase):
         self.assertIn('&lt;script&gt;', html)
         self.assertIn('method="post"', html)
         self.assertIn('type="password"', html)
-        self.assertIn('основа Indalo', html)
+        self.assertNotIn('основа Indalo', html)
         self.assertIn('github.com/amonrapmon/yougile-mcp', html)
+
+    def test_login_has_consistent_branded_oauth_layout(self):
+        html = pages.login_page(
+            action="/signin",
+            hidden={"flow": "f-123", "csrf": "csrf-token"},
+            heading="Вход в YouGile MCP",
+            lead="Войдите под своей учётной записью YouGile.",
+            login="friend@example.test",
+            client=("ChatGPT", "chatgpt.com"),
+        )
+        self.assertIn('class="auth-flow"', html)
+        self.assertIn('class="auth-brand"', html)
+        self.assertIn('YouGile MCP', html)
+        self.assertIn('by Amonrapmon', html)
+        self.assertIn('class="auth-client-request"', html)
+        self.assertIn('Доступ к вашему YouGile запрашивает', html)
+        self.assertIn('ChatGPT', html)
+        self.assertIn('chatgpt.com', html)
+        self.assertIn('Название приложения задаётся самим', html)
+        self.assertIn('закройте страницу и не вводите пароль', html)
+        self.assertIn('name="flow" value="f-123"', html)
+        self.assertIn('name="csrf" value="csrf-token"', html)
+        self.assertIn('value="friend@example.test"', html)
+        self.assertIn('autocomplete="username"', html)
+        self.assertIn('autocomplete="current-password"', html)
+        self.assertIn('Войти и продолжить', html)
+        self.assertIn('в зашифрованном виде до пяти минут', html)
+        self.assertNotIn('и нигде не сохраняется', html)
+        self.assertNotIn('/assets/landing.js', html)
+
+    def test_login_client_identity_is_escaped_and_not_claimed_as_verified(self):
+        attack = '<img src=x onerror=alert(1)>'
+        html = pages.login_page(
+            action="/signin",
+            hidden={"flow": attack, "csrf": attack},
+            heading="Вход", lead="Вход",
+            client=(attack, attack),
+        )
+        self.assertNotIn(attack, html)
+        self.assertIn('&lt;img src=x onerror=alert(1)&gt;', html)
+        self.assertIn('Название приложения задаётся самим', html)
+        self.assertIn('class="auth-client-return"', html)
+        self.assertNotIn('class="ok" role="note"', html)
+
+    def test_company_choice_keeps_post_fields_and_escapes_company_names(self):
+        html = pages.company_page(
+            action="/signin/company",
+            hidden={"flow": "f-123", "csrf": "token"},
+            companies=[("company-a", "Alpha"), ('quote" onclick="evil()', '<script>')],
+        )
+        self.assertIn('class="auth-flow"', html)
+        self.assertIn('class="auth-brand"', html)
+        self.assertIn('class="auth-companies"', html)
+        self.assertIn('action="/signin/company"', html)
+        self.assertIn('name="flow" value="f-123"', html)
+        self.assertIn('name="csrf" value="token"', html)
+        self.assertIn('name="company" value="company-a"', html)
+        self.assertNotIn('<script>', html)
+        self.assertNotIn('" onclick="evil()', html)
+        self.assertIn('&lt;script&gt;', html)
+
+    def test_oauth_error_page_is_branded_without_script(self):
+        html = pages.message_page("Ссылка устарела", "Начните подключение заново.")
+        self.assertIn('class="auth-flow"', html)
+        self.assertIn('class="auth-message error" role="alert"', html)
+        self.assertIn('Ссылка устарела', html)
+        self.assertNotIn('/assets/landing.js', html)
+        ok = pages.message_page("Готово", "Подключено", error=False)
+        self.assertIn('class="auth-message ok" role="status"', ok)
+
+    def test_landing_has_github_avatar_mcp_url_and_no_upstream_footer(self):
+        url = 'https://yougile.ooouch.com/mcp'
+        html = pages.home_page(url)
+        self.assertIn(url, html)
+        self.assertIn('class="landing"', html)
+        self.assertIn('class="landing-avatar"', html)
+        self.assertIn('avatars.githubusercontent.com/u/167690761', html)
+        self.assertIn('Исходный код на GitHub', html)
+        self.assertIn('AGPL-3.0', html)
+        self.assertNotIn('основа Indalo', html)
+        self.assertNotIn('indalo-tech/yougile-mcp-cloud', html)
+        self.assertNotIn('<script>alert(1)', html.lower())
+        self.assertIn('aria-label="Скопировать адрес MCP-сервера"', html)
+        self.assertIn('class="landing-copy"', html)
+        self.assertIn('id="copy-status"', html)
+        self.assertIn('<script src="/assets/landing.js" defer></script>', html)
+        self.assertEqual(html.count('class="landing-step"'), 4)
+        self.assertIn('04/', html)
+        self.assertIn('Откиньтесь в кресле', html)
+        self.assertIn('на стероидах.', html)
+        self.assertIn('by Amonrapmon', html)
+        self.assertIn('Claude Code', html)
+        self.assertIn('Harness', html)
+        self.assertNotIn('landing-protocol', html)
+        self.assertNotIn('landing-endpoint-tag', html)
+        self.assertLess(html.index('Адрес MCP-сервера'), html.index('class="landing-endpoint"'))
+        self.assertIn('navigator.clipboard.writeText', pages.LANDING_COPY_JS)
+        self.assertIn('Один адрес. Семьдесят два инструмента. Никакого шаманского бубна.', html)
+        self.assertIn('Коты и собаки в списке поддерживаемых', html)
+        self.assertIn('пока проходят испытательный срок.', html)
+        self.assertLess(html.index('class="landing-endpoint"'), html.index('Никакого шаманского бубна'))
+        self.assertLess(html.index('Никакого шаманского бубна'), html.index('class="landing-steps"'))
+        self.assertLess(html.index('class="landing-steps"'), html.index('class="landing-disclaimer"'))
+        self.assertIn('Скопировано. Вербуйте своего агента!', pages.LANDING_COPY_JS)
+        self.assertIn('hint.textContent = originalHint', pages.LANDING_COPY_JS)
+        self.assertIn('delete hint.dataset.copied', pages.LANDING_COPY_JS)
+
+    def test_landing_escapes_untrusted_endpoint(self):
+        injected = 'https://example.test/?a=<script>alert(1)</script>&x="'
+        html = pages.home_page(injected)
+        self.assertNotIn(injected, html)
+        self.assertIn('&lt;script&gt;', html)
+        self.assertIn('&amp;x=&quot;', html)
+
+    def test_other_pages_do_not_load_landing_javascript(self):
+        for html in (
+            pages.login_page(
+                action='/signin', hidden={'flow': 'flow-id'},
+                heading='Вход', lead='Вход в YouGile',
+            ),
+            pages.company_page(action='/signin/company', hidden={},
+                               companies=[('a', 'A')]),
+            pages.message_page('Ошибка', 'Нет доступа'),
+        ):
+            self.assertNotIn('/assets/landing.js', html)
 
     def test_company_choice_escapes_id_and_title(self):
         html = pages.company_page(

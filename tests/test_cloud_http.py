@@ -179,6 +179,39 @@ class CloudHTTPTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(token.status_code, 200, token.text)
         return token.json(), code
 
+    async def test_public_landing_copy_script_and_csp(self):
+        landing = await self.http.get("/")
+        self.assertEqual(landing.status_code, 200)
+        self.assertIn("YouGile MCP by Amonrapmon", landing.text)
+        self.assertIn(RESOURCE, landing.text)
+        self.assertIn('<script src="/assets/landing.js" defer></script>', landing.text)
+        csp = landing.headers["content-security-policy"]
+        self.assertIn("script-src 'self'", csp)
+        self.assertNotIn("'unsafe-inline'", csp.split("script-src ", 1)[1].split(";", 1)[0])
+        script = await self.http.get("/assets/landing.js")
+        self.assertEqual(script.status_code, 200)
+        self.assertIn("javascript", script.headers["content-type"])
+        self.assertEqual(script.headers["x-content-type-options"], "nosniff")
+        self.assertIn("navigator.clipboard.writeText", script.text)
+
+    async def test_oauth_login_renders_branded_form_without_changing_security(self):
+        signin_path = await self._start()
+        response = await self.http.get(signin_path)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('class="auth-flow"', response.text)
+        self.assertIn('class="auth-client-request"', response.text)
+        self.assertIn('ChatGPT', response.text)
+        self.assertIn('chatgpt.com', response.text)
+        self.assertIn('name="flow"', response.text)
+        self.assertIn('name="csrf"', response.text)
+        self.assertIn('autocomplete="current-password"', response.text)
+        self.assertNotIn('/assets/landing.js', response.text)
+        self.assertEqual(response.headers["x-frame-options"], "DENY")
+        self.assertIn("frame-ancestors 'none'", response.headers["content-security-policy"])
+        bad = await self.http.get("/signin?flow=invalid")
+        self.assertEqual(bad.status_code, 400)
+        self.assertIn('class="auth-message error" role="alert"', bad.text)
+
     async def test_no_anonymous_mcp_and_metadata(self):
         for path in ("/.well-known/oauth-authorization-server", "/.well-known/oauth-protected-resource/mcp"):
             result = await self.http.get(path)
@@ -208,6 +241,45 @@ class CloudHTTPTests(unittest.IsolatedAsyncioTestCase):
             "/signin", data=data, headers={"Origin": "null"},
         )).status_code, 403)
         self.assertEqual(self.signin.used, [])
+
+    async def test_replayed_company_post_after_success_logs_missing_request(self):
+        # Reproduces the exact browser symptom reported on DE:
+        # first company POST stores the account and redirects to ChatGPT;
+        # replaying the same form reaches /signin/company with an expired link.
+        path = await self._start()
+        login_page = await self.http.get(path)
+        flow = parse_qs(urlparse(path).query)["flow"][0]
+        csrf = re.search(r'name="csrf" value="([0-9a-f]+)"', login_page.text).group(1)
+        signin = await self.http.post(
+            "/signin", data={
+                "csrf": csrf, "flow": flow,
+                "login": "diagnostic@example.test", "password": "private-test-password",
+            }, headers={"Origin": ORIGIN},
+        )
+        self.assertEqual(signin.status_code, 200, signin.text)
+        choice_csrf = re.search(r'name="csrf" value="([0-9a-f]+)"', signin.text).group(1)
+        selection = {"csrf": choice_csrf, "flow": flow, "company": "company-A"}
+
+        with self.assertLogs("uvicorn.error", level="INFO") as captured:
+            first = await self.http.post(
+                "/signin/company", data=selection, headers={"Origin": ORIGIN},
+            )
+            second = await self.http.post(
+                "/signin/company", data=selection, headers={"Origin": ORIGIN},
+            )
+        self.assertEqual(first.status_code, 302, first.text)
+        self.assertEqual(urlparse(first.headers["location"]).hostname, "chatgpt.com")
+        self.assertEqual(second.status_code, 400)
+        self.assertIn("Ссылка устарела", second.text)
+        self.assertIsNone(await self.oauth.pending_request(flow))
+        self.assertEqual(self.signin.used, [("diagnostic@example.test", "private-test-password")])
+        logged = "\n".join(captured.output)
+        self.assertIn("stage=cloud_account_saved", logged)
+        self.assertIn("stage=oauth_redirect_issued", logged)
+        self.assertIn("stage=company_post_missing_oauth_request", logged)
+        self.assertNotIn("private-test-password", logged)
+        self.assertNotIn("diagnostic@example.test", logged)
+        self.assertNotIn(flow, logged)
 
     async def test_complete_oauth_login_refresh_and_mcp_tool_listing(self):
         token, code = await self._access()
