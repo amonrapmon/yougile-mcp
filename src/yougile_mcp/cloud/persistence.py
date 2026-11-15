@@ -7,8 +7,9 @@ SPDX-License-Identifier: AGPL-3.0-only
 """
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
+import secrets
 from importlib.resources import files
 from typing import Any, Mapping
 
@@ -21,7 +22,18 @@ from .crypto import CloudCipher, hash_token
 @dataclass(frozen=True)
 class SavedAccount:
     account_id: str
-    previous_api_key: Secret | None  # Old credential, to revoke after commit.
+    previous_api_key: Secret | None
+    revoke_queued: bool = False
+
+
+@dataclass(frozen=True)
+class ClaimedKeyRevocation:
+    id: int
+    company_id: str
+    user_id: int
+    attempts: int
+    lease_token: str
+    api_key: Secret = field(repr=False, compare=False)
 
 
 class PostgresCloudStore:
@@ -73,7 +85,7 @@ class PostgresCloudStore:
                 )
                 # All migrations run under the same advisory lock. Existing
                 # installations with 001 applied receive only newer migrations.
-                for name in ("001_cloud.sql", "002_admin.sql", "003_host_epoch.sql"):
+                for name in ("001_cloud.sql", "002_admin.sql", "003_host_epoch.sql", "004_vendor_key_revocations.sql"):
                     cur = await conn.execute(
                         "SELECT name FROM cloud_schema_migrations WHERE name=%s",
                         (name,),
@@ -92,11 +104,12 @@ class PostgresCloudStore:
     async def save_account(
         self, person: ProvisionedYouGileAccount, *, company_name: str,
     ) -> SavedAccount:
-        """Atomic company/user upsert; returns old key for post-commit revoke.
+        """Atomically replace a key and enqueue old-key revocation in PostgreSQL.
 
-        A concurrent first sign-in of the same vendor user is serialized by
-        a transaction-scoped advisory lock. Caller must revoke newly created
-        key if this transaction fails.
+        A concurrent sign-in of the same vendor user is serialized by a
+        transaction advisory lock. An outbox job is committed with the key
+        replacement: neither a crash nor a failed OAuth redirect loses it.
+        Caller must revoke the new key if this transaction fails.
         """
         if not person.company_id or not person.user_id or not company_name:
             raise ValueError("Complete YouGile identity required")
@@ -152,7 +165,72 @@ class PostgresCloudStore:
                  person.is_admin, ciphertext),
             )
             new = await cur.fetchone()
-        return SavedAccount(str(new["id"]), previous)
+            needs_revoke = previous is not None and previous.reveal() != person.api_key.reveal()
+            if needs_revoke:
+                # Keep the OLD ciphertext as-is. Never store the retired key
+                # as plaintext, or enqueue outside this transaction.
+                await conn.execute(
+                    "INSERT INTO cloud_vendor_key_revocations "
+                    "(company_id,user_id,api_key_enc) VALUES (%s,%s,%s)",
+                    (person.company_id, int(new["id"]), old["api_key_enc"]),
+                )
+        return SavedAccount(str(new["id"]), previous, needs_revoke)
+
+    async def claim_key_revocation(self) -> ClaimedKeyRevocation | None:
+        """Atomically lease one due job; safe across multiple worker replicas."""
+        lease_token = secrets.token_hex(16)
+        async with self.pool.connection() as conn:
+            cur = await conn.execute(
+                """
+                WITH pending AS (
+                    SELECT id FROM cloud_vendor_key_revocations
+                    WHERE ready_at <= now()
+                      AND (lease_until IS NULL OR lease_until <= now())
+                    ORDER BY ready_at, id
+                    FOR UPDATE SKIP LOCKED LIMIT 1
+                )
+                UPDATE cloud_vendor_key_revocations q
+                SET lease_until=now() + interval '60 seconds',
+                    lease_token=%s, attempts=q.attempts + 1,
+                    updated_at=now()
+                FROM pending
+                WHERE q.id=pending.id
+                RETURNING q.id,q.company_id,q.user_id,q.api_key_enc,q.attempts
+                """,
+                (lease_token,),
+            )
+            row = await cur.fetchone()
+        if row is None:
+            return None
+        return ClaimedKeyRevocation(
+            id=int(row["id"]), company_id=row["company_id"],
+            user_id=int(row["user_id"]), attempts=int(row["attempts"]),
+            lease_token=lease_token, api_key=self._cipher.decrypt(row["api_key_enc"]),
+        )
+
+    async def complete_key_revocation(self, job: ClaimedKeyRevocation) -> bool:
+        """Delete only if this worker still holds the current lease."""
+        async with self.pool.connection() as conn:
+            cur = await conn.execute(
+                "DELETE FROM cloud_vendor_key_revocations "
+                "WHERE id=%s AND lease_token=%s",
+                (job.id, job.lease_token),
+            )
+            return cur.rowcount == 1
+
+    async def retry_key_revocation(self, job: ClaimedKeyRevocation, delay: int) -> bool:
+        """Persist a bounded delay while releasing the claim for later retry."""
+        if not 0 <= delay <= 3600:
+            raise ValueError("Invalid vendor key revocation retry delay")
+        async with self.pool.connection() as conn:
+            cur = await conn.execute(
+                "UPDATE cloud_vendor_key_revocations "
+                "SET lease_token=NULL,lease_until=NULL, "
+                "ready_at=now() + (%s * interval '1 second'),updated_at=now() "
+                "WHERE id=%s AND lease_token=%s",
+                (delay, job.id, job.lease_token),
+            )
+            return cur.rowcount == 1
 
     async def load(self, account_id: str) -> CloudAccount | None:
         """Authoritative lookup for CloudTenantSessions; check BOTH enabled flags."""
