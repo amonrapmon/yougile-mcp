@@ -28,6 +28,15 @@ class DockerDeploymentTests(unittest.TestCase):
         self.assertIn("read_only: true", source)
         self.assertIn("cap_drop: [ALL]", source)
 
+    def test_cloudflare_tunnel_uses_only_outbound_ingress(self):
+        source = (ROOT / "deploy/compose.tunnel.yml").read_text(encoding="utf-8")
+        self.assertNotIn("\n    ports:", source)
+        self.assertNotIn("traefik.", source)
+        self.assertIn("cloudflare/cloudflared", source)
+        self.assertIn("--token-file", source)
+        self.assertIn("cloudflared-token:ro", source)
+        self.assertIn("internal: true", source)
+        self.assertIn("networks: [storage, edge]", source)
     def test_no_real_secrets_in_template(self):
         sample = (ROOT / "deploy/.env.example").read_text(encoding="utf-8")
         self.assertIn("REPLACE_WITH", sample)

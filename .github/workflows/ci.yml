@@ -75,7 +75,9 @@ jobs:
           CLOUD_DB_PASSWORD: 123456789abcdef123456789abcdef123456789abcdef123456789
           CLOUD_JWT_SECRET: 0123456789abcdef0123456789abcdef0123456789abcdef
           CLOUD_ENCRYPTION_KEYS: cGxhY2Vob2xkZXJrZXlmb3Jjb21wb3NlLW9ubHktYWJjZA==
-        run: docker compose -f deploy/compose.yml config -q
+        run: |
+          docker compose -f deploy/compose.yml config -q
+          docker compose -f deploy/compose.tunnel.yml config -q
       - name: Build image
         run: docker build -t yougile-mcp:foundation .
       - name: Verify image
