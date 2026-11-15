@@ -160,6 +160,8 @@ class CloudHTTPTests(unittest.IsolatedAsyncioTestCase):
         )
         self.assertEqual(signin.status_code, 200, signin.text)
         self.assertIn("Выберите компанию", signin.text)
+        self.assertNotIn("form-action", signin.headers["content-security-policy"])
+        self.assertIn("frame-ancestors 'none'", signin.headers["content-security-policy"])
         self.assertNotIn("example-pass", signin.text)
         csrf2 = re.search(r'name="csrf" value="([0-9a-f]+)"', signin.text).group(1)
         chosen = await self.http.post(
@@ -194,6 +196,7 @@ class CloudHTTPTests(unittest.IsolatedAsyncioTestCase):
         self.assertIn("javascript", script.headers["content-type"])
         self.assertEqual(script.headers["x-content-type-options"], "nosniff")
         self.assertIn("navigator.clipboard.writeText", script.text)
+        self.assertIn("form-action 'self'", landing.headers["content-security-policy"])
 
     async def test_oauth_login_renders_branded_form_without_changing_security(self):
         signin_path = await self._start()
@@ -208,7 +211,13 @@ class CloudHTTPTests(unittest.IsolatedAsyncioTestCase):
         self.assertIn('autocomplete="current-password"', response.text)
         self.assertNotIn('/assets/landing.js', response.text)
         self.assertEqual(response.headers["x-frame-options"], "DENY")
-        self.assertIn("frame-ancestors 'none'", response.headers["content-security-policy"])
+        login_csp = response.headers["content-security-policy"]
+        self.assertIn("frame-ancestors 'none'", login_csp)
+        self.assertIn("base-uri 'none'", login_csp)
+        self.assertIn("default-src 'none'", login_csp)
+        self.assertNotIn("form-action", login_csp)
+        # A form POST can redirect to an OAuth client on another origin.
+        # CSP form-action 'self' would block the browser despite a valid 302.
         bad = await self.http.get("/signin?flow=invalid")
         self.assertEqual(bad.status_code, 400)
         self.assertIn('class="auth-message error" role="alert"', bad.text)

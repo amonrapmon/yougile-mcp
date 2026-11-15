@@ -50,3 +50,26 @@ Rollback to a pre-migration application can leave pending jobs unprocessed;
 do not drop the outbox until all queued revocations are reconciled. This fix
 does not by itself certify a successful live ChatGPT OAuth callback or a
 completed token exchange, which require a separate on-DE acceptance test.
+
+## Browser-blocked OAuth callback: CSP `form-action` (2026-11-16)
+
+On DE the browser network trace confirmed `POST /signin/company` returned
+HTTP 302 and `Location: https://chatgpt.com/connector/oauth/...`. The server
+also logged `redirect_response_ready`, but the browser remained on the
+company selection page. The shared HTML Content Security Policy included
+`form-action 'self'`. Browsers enforce this directive on redirects following
+a form submission, including cross-origin OAuth callback navigation.
+
+The login and company-selection forms now use a dedicated OAuth page CSP
+without `form-action`, allowing client callbacks and multi-hop client
+redirects. **All other CSP restrictions remain** (`default-src 'none'`,
+`frame-ancestors 'none'`, `base-uri 'none'`, no inline scripts). Normal
+pages and administrative forms retain `form-action 'self'`. OAuth POST
+handlers still enforce exact Host/Origin, HMAC CSRF, verified callbacks and
+one-time flows.
+
+HTTP-level regressions assert the policy distinction on both OAuth forms
+and the landing page. Browser-side confirmation (Console free of CSP
+form-action violations, callback loaded, server `/token` exchange and
+positive refresh-token persistence) must be checked on the real DE browser.
+No private OAuth URL, token, raw flow ID or CSRF value is stored in docs.
