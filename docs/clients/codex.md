@@ -1,48 +1,49 @@
-# Codex CLI and IDE extension
+# Подключение к Codex CLI и IDE
 
-**Transports:** remote Streamable HTTP with OAuth, or local stdio. **Status:** unverified integration examples for this repository.
+**Транспорты:** удалённый Streamable HTTP + OAuth или локальный stdio. **Статус:** примеры конфигурации; реальное E2E-подключение к нашему серверу ещё не подтверждено.
 
-## Remote HTTPS (recommended when deployed)
+## Вариант 1. Удалённый MCP
 
-Run:
+После развёртывания доверенного HTTPS-сервера выполните:
 
-~~~sh
+```sh
 codex mcp add yougile --url https://YOUR-HOST.example/mcp
 codex mcp login yougile
 codex mcp list
-~~~
+```
 
-Replace the placeholder URL with the **actual** reviewed deployment. The login command starts OAuth; sign in to YouGile and choose the permitted company. In Codex TUI, use `/mcp` to inspect tools and try a read-only call.
+Замените `YOUR-HOST.example` адресом своего сервера. Команда входа запускает OAuth: авторизуйтесь в YouGile и при необходимости выберите компанию. В интерфейсе Codex можно использовать `/mcp` для просмотра зарегистрированных серверов и инструментов.
 
-Alternatively, add this to `~/.codex/config.toml`:
+Также сервер можно добавить в `~/.codex/config.toml`:
 
-~~~toml
+```toml
 [mcp_servers.yougile]
 url = "https://YOUR-HOST.example/mcp"
-~~~
+```
 
-Then run `codex mcp login yougile`. Both CLI and supported IDE Codex integrations can share this configuration. If redirect authorization fails, the operator must allow the exact trusted OAuth callback origin used by Codex; native loopback callbacks are permitted by default.
+После этого выполните `codex mcp login yougile`. Если OAuth не завершается, необходимо проверить точный redirect URI; локальные loopback callback разрешены сервером по умолчанию.
 
-## Local stdio
+## Вариант 2. Локальный stdio
 
-Install the server and provision a protected local identity first using [local stdio setup](local-stdio.md). A Codex configuration can launch that preinstalled executable:
+Сначала выполните [инструкцию локальной установки](local-stdio.md), включая создание приватного файла идентичности агента. Затем добавьте в `~/.codex/config.toml`:
 
-~~~toml
+```toml
 [mcp_servers.yougile_local]
 command = "/absolute/path/to/yougile-mcp/.venv/bin/yougile-mcp"
 args = ["serve"]
+
 [mcp_servers.yougile_local.env]
 MCP_TRANSPORT = "stdio"
 YOUGILE_COMPANY_ID = "YOUR_COMPANY_ID"
 MCP_STDIO_IDENTITY_FILE = "/absolute/private/path/yougile-agent.json"
-~~~
+```
 
-The launcher **also** needs `YOUGILE_API_KEY` injected privately into its environment. Do not commit the key in `config.toml` or the identity file. On Windows, use the full path to `.venv\\Scripts\\yougile-mcp.exe`, and a private absolute identity-file path.
+API-ключ `YOUGILE_API_KEY` необходимо **отдельно и безопасно** передать в окружение дочернего процесса. Не добавляйте его в файл конфигурации под контролем Git. В Windows укажите путь к `.venv\Scripts\yougile-mcp.exe` и абсолютный путь к приватному файлу идентичности.
 
-## Verify
+## Проверка
 
-Use `codex mcp list` and an authorized read-only call. A configured server does not prove that its OAuth callback or tools work end to end.
+Выполните `codex mcp list` и пробный разрешённый запрос на чтение данных. Наличие сервера в списке не подтверждает работоспособность всех операций.
 
-Official reference: [Codex MCP documentation](https://learn.chatgpt.com/docs/extend/mcp?surface=cli).
+Официальная документация: [Codex и MCP](https://developers.openai.com/codex/mcp).
 
-[Back to client index](README.md)
+[Общий обзор подключения](README.md)
