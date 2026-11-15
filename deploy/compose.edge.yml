@@ -4,7 +4,7 @@ name: yougile-edge
 # The unused Xray listener must be stopped first, after checking its unit.
 services:
   docker-socket-proxy:
-    image: tecnativa/docker-socket-proxy:0.5.0
+    image: tecnativa/docker-socket-proxy:v0.5.0
     restart: unless-stopped
     environment:
       CONTAINERS: "1"
