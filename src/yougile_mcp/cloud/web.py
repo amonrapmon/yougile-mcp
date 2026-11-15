@@ -11,6 +11,7 @@ from __future__ import annotations
 import hashlib
 import hmac
 import json
+import logging
 from contextlib import suppress
 from urllib.parse import urlparse
 from typing import Any
@@ -50,6 +51,10 @@ _CRED_TTL = 300
 _MAX_LOGIN_ATTEMPTS = 10
 _SCOPE = "yougile.full"
 
+# Only stage labels and short SHA-256 fingerprints of random OAuth flow IDs.
+# No passwords, OAuth codes, refresh tokens, client identity or company data.
+_LOG = logging.getLogger("uvicorn.error")
+
 _SECURITY = {
     "Content-Security-Policy": (
         "default-src 'none'; style-src 'unsafe-inline'; script-src 'self'; img-src https://avatars.githubusercontent.com; form-action 'self'; "
@@ -84,6 +89,9 @@ class CloudLoginPages:
         self._csrf_key = hmac.new(
             csrf_secret.encode(), b"yougile-cloud/form-csrf-v1", hashlib.sha256
         ).digest()
+
+    def _trace(self, stage: str, flow: str) -> None:
+        _LOG.info("oauth_flow stage=%s flow_ref=%s", stage, hash_token(flow)[:12] if flow else "none")
 
     def _csrf(self, prefix: str, flow: str) -> str:
         return hmac.new(self._csrf_key, f"{prefix}:{flow}".encode(), hashlib.sha256).hexdigest()
@@ -160,6 +168,7 @@ class CloudLoginPages:
     async def show(self, request: Request) -> Response:
         flow = request.query_params.get("flow", "")
         authreq = await self.provider.pending_request(flow)
+        self._trace("signin_get_valid" if authreq is not None else "signin_get_missing", flow)
         if authreq is None:
             return _html(pages.message_page(
                 "Ссылка устарела", "Начните подключение заново в AI-клиенте."
@@ -207,6 +216,7 @@ class CloudLoginPages:
             self.state.key("temporary-credentials", hash_token(flow)),
             self.cipher.encrypt(Secret(temporary)), ttl=_CRED_TTL,
         )
+        self._trace("company_choice_rendered", flow)
         return _html(pages.company_page(
             action="/signin/company",
             hidden={"flow": flow, "csrf": self._csrf("company", flow)},
@@ -216,17 +226,23 @@ class CloudLoginPages:
     async def choose_company(self, request: Request) -> Response:
         fields = await self._read_form(request)
         if fields is None:
+            self._trace("company_post_invalid_form", "")
             return _html(pages.message_page("Некорректная форма", "Попробуйте снова."), 400)
         flow = fields.get("flow", "")
+        self._trace("company_post_received", flow)
         if not self._post_valid(request, fields, "company", flow):
+            self._trace("company_post_invalid_csrf", flow)
             return _html(pages.message_page("Форма отклонена", "Начните подключение заново."), 403)
         if await self.provider.pending_request(flow) is None:
+            self._trace("company_post_missing_oauth_request", flow)
             return _html(pages.message_page("Ссылка устарела", "Начните подключение заново."), 400)
         encrypted = await self.state.take_bytes(
             self.state.key("temporary-credentials", hash_token(flow))
         )
         if encrypted is None:
+            self._trace("company_post_missing_credentials", flow)
             return _html(pages.message_page("Время вышло", "Начните подключение заново."), 400)
+        self._trace("company_post_claimed_credentials", flow)
         try:
             data = json.loads(self.cipher.decrypt(encrypted).reveal())
             requested = fields.get("company", "")
@@ -235,9 +251,11 @@ class CloudLoginPages:
                 for c in data["companies"] if c[0] == requested
             ]
             if len(choices) != 1:
+                self._trace("company_post_invalid_selection", flow)
                 return _html(pages.message_page("Компания недоступна", "Начните заново."), 403)
             return await self._finish(flow, data["login"], data["password"], choices[0])
         except (ValueError, KeyError, TypeError, IndexError):
+            self._trace("company_post_invalid_temporary_state", flow)
             return _html(pages.message_page("Время вышло", "Начните подключение заново."), 400)
 
     async def _finish(
@@ -255,6 +273,7 @@ class CloudLoginPages:
             return _html(pages.message_page(
                 "Ошибка подключения", "Не удалось получить ключ YouGile."
             ), 502)
+        self._trace("vendor_account_provisioned", flow)
         try:
             saved = await self.store.save_account(account, company_name=company.name)
         except Exception:
@@ -264,15 +283,18 @@ class CloudLoginPages:
             return _html(pages.message_page(
                 "Ошибка сохранения", "Подключение не завершено. Повторите позже."
             ), 503)
+        self._trace("cloud_account_saved", flow)
         try:
             destination = await self.provider.finish_signin(
                 flow, account_id=saved.account_id,
             )
         except Exception:
+            self._trace("oauth_completion_failed", flow)
             # This account is persisted; do NOT revoke its current key here.
             return _html(pages.message_page(
                 "Ошибка OAuth", "Начните подключение заново."
             ), 503)
+        self._trace("oauth_redirect_issued", flow)
         # Old vendor key has been replaced in the DB transaction, and is no
         # longer needed. Failed vendor revoke must be audited for remediation.
         if saved.previous_api_key is not None:
