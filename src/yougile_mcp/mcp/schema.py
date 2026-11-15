@@ -60,9 +60,9 @@ def _convert(schema: Any, needed: set[str]) -> dict[str, Any]:
                     raise UpstreamError()
                 result[key] = schema[source]
                 result.pop(source, None)
-        elif key not in {"minimum", "maximum"} or not (
-            schema.get("exclusiveMinimum" if key == "minimum" else "exclusiveMaximum") is True
-        ):
+        elif key not in {"minimum", "maximum"} or schema.get(
+            "exclusiveMinimum" if key == "minimum" else "exclusiveMaximum"
+        ) is not True:
             result[key] = deepcopy(value)
     if schema.get("nullable") is True:
         if "type" in result and isinstance(result["type"], str):

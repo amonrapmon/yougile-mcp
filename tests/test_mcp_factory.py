@@ -2,11 +2,9 @@
 
 from __future__ import annotations
 
-import asyncio
 import base64
 import json
 import unittest
-from collections import Counter
 from typing import Any
 
 import httpx
@@ -261,8 +259,10 @@ class DispatcherTests(unittest.IsolatedAsyncioTestCase):
                 }))
             ),
         ) as client:
-            dispatcher = ToolDispatcher(client, company_id=COMPANY)
+            approvals = OneTimeApprovals()
+            dispatcher = ToolDispatcher(client, company_id=COMPANY, approvals=approvals)
             tool = build_registry().by_operation("CompanyController_get")
+            approvals.grant(_principal(), tool, {})
             with self.assertRaises(ToolDispatchError) as exc:
                 await dispatcher.call(tool.name, {}, _principal())
             self.assertEqual(exc.exception.category, "vendor_validation")

@@ -14,7 +14,7 @@ import json
 import threading
 import time
 from dataclasses import dataclass
-from typing import Any, Awaitable, Callable, Mapping, Protocol
+from typing import Any, Callable, Mapping, Protocol
 
 from jsonschema import Draft202012Validator, ValidationError
 
