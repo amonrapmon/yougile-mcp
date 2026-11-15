@@ -7,6 +7,8 @@ import unittest
 
 import httpx
 
+from test_mcp_factory import _response
+
 from yougile_mcp.cloud.yougile_signin import (
     CloudBadCredentials,
     CloudSignInError,
@@ -47,7 +49,9 @@ class CloudSignInTests(unittest.IsolatedAsyncioTestCase):
             if req.method == "GET" and path == "/api-v2/users/me":
                 if self.fail_profile:
                     return httpx.Response(403, json={"message": "forbidden"})
+                _, profile = _response("UserController_getMe")
                 return httpx.Response(200, json={
+                    **profile,
                     "id": "user-1", "email": "person@example.test",
                     "realName": "Test User", "isAdmin": True,
                 })
