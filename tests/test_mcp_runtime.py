@@ -34,24 +34,19 @@ class OfficialMCPIntegrationTests(unittest.IsolatedAsyncioTestCase):
     async def test_full_72_wire_contracts_with_client(self) -> None:
         registry = build_registry()
         sent: list[httpx.Request] = []
-        results_by_route: dict[tuple[str, str], tuple[int, Any]] = {}
-        for desc in registry.list():
-            op = desc.operation_id
-            args = _arguments(op)
-            # URI construction is delegated to the real YouGileClient and tested
-            # in API contracts; this handler only maps synthetic route metadata.
-            results_by_route[(desc.method, desc.path)] = _response(op)
-
-        # Use operation_id resolved by route and fixture path, including
-        # request-safe special-case compatibility paths in the SDK.
+        # Resolve the canonical encoded HTTP route. httpx URL.path is decoded,
+        # so a valid ID containing '/' would otherwise break template matching.
         def handler(request: httpx.Request) -> httpx.Response:
             sent.append(request)
-            op = next(
-                desc.operation_id
-                for desc in registry.list()
+            encoded_path = request.url.raw_path.split(b"?", 1)[0].decode("ascii")
+            matches = [
+                desc for desc in registry.list()
                 if desc.method == request.method
-                and _route_matches(desc.path, request.url.path)
-            )
+                and _route_matches(desc.path, encoded_path)
+            ]
+            # /users/me must beat /users/{id}; static paths are more specific.
+            matches.sort(key=lambda desc: desc.path.count("{"))
+            op = matches[0].operation_id
             code, payload = _response(op)
             return httpx.Response(code, json=payload) if payload is not None else httpx.Response(code)
 
