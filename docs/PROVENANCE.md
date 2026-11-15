@@ -143,3 +143,23 @@ checks, five-minute encrypted company choice and security headers have
 been adapted in our `src/yougile_mcp/cloud/web.py` using MCP Python SDK v2
 `Server.streamable_http_app`. Host app/command is new; not a straight
 copy of Indalo's original FastMCP/Starlette wiring.
+
+## Existing Indalo administration port (GEN-231, PR #26)
+
+Source: [admin.py](https://github.com/indalo-tech/yougile-mcp-cloud/blob/ea88a0d5c5c055262cba9cf9741fd51828481ba5/src/yougile_cloud/admin.py)
+and [admin_pages.py](https://github.com/indalo-tech/yougile-mcp-cloud/blob/ea88a0d5c5c055262cba9cf9741fd51828481ba5/src/yougile_cloud/admin_pages.py).
+Pinned commit `ea88a0d5c5c055262cba9cf9741fd51828481ba5`, © Indalo,
+AGPL-3.0-only.
+
+Adapted `cloud/admin.py` and `cloud/admin_pages.py` preserve the
+upstream server-rendered visual style, navigation, company administrator
+login/selection, connected employee table/cards, vendor-verified
+privileges, disconnect/ban/unban actions. Company member blocks are
+stored in a new `cloud_member_blocks` table, checked before
+key issuance and on tool access.
+
+The original upstream project roles, project restrictions, workflow rules,
+paid access and tickets bot are not ported to the Full Access MVP. Those
+controls cannot truthfully be displayed until the matching enforcement
+logic is implemented. A separate host-operator control plane is required
+for cross-company hosting and must not reuse company-admin authority.

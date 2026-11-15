@@ -44,3 +44,14 @@ HTTP form and sign-in flow adaptation, GEN-231 #25:
   AGPL-3.0-only, pinned ea88a0d5c5c055262cba9cf9741fd51828481ba5).
 - Our src/yougile_mcp/cloud/web.py mounts SDK-native OAuth/HTTP while
   preserving security headers, CSRF patterns and encrypted company choice.
+
+Company administrator import/adaptation, GEN-231 / PR #26:
+- Source: https://github.com/indalo-tech/yougile-mcp-cloud
+  commit ea88a0d5c5c055262cba9cf9741fd51828481ba5.
+- Original modules: src/yougile_cloud/admin.py and admin_pages.py
+- Copyright (c) Indalo. License: AGPL-3.0-only.
+- Adapted to src/yougile_mcp/cloud/admin.py and admin_pages.py:
+  reused original layout/navigation, company-admin CSRF/session flow,
+  employee listing, personal disconnect, preemptive block and unblock.
+- Removed original subscription billing, project/role policy controls
+  (not implemented by Full Access Runtime), and Telegram tickets.

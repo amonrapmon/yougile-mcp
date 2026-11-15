@@ -63,9 +63,7 @@ class PostgresCloudStore:
     async def migrate(self) -> None:
         if self.pool is None:
             raise RuntimeError("Cloud store is not open")
-        migration = files("yougile_mcp.cloud.migrations").joinpath("001_cloud.sql").read_text(
-            encoding="utf-8"
-        )
+
         async with self.pool.connection() as conn:
             async with conn.transaction():
                 await conn.execute("SELECT pg_advisory_xact_lock(2317272)")
@@ -73,15 +71,22 @@ class PostgresCloudStore:
                     "CREATE TABLE IF NOT EXISTS cloud_schema_migrations "
                     "(name text PRIMARY KEY, applied_at timestamptz NOT NULL DEFAULT now())"
                 )
-                cur = await conn.execute(
-                    "SELECT name FROM cloud_schema_migrations WHERE name = %s",
-                    ("001_cloud.sql",),
-                )
-                if await cur.fetchone() is None:
+                # All migrations run under the same advisory lock. Existing
+                # installations with 001 applied receive only newer migrations.
+                for name in ("001_cloud.sql", "002_admin.sql"):
+                    cur = await conn.execute(
+                        "SELECT name FROM cloud_schema_migrations WHERE name=%s",
+                        (name,),
+                    )
+                    if await cur.fetchone() is not None:
+                        continue
+                    migration = files("yougile_mcp.cloud.migrations").joinpath(name).read_text(
+                        encoding="utf-8",
+                    )
                     await conn.execute(migration)
                     await conn.execute(
                         "INSERT INTO cloud_schema_migrations (name) VALUES (%s)",
-                        ("001_cloud.sql",),
+                        (name,),
                     )
 
     async def save_account(
@@ -113,6 +118,13 @@ class PostgresCloudStore:
             company_state = await company_check.fetchone()
             if not company_state or not company_state["enabled"]:
                 raise ValueError("Cloud company disabled")
+            denied = await conn.execute(
+                "SELECT 1 FROM cloud_member_blocks "
+                "WHERE company_id=%s AND yougile_user_id=%s",
+                (person.company_id, person.user_id),
+            )
+            if await denied.fetchone() is not None:
+                raise ValueError("Cloud member blocked by company administrator")
             old_cur = await conn.execute(
                 "SELECT api_key_enc, enabled FROM cloud_users "
                 "WHERE company_id=%s AND yougile_user_id=%s FOR UPDATE",
@@ -152,7 +164,11 @@ class PostgresCloudStore:
             cur = await conn.execute(
                 "SELECT u.company_id, u.api_key_enc, u.enabled AS user_enabled, "
                 "c.enabled AS company_enabled FROM cloud_users u "
-                "JOIN cloud_companies c ON c.id = u.company_id WHERE u.id=%s",
+                "JOIN cloud_companies c ON c.id = u.company_id "
+                "WHERE u.id=%s AND NOT EXISTS "
+                "(SELECT 1 FROM cloud_member_blocks b "
+                " WHERE b.company_id=u.company_id "
+                " AND b.yougile_user_id=u.yougile_user_id)",
                 (int(account_id),),
             )
             row = await cur.fetchone()
@@ -201,6 +217,126 @@ class PostgresCloudStore:
                         "(SELECT id FROM cloud_users WHERE company_id=%s)",
                         (company_id,),
                     )
+
+
+    async def get_company(self, company_id: str) -> dict[str, Any] | None:
+        if not isinstance(company_id, str) or not company_id:
+            return None
+        async with self.pool.connection() as conn:
+            cur = await conn.execute(
+                "SELECT id,name,enabled,created_at FROM cloud_companies WHERE id=%s",
+                (company_id,),
+            )
+            return await cur.fetchone()
+
+    async def company_members(self, company_id: str) -> list[dict[str, Any]]:
+        """Never return encrypted keys to the HTML/template layer."""
+        async with self.pool.connection() as conn:
+            cur = await conn.execute(
+                "SELECT u.id, u.company_id, u.yougile_user_id, u.email,"
+                " u.name, u.is_admin, u.enabled, u.updated_at "
+                "FROM cloud_users u WHERE u.company_id=%s ORDER BY u.name,u.id",
+                (company_id,),
+            )
+            return list(await cur.fetchall())
+
+    async def company_blocks(self, company_id: str) -> set[str]:
+        async with self.pool.connection() as conn:
+            cur = await conn.execute(
+                "SELECT yougile_user_id FROM cloud_member_blocks WHERE company_id=%s",
+                (company_id,),
+            )
+            return {row["yougile_user_id"] for row in await cur.fetchall()}
+
+    async def is_member_blocked(self, company_id: str, vendor_id: str) -> bool:
+        async with self.pool.connection() as conn:
+            cur = await conn.execute(
+                "SELECT 1 FROM cloud_member_blocks "
+                "WHERE company_id=%s AND yougile_user_id=%s",
+                (company_id, vendor_id),
+            )
+            return await cur.fetchone() is not None
+
+    async def company_member(self, company_id: str, vendor_id: str) -> dict[str, Any] | None:
+        async with self.pool.connection() as conn:
+            cur = await conn.execute(
+                "SELECT id,company_id,yougile_user_id,email,name,is_admin,enabled "
+                "FROM cloud_users WHERE company_id=%s AND yougile_user_id=%s",
+                (company_id, vendor_id),
+            )
+            return await cur.fetchone()
+
+    async def disconnect_member(self, company_id: str, vendor_id: str) -> Secret | None:
+        """Remove MCP account and refresh tokens; return old key for vendor revoke.
+
+        The caller MUST revoke the returned key at YouGile; if vendor API is
+        unavailable it must record failure, never re-enable MCP access.
+        """
+        if not company_id or not vendor_id:
+            raise ValueError("Full company + vendor user ID required")
+        async with self.pool.connection() as conn, conn.transaction():
+            await conn.execute(
+                "SELECT pg_advisory_xact_lock(hashtext(%s))",
+                (company_id + ":" + vendor_id,),
+            )
+            cur = await conn.execute(
+                "SELECT api_key_enc FROM cloud_users "
+                "WHERE company_id=%s AND yougile_user_id=%s FOR UPDATE",
+                (company_id, vendor_id),
+            )
+            old = await cur.fetchone()
+            key = self._cipher.decrypt(old["api_key_enc"]) if old else None
+            await conn.execute(
+                "DELETE FROM cloud_users "
+                "WHERE company_id=%s AND yougile_user_id=%s",
+                (company_id, vendor_id),
+            )
+        return key
+
+    async def block_member(
+        self, company_id: str, vendor_id: str, *, actor_id: str,
+    ) -> Secret | None:
+        """Persist denial even for users who have never connected.
+
+        Serializes with login's per-person key issuance and atomically
+        deletes existing MCP connections and refresh tokens.
+        """
+        if not company_id or not vendor_id or not actor_id:
+            raise ValueError("Missing company, target or admin")
+        async with self.pool.connection() as conn, conn.transaction():
+            await conn.execute(
+                "SELECT pg_advisory_xact_lock(hashtext(%s))",
+                (company_id + ":" + vendor_id,),
+            )
+            await conn.execute(
+                "INSERT INTO cloud_member_blocks "
+                "(company_id,yougile_user_id,created_by) VALUES (%s,%s,%s) "
+                "ON CONFLICT(company_id,yougile_user_id) DO NOTHING",
+                (company_id, vendor_id, actor_id),
+            )
+            cur = await conn.execute(
+                "SELECT api_key_enc FROM cloud_users "
+                "WHERE company_id=%s AND yougile_user_id=%s FOR UPDATE",
+                (company_id, vendor_id),
+            )
+            old = await cur.fetchone()
+            key = self._cipher.decrypt(old["api_key_enc"]) if old else None
+            await conn.execute(
+                "DELETE FROM cloud_users "
+                "WHERE company_id=%s AND yougile_user_id=%s",
+                (company_id, vendor_id),
+            )
+        return key
+
+    async def unblock_member(self, company_id: str, vendor_id: str) -> None:
+        if not company_id or not vendor_id:
+            raise ValueError("Missing company or target")
+        async with self.pool.connection() as conn:
+            await conn.execute(
+                "DELETE FROM cloud_member_blocks "
+                "WHERE company_id=%s AND yougile_user_id=%s",
+                (company_id, vendor_id),
+            )
 
     async def save_oauth_client(self, client_id: str, info: Mapping[str, Any]) -> None:
         from psycopg.types.json import Jsonb
