@@ -98,3 +98,16 @@ If an upstream does not provide an explicit license or permission, do
 not use its source implementation. A public GitHub repository is not
 in itself a copyright license. Resolve PR #5 licensing in
 https://linear.app/amonrapmon/issue/GEN-211.
+
+## Imported cloud HTML/redirect helpers (GEN-231, 2026-11-15)
+
+Source: https://github.com/indalo-tech/yougile-mcp-cloud, commit
+`ea88a0d5c5c055262cba9cf9741fd51828481ba5` (2026-10-29), license AGPL-3.0-only,
+Copyright (c) Indalo. Copied and adapted two modules only:
+`src/yougile_mcp/cloud/pages.py` and
+`src/yougile_mcp/cloud/redirects.py`.
+
+The HTML source link now identifies our repository and explicitly credits
+Indalo. Other upstream cloud code, especially the OAuth issuer and company
+persistence, is NOT imported yet. The pages are not exposed through HTTP;
+the OAuth integration and middleware must be completed first.
