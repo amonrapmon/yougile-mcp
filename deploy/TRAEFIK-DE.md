@@ -5,35 +5,37 @@ It creates a separate Traefik stack on 80/443, a shared Docker
 network called proxy, and the existing YouGile MCP stack (PostgreSQL,
 Valkey, app) without any other published ports. No Cloudflare DNS needed.
 
-## A. Identify the process owning TCP 443
+## A. Stop the confirmed unused Xray Docker container
 
-On DE over SSH, run:
+The owner inspected PID 1965. This is **not** an xray.service:
+- Docker container: `handshake-probe-xray`;
+- Docker scope ID: `341358697a43ba9960e78c345bf611ff585269aabeaddbd5718a5925c9622790`;
+- `network=host`, `restart=unless-stopped`;
+- port 443 is held directly by that container.
 
-    sudo ss -lntp | grep ':443' || true
-    systemctl status xray --no-pager || true
-    systemctl list-units --type=service --all | grep -i xray || true
-    systemctl list-unit-files | grep -i xray || true
+After confirming Xray really is unused, disable Docker restart and
+stop ONLY this named container:
 
-Do not kill PID 1965 blindly. Verify which systemd unit owns it.
-Only if this is the unused xray.service, stop and disable with:
+    docker inspect handshake-probe-xray --format 'id={{.Id}} pid={{.State.Pid}} restart={{.HostConfig.RestartPolicy.Name}}'
+    docker update --restart=no handshake-probe-xray
+    docker stop handshake-probe-xray
+    sudo ss -lntp | grep -E ':(80|443)\b' || echo "Ports 80 and 443 are free"
 
-    sudo systemctl stop xray
-    sudo systemctl disable xray
-    sudo ss -lntp | grep -E ':(80|443)\b' || true
+Do not delete the container or modify Amnezia/Shadowbox/bots.
+If rollback is needed **after Traefik relinquishes 443**:
 
-If the process remains or Xray belongs to another service, STOP and
-inspect. Do NOT stop Shadowbox, Amnezia, VPN or unrelated containers.
+    docker update --restart=unless-stopped handshake-probe-xray
+    docker start handshake-probe-xray
 
-Rollback if necessary:
-
-    sudo systemctl enable --now xray
+Never use the obsolete `systemctl stop xray` instructions here:
+no matching systemd unit exists on this host.
 
 ## B. DNS and firewall
 
-You need a hostname whose DNS A record points to DE public IPv4.
+The owner added DNS A: yougile.ooouch.com -> 151.243.169.51.
 Before requesting certificates, verify:
 
-    dig +short A YOUR_MCP_DOMAIN
+    getent ahostsv4 yougile.ooouch.com | awk '{print $1}' | sort -u
     sudo ss -lntp | grep -E ':(80|443)\b' || true
     sudo ufw status
 
