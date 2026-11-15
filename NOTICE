@@ -1,7 +1,6 @@
 YouGile MCP is an independently maintained AGPL-3.0-only project.
 
-Architecture references reviewed, none of their source code copied into this
-foundation commit:
+Architecture references reviewed during the original foundation:
 - indalo-tech/yougile-mcp (MIT)
 - cvtmysxul/yougile-mcp (MIT)
 - indalo-tech/yougile-mcp-cloud (AGPL-3.0)
@@ -17,3 +16,11 @@ Official YouGile REST API v2 OpenAPI document:
 - Copyright attribution: YouGile LLC, as shown by the official documentation.
 - The OpenAPI document does not specify a license; this repository does not
   claim that the document is covered by AGPL-3.0-only.
+
+Cloud UI reuse (GEN-231):
+- Indalo YouGile MCP Cloud: https://github.com/indalo-tech/yougile-mcp-cloud
+- Copyright (c) Indalo, upstream license AGPL-3.0-only.
+- Pinned source commit: ea88a0d5c5c055262cba9cf9741fd51828481ba5 (2026-10-29).
+- Adapted files: src/yougile_mcp/cloud/pages.py and redirects.py.
+- Changes: module paths, source/attribution links; no UI redesign.
+- The OAuth, DB, sign-in and admin modules have NOT yet been copied.
