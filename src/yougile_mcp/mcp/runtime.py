@@ -37,7 +37,9 @@ def _visible(principal: InvocationPrincipal | None, descriptor: ToolDescriptor,
         return False
     if descriptor.resource_scope == "company":
         return principal.company_wide
-    return bool(principal.allowed_projects) and dispatcher.project_resolver is not None
+    return principal.company_wide or (
+        bool(principal.allowed_projects) and dispatcher.project_resolver is not None
+    )
 
 
 def make_mcp_server(
