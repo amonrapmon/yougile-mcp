@@ -107,6 +107,7 @@ class CloudOAuthProviderTests(unittest.IsolatedAsyncioTestCase):
         self.assertIsNotNone(await self.oauth.verify_token(later.access_token))
         await self.oauth.revoke_token(claims)
         self.assertIsNone(await self.oauth.verify_token(tokens.access_token))
+        self.assertIsNone(await self.oauth.load_refresh_token(self.client, later.refresh_token))
 
     async def test_bearer_dies_after_company_disable_and_tamper(self):
         code = await self._authorize()

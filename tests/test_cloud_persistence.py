@@ -77,6 +77,31 @@ class CloudPostgresTests(unittest.IsolatedAsyncioTestCase):
         await self.store.set_company_enabled("company-A", True)
         self.assertIsNotNone(await self.store.load(a.account_id))
 
+    async def test_disabled_account_and_company_cannot_rotate_credentials(self):
+        person = await self.store.save_account(
+            _person("company-A", "original-key"), company_name="Alpha"
+        )
+        await self.store.set_user_enabled(person.account_id, False)
+        with self.assertRaises(ValueError):
+            await self.store.save_account(
+                _person("company-A", "new-while-disabled"), company_name="Alpha",
+            )
+        await self.store.set_user_enabled(person.account_id, True)
+        self.assertEqual(
+            (await self.store.load(person.account_id)).api_key.reveal(),
+            "original-key",
+        )
+        await self.store.set_company_enabled("company-A", False)
+        with self.assertRaises(ValueError):
+            await self.store.save_account(
+                _person("company-A", "new-on-blocked-company"), company_name="Alpha",
+            )
+        await self.store.set_company_enabled("company-A", True)
+        self.assertEqual(
+            (await self.store.load(person.account_id)).api_key.reveal(),
+            "original-key",
+        )
+
     async def test_oauth_refresh_atomic_rotation_and_client_storage(self):
         person = await self.store.save_account(
             _person("company-A", "key-A"), company_name="Alpha"

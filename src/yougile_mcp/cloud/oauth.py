@@ -300,3 +300,8 @@ class CloudOAuthProvider:
                     self.public_url, jti,
                     ttl=max(1, int((token.expires_at or time.time()) - time.time())),
                 )
+            # Revoking a connection must also kill its long-lived refresh path.
+            # MVP revokes all refresh sessions of this user, deliberately
+            # preferring a conservative policy over orphaned tokens.
+            if token.subject and token.subject.isascii() and token.subject.isdecimal():
+                await self.store.revoke_user_refresh(int(token.subject))

@@ -106,12 +106,21 @@ class PostgresCloudStore:
                 "ON CONFLICT (id) DO UPDATE SET name=EXCLUDED.name, updated_at=now()",
                 (person.company_id, company_name),
             )
+            company_check = await conn.execute(
+                "SELECT enabled FROM cloud_companies WHERE id=%s FOR UPDATE",
+                (person.company_id,),
+            )
+            company_state = await company_check.fetchone()
+            if not company_state or not company_state["enabled"]:
+                raise ValueError("Cloud company disabled")
             old_cur = await conn.execute(
-                "SELECT api_key_enc FROM cloud_users "
+                "SELECT api_key_enc, enabled FROM cloud_users "
                 "WHERE company_id=%s AND yougile_user_id=%s FOR UPDATE",
                 (person.company_id, person.user_id),
             )
             old = await old_cur.fetchone()
+            if old is not None and not old["enabled"]:
+                raise ValueError("Cloud user disabled")
             # Decrypt before committing so a missing rotation key cannot
             # orphan the new stored vendor credential after a successful commit.
             previous = self._cipher.decrypt(old["api_key_enc"]) if old else None
