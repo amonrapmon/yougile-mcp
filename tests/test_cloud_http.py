@@ -194,6 +194,24 @@ class CloudHTTPTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(script.headers["x-content-type-options"], "nosniff")
         self.assertIn("navigator.clipboard.writeText", script.text)
 
+    async def test_oauth_login_renders_branded_form_without_changing_security(self):
+        signin_path = await self._start()
+        response = await self.http.get(signin_path)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('class="auth-flow"', response.text)
+        self.assertIn('class="auth-client-request"', response.text)
+        self.assertIn('ChatGPT', response.text)
+        self.assertIn('chatgpt.com', response.text)
+        self.assertIn('name="flow"', response.text)
+        self.assertIn('name="csrf"', response.text)
+        self.assertIn('autocomplete="current-password"', response.text)
+        self.assertNotIn('/assets/landing.js', response.text)
+        self.assertEqual(response.headers["x-frame-options"], "DENY")
+        self.assertIn("frame-ancestors 'none'", response.headers["content-security-policy"])
+        bad = await self.http.get("/signin?flow=invalid")
+        self.assertEqual(bad.status_code, 400)
+        self.assertIn('class="auth-message error" role="alert"', bad.text)
+
     async def test_no_anonymous_mcp_and_metadata(self):
         for path in ("/.well-known/oauth-authorization-server", "/.well-known/oauth-protected-resource/mcp"):
             result = await self.http.get(path)

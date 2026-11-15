@@ -139,6 +139,66 @@ main.landing .card{border-radius:19px}
 .landing-client{font-size:11px}
 }
 
+
+/* OAuth flow skin. Scoped so company-admin and host-admin layouts stay unchanged. */
+main.auth-flow{max-width:552px;margin:clamp(30px,7vh,76px) auto 30px;padding:0 18px}
+main.auth-flow .card{padding:clamp(25px,5vw,39px);border-radius:23px;overflow:hidden;
+background:radial-gradient(ellipse at 100% 0%,rgba(70,111,240,.12),transparent 48%),var(--card);
+box-shadow:0 20px 72px rgba(30,48,98,.085)}
+.auth-brand{display:flex;align-items:center;gap:12px;margin-bottom:35px}
+.auth-brand-avatar{display:block;width:46px;height:46px;flex:none;overflow:hidden;
+border:1px solid var(--line);border-radius:14px;background:var(--bg)}
+.auth-brand-avatar img{display:block;width:100%;height:100%;object-fit:cover}
+.auth-brand-name{font-size:15px;line-height:1.3;font-weight:760;letter-spacing:-.3px}
+.auth-brand-by{color:var(--muted);font-weight:500}
+.auth-brand-subtitle{font-size:12px;color:var(--muted);margin-top:3px}
+.auth-eyebrow{margin:0 0 9px;color:var(--accent);letter-spacing:.09em;text-transform:uppercase;
+font-size:11px;font-weight:750}
+.auth-flow h1{font-size:clamp(27px,5vw,33px);line-height:1.16;letter-spacing:-.9px;margin:0 0 10px}
+.auth-flow .auth-lead{color:var(--muted);font-size:15px;line-height:1.65;margin:0 0 24px}
+.auth-client-request{padding:16px 18px;margin:0 0 25px;border:1px solid rgba(75,115,206,.25);
+background:rgba(75,115,206,.065);border-radius:14px}
+.auth-client-label{margin:0 0 6px;font-size:12px;font-weight:650;color:var(--muted)}
+.auth-client-name{font-size:17px;line-height:1.35;font-weight:760;overflow-wrap:anywhere}
+.auth-client-return{font-size:13px;line-height:1.6;color:var(--muted);margin:9px 0 0;
+overflow-wrap:anywhere}
+.auth-client-return strong{color:var(--text);font-weight:650}
+.auth-safety{display:flex;align-items:flex-start;gap:10px;margin:0 0 25px;
+font-size:12px;line-height:1.55;color:var(--muted)}
+.auth-safety-icon{font-size:15px;line-height:1.2;flex:none;color:var(--accent)}
+.auth-flow form label{font-size:13px;font-weight:650;margin:17px 0 7px}
+.auth-flow input[type=email],.auth-flow input[type=password],.auth-flow input[type=text]{
+min-height:47px;padding:11px 14px;border-radius:12px;background:var(--card);
+border:1px solid var(--line);font-size:15px;transition:border-color .15s,box-shadow .15s}
+.auth-flow input[type=email]:focus,.auth-flow input[type=password]:focus,.auth-flow input[type=text]:focus{
+outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(47,111,237,.13)}
+.auth-flow button[type=submit]:not(.choice){display:block;width:100%;min-height:48px;
+margin-top:25px;border-radius:12px;font-weight:700}
+.auth-flow button[type=submit]:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.auth-flow .auth-note{padding-top:17px;border-top:1px solid var(--line);margin:25px 0 0;
+font-size:12px;line-height:1.7;color:var(--muted)}
+.auth-flow .error{margin:0 0 20px;border:1px solid rgba(164,38,44,.2);
+border-radius:12px;padding:12px 14px;font-size:13px;line-height:1.6}
+.auth-flow .auth-companies{display:grid;gap:10px}
+.auth-flow button.choice{width:100%;display:flex;align-items:center;justify-content:space-between;
+gap:12px;text-align:left;min-height:53px;padding:13px 15px;margin:0;border:1px solid var(--line);
+border-radius:12px;background:var(--card);color:var(--text);font-size:14px;font-weight:680;
+overflow-wrap:anywhere;cursor:pointer;transition:border-color .15s,background .15s}
+.auth-flow button.choice:hover,.auth-flow button.choice:focus-visible{
+background:var(--bg);border-color:var(--accent)}
+.auth-flow .auth-choice-chevron{color:var(--accent);flex:none;font-weight:800}
+.auth-flow .auth-message{padding:17px 18px;border-radius:13px;margin:18px 0 0;
+font-size:14px;line-height:1.65;overflow-wrap:anywhere}
+.auth-flow .auth-message.error{background:var(--error-bg);color:var(--error)}
+.auth-flow .auth-message.ok{background:var(--ok-bg);color:var(--ok)}
+.auth-flow .auth-message-link{margin:18px 0 0;font-size:13px}
+.auth-flow .auth-message-link a{font-weight:650;text-decoration:none}
+.auth-flow .auth-message-link a:hover{text-decoration:underline}
+@media (max-width:640px){main.auth-flow{padding:0 14px;margin-top:24px}
+main.auth-flow .card{border-radius:19px}
+.auth-brand{margin-bottom:29px}
+.auth-flow .auth-client-request{padding:14px}
+}
 """
 
 
@@ -194,8 +254,11 @@ def e(value: object) -> str:
     return escape("" if value is None else str(value), quote=True)
 
 
-def page(title: str, body: str, *, wide: bool = False, landing: bool = False) -> str:
-    main_class = "landing" if landing else "wide" if wide else ""
+def page(
+    title: str, body: str, *, wide: bool = False,
+    landing: bool = False, auth_flow: bool = False,
+) -> str:
+    main_class = "landing" if landing else "auth-flow" if auth_flow else "wide" if wide else ""
     return (
         '<!doctype html><html lang="ru"><head><meta charset="utf-8">'
         '<meta name="viewport" content="width=device-width,initial-scale=1">'
@@ -210,6 +273,21 @@ def page(title: str, body: str, *, wide: bool = False, landing: bool = False) ->
     )
 
 
+def auth_brand() -> str:
+    """Shared static identity for the OAuth screens, never an identity claim for the client."""
+    return (
+        '<header class="auth-brand">'
+        f'<a class="auth-brand-avatar" href="{SOURCE}" target="_blank" '
+        'rel="noopener noreferrer" aria-label="Исходный код YouGile MCP на GitHub">'
+        f'<img src="{AVATAR}" width="46" height="46" alt="Аватар Amonrapmon" '
+        'referrerpolicy="no-referrer"></a>'
+        '<div><div class="auth-brand-name">YouGile MCP '
+        '<span class="auth-brand-by">by Amonrapmon</span></div>'
+        '<div class="auth-brand-subtitle">Подключение AI-ассистента</div></div>'
+        '</header>'
+    )
+
+
 def login_page(
     *,
     action: str,
@@ -218,7 +296,7 @@ def login_page(
     lead: str,
     error: str | None = None,
     login: str = "",
-    client: tuple[str, str] | None = None,  # (the client's own name, where it sends you back)
+    client: tuple[str, str] | None = None,  # client-provided name and redirect destination
 ) -> str:
     fields = "".join(
         f'<input type="hidden" name="{e(k)}" value="{e(v)}">' for k, v in hidden.items()
@@ -227,27 +305,38 @@ def login_page(
     if client:
         name, back = client
         asking = (
-            '<div class="ok" role="note">Доступ к вашему YouGile запрашивает '
-            f"<b>{e(name or 'приложение без названия')}</b>. После входа вы вернётесь: "
-            f"<b>{e(back)}</b>.<br>Если вы сейчас сами не подключали ассистента — закройте "
-            "страницу и не вводите пароль.</div>"
+            '<section class="auth-client-request" role="note" '
+            'aria-label="Запрос доступа">'
+            '<div class="auth-client-label">Доступ к вашему YouGile запрашивает</div>'
+            f'<div class="auth-client-name">{e(name or "приложение без названия")}</div>'
+            '<p class="auth-client-return">После входа вы вернётесь: '
+            f'<strong>{e(back)}</strong></p></section>'
+            '<p class="auth-safety"><span class="auth-safety-icon" aria-hidden="true">◇</span>'
+            '<span>Название приложения задаётся самим подключаемым клиентом. '
+            'Если вы не начинали подключение, закройте страницу и не вводите пароль.'
+            '</span></p>'
         )
     return page(
         heading,
-        f"<h1>{e(heading)}</h1><p class=lead>{e(lead)}</p>"
+        auth_brand()
+        + '<p class="auth-eyebrow">Разрешение на подключение</p>'
+        + f'<h1>{e(heading)}</h1><p class="auth-lead">{e(lead)}</p>'
         + asking
         + (f'<div class="error" role="alert">{e(error)}</div>' if error else "")
         + f'<form method="post" action="{e(action)}">{fields}'
         '<label for="login">Логин YouGile (email)</label>'
-        '<input id="login" name="login" type="email" autocomplete="username" required '
+        '<input id="login" name="login" type="email" autocomplete="username" '
+        'inputmode="email" required '
         f'value="{e(login)}">'
         '<label for="password">Пароль YouGile</label>'
         '<input id="password" name="password" type="password" '
         'autocomplete="current-password" required>'
-        '<button type="submit">Войти</button></form>'
-        '<p class="note">Пароль используется только при подключении для выпуска персонального ключа, '
-        "и нигде не сохраняется. Ключ хранится в зашифрованном виде и действует с вашими "
-        "правами в YouGile.</p>",
+        '<button type="submit">Войти и продолжить</button></form>'
+        '<p class="auth-note">Пароль нужен только для первого подключения '
+        'и выпуска персонального ключа. При выборе компании данные могут '
+        'временно храниться в зашифрованном виде до пяти минут. '
+        'Дальше используется зашифрованный ключ с вашими правами в YouGile.</p>',
+        auth_flow=True,
     )
 
 
@@ -263,13 +352,22 @@ def company_page(
         f'<input type="hidden" name="{e(k)}" value="{e(v)}">' for k, v in hidden.items()
     )
     buttons = "".join(
-        f'<button class="choice" type="submit" name="company" value="{e(cid)}">{e(name)}</button>'
+        '<button class="choice" type="submit" name="company" '
+        f'value="{e(cid)}"><span>{e(name)}</span>'
+        '<span class="auth-choice-chevron" aria-hidden="true">↗</span></button>'
         for cid, name in companies
     )
     return page(
         "Выбор компании",
-        f"<h1>Выберите компанию</h1><p class=lead>{e(lead)}</p>"
-        f'<form method="post" action="{e(action)}">{fields}{buttons}</form>',
+        auth_brand()
+        + '<p class="auth-eyebrow">Почти готово</p>'
+        + '<h1>Выберите компанию</h1>'
+        + f'<p class="auth-lead">{e(lead)}</p>'
+        + f'<form class="auth-companies" method="post" action="{e(action)}">'
+        + fields + buttons + '</form>'
+        + '<p class="auth-note">Агент получит доступ только к компании, '
+        'которую вы выберете, и только с вашими правами в YouGile.</p>',
+        auth_flow=True,
     )
 
 
@@ -337,5 +435,17 @@ def message_page(
     title: str, text: str, *, error: bool = True, link: tuple[str, str] | None = None
 ) -> str:
     kind = "error" if error else "ok"
-    more = f'<p><a href="{e(link[0])}">{e(link[1])}</a></p>' if link else ""
-    return page(title, f'<h1>{e(title)}</h1><div class="{kind}">{e(text)}</div>{more}')
+    role = "alert" if error else "status"
+    more = (
+        f'<p class="auth-message-link"><a href="{e(link[0])}">{e(link[1])} ↗</a></p>'
+        if link else ""
+    )
+    return page(
+        title,
+        auth_brand()
+        + '<p class="auth-eyebrow">Подключение YouGile MCP</p>'
+        + f'<h1>{e(title)}</h1>'
+        + f'<div class="auth-message {kind}" role="{role}">{e(text)}</div>'
+        + more,
+        auth_flow=True,
+    )
