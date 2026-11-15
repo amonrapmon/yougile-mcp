@@ -7,6 +7,7 @@ import hashlib
 import os
 import re
 import unittest
+from unittest.mock import AsyncMock
 from urllib.parse import parse_qs, urlparse
 
 import httpx
@@ -71,7 +72,7 @@ class CloudHTTPTests(unittest.IsolatedAsyncioTestCase):
         await self.store.migrate()
         async with self.store.pool.connection() as conn:
             await conn.execute(
-                "TRUNCATE cloud_refresh_tokens,cloud_oauth_clients,cloud_users,"
+                "TRUNCATE cloud_vendor_key_revocations, cloud_refresh_tokens,cloud_oauth_clients,cloud_users,"
                 "cloud_companies,cloud_audit_log RESTART IDENTITY CASCADE"
             )
         self.state = await ValkeyCloudState.connect(
@@ -280,6 +281,53 @@ class CloudHTTPTests(unittest.IsolatedAsyncioTestCase):
         self.assertNotIn("private-test-password", logged)
         self.assertNotIn("diagnostic@example.test", logged)
         self.assertNotIn(flow, logged)
+
+    async def test_reconnect_returns_redirect_without_waiting_for_old_key_delete(self):
+        # A real reconnect creates a fresh vendor key for an existing account.
+        # The old synchronous path could wait on the vendor delete before 302.
+        await self.store.save_account(ProvisionedYouGileAccount(
+            company_id="company-A", user_id="user-diagnostic@example.test",
+            name="Diagnostic", email="diagnostic@example.test",
+            is_admin=False, api_key=Secret("private-previous-vendor-key"),
+        ), company_name="Alpha")
+        self.signin.revoke_key = AsyncMock(
+            side_effect=AssertionError("Vendor key delete must not block OAuth")
+        )
+        path = await self._start()
+        page = await self.http.get(path)
+        flow = parse_qs(urlparse(path).query)["flow"][0]
+        csrf = re.search(r'name="csrf" value="([0-9a-f]+)"', page.text).group(1)
+        signin = await self.http.post("/signin", data={
+            "csrf": csrf, "flow": flow,
+            "login": "diagnostic@example.test", "password": "private-test-password",
+        }, headers={"Origin": ORIGIN})
+        self.assertEqual(signin.status_code, 200)
+        choice_csrf = re.search(
+            r'name="csrf" value="([0-9a-f]+)"', signin.text,
+        ).group(1)
+        with self.assertLogs("uvicorn.error", level="INFO") as captured:
+            response = await self.http.post("/signin/company", data={
+                "csrf": choice_csrf, "flow": flow, "company": "company-A",
+            }, headers={"Origin": ORIGIN})
+        self.assertEqual(response.status_code, 302, response.text)
+        self.signin.revoke_key.assert_not_awaited()
+        self.assertIn("stage=old_key_revoke_enqueued", "\n".join(captured.output))
+        self.assertIn("stage=redirect_response_ready", "\n".join(captured.output))
+        self.assertNotIn("private-previous-vendor-key", "\n".join(captured.output))
+        redirect = urlparse(response.headers["location"])
+        self.assertEqual(redirect.hostname, "chatgpt.com")
+        auth_code = parse_qs(redirect.query)["code"][0]
+        token = await self.http.post("/token", data={
+            "grant_type": "authorization_code", "client_id": self.client_id,
+            "code": auth_code, "code_verifier": VERIFIER,
+            "redirect_uri": "https://chatgpt.com/oauth/callback",
+            "resource": RESOURCE,
+        })
+        self.assertEqual(token.status_code, 200, token.text)
+        self.assertIn("refresh_token", token.json())
+        job = await self.store.claim_key_revocation()
+        self.assertEqual(job.api_key.reveal(), "private-previous-vendor-key")
+        self.assertTrue(await self.store.complete_key_revocation(job))
 
     async def test_complete_oauth_login_refresh_and_mcp_tool_listing(self):
         token, code = await self._access()

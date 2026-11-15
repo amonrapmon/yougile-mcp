@@ -65,7 +65,7 @@ class AdminHTTPTests(unittest.IsolatedAsyncioTestCase):
         await self.store.migrate()
         async with self.store.pool.connection() as conn:
             await conn.execute(
-                "TRUNCATE cloud_member_blocks, cloud_refresh_tokens,cloud_oauth_clients,"
+                "TRUNCATE cloud_vendor_key_revocations, cloud_member_blocks, cloud_refresh_tokens,cloud_oauth_clients,"
                 "cloud_users,cloud_companies,cloud_audit_log RESTART IDENTITY CASCADE"
             )
         self.state = await ValkeyCloudState.connect(

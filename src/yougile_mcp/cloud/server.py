@@ -7,7 +7,9 @@ SPDX-License-Identifier: AGPL-3.0-only
 """
 from __future__ import annotations
 
+import asyncio
 import os
+from contextlib import suppress
 from pathlib import Path
 from typing import Mapping
 
@@ -16,6 +18,7 @@ from . import redirects
 from .crypto import CloudCipher
 from .oauth import CloudOAuthProvider
 from .persistence import PostgresCloudStore
+from .revocations import run_key_revocation_worker
 from .valkey import ValkeyCloudState
 from .web import make_cloud_http_app
 from .yougile_signin import CloudYouGileSignIn
@@ -89,11 +92,11 @@ async def cloud_serve(
                             "CLOUD_HOST_ADMIN_SUBJECTS must contain exact "
                             "companyId:yougileUserId pairs"
                         )
+                signin = CloudYouGileSignIn(settings)
                 app = make_cloud_http_app(
                     settings=settings, provider=oauth, store=store,
                     state=state, cipher=cipher, csrf_secret=jwt_secret,
-                    signin=CloudYouGileSignIn(settings),
-                    host_admin_subjects=host_subjects,
+                    signin=signin, host_admin_subjects=host_subjects,
                 )
                 import uvicorn
 
@@ -104,7 +107,14 @@ async def cloud_serve(
                         log_level="info",
                     )
                 )
-                await server.serve()
+                # Durable SQL outbox: worker is independent of HTTP responses.
+                worker = asyncio.create_task(run_key_revocation_worker(store, signin))
+                try:
+                    await server.serve()
+                finally:
+                    worker.cancel()
+                    with suppress(asyncio.CancelledError):
+                        await worker
             finally:
                 await state.close()
         finally:

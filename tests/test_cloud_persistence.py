@@ -48,7 +48,7 @@ class CloudPostgresTests(unittest.IsolatedAsyncioTestCase):
         await self.store.migrate()
         async with self.store.pool.connection() as conn:
             await conn.execute(
-                "TRUNCATE cloud_refresh_tokens,cloud_oauth_clients,cloud_users,"
+                "TRUNCATE cloud_vendor_key_revocations, cloud_refresh_tokens,cloud_oauth_clients,cloud_users,"
                 "cloud_companies,cloud_audit_log RESTART IDENTITY CASCADE"
             )
 
@@ -68,7 +68,28 @@ class CloudPostgresTests(unittest.IsolatedAsyncioTestCase):
         )
         self.assertEqual(rotated.account_id, a.account_id)
         self.assertEqual(rotated.previous_api_key.reveal(), "key-A")
+        self.assertTrue(rotated.revoke_queued)
         self.assertEqual((await self.store.load(a.account_id)).api_key.reveal(), "key-A-new")
+        # Retired keys are encrypted in the durable outbox and never equal
+        # the current credential. A crash before processing cannot lose them.
+        async with self.store.pool.connection() as conn:
+            row = await (await conn.execute(
+                "SELECT api_key_enc, attempts FROM cloud_vendor_key_revocations"
+            )).fetchone()
+        self.assertNotIn(b"key-A", row["api_key_enc"])
+        self.assertEqual(row["attempts"], 0)
+        job = await self.store.claim_key_revocation()
+        self.assertEqual(job.api_key.reveal(), "key-A")
+        self.assertEqual(job.attempts, 1)
+        self.assertEqual(job.company_id, "company-A")
+        self.assertIsNone(await self.store.claim_key_revocation())
+        self.assertTrue(await self.store.retry_key_revocation(job, 0))
+        retried = await self.store.claim_key_revocation()
+        self.assertEqual(retried.attempts, 2)
+        self.assertNotEqual(retried.lease_token, job.lease_token)
+        self.assertFalse(await self.store.complete_key_revocation(job))
+        self.assertTrue(await self.store.complete_key_revocation(retried))
+        self.assertIsNone(await self.store.claim_key_revocation())
         await self.store.set_company_enabled("company-A", False)
         self.assertIsNone(await self.store.load(a.account_id))
         self.assertIsNotNone(await self.store.load(b.account_id))
@@ -76,6 +97,35 @@ class CloudPostgresTests(unittest.IsolatedAsyncioTestCase):
         self.assertIsNone(await self.store.load(b.account_id))
         await self.store.set_company_enabled("company-A", True)
         self.assertIsNotNone(await self.store.load(a.account_id))
+
+    async def test_unchanged_vendor_key_does_not_enqueue_its_own_revocation(self):
+        person = await self.store.save_account(
+            _person("company-A", "unchanged-key"), company_name="Alpha",
+        )
+        repeated = await self.store.save_account(
+            _person("company-A", "unchanged-key"), company_name="Alpha",
+        )
+        self.assertEqual(repeated.account_id, person.account_id)
+        self.assertFalse(repeated.revoke_queued)
+        self.assertIsNone(await self.store.claim_key_revocation())
+
+    async def test_outbox_survives_store_reopening(self):
+        from yougile_mcp.cloud.persistence import PostgresCloudStore
+        first = await self.store.save_account(
+            _person("company-A", "old-credential"), company_name="Alpha",
+        )
+        await self.store.save_account(
+            _person("company-A", "new-credential"), company_name="Alpha",
+        )
+        another_store = PostgresCloudStore(DATABASE, self.store._cipher)
+        await another_store.open()
+        try:
+            job = await another_store.claim_key_revocation()
+            self.assertEqual(job.user_id, int(first.account_id))
+            self.assertEqual(job.api_key.reveal(), "old-credential")
+            self.assertTrue(await another_store.complete_key_revocation(job))
+        finally:
+            await another_store.close()
 
     async def test_disabled_account_and_company_cannot_rotate_credentials(self):
         person = await self.store.save_account(

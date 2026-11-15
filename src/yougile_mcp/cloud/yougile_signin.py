@@ -121,7 +121,11 @@ class CloudYouGileSignIn:
                 self._settings_for(), transport=self.transport,
             ) as client:
                 await client.request("AuthKeyController_delete", path={"key": key})
-        except ApiError:
+        except ApiError as exc:
+            # A prior worker can succeed and crash before acknowledging the
+            # outbox row. Already-absent keys are therefore successful retries.
+            if exc.status_code == 404:
+                return
             raise CloudSignInError("Unable to revoke YouGile key") from None
 
     async def provision(

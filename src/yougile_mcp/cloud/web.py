@@ -294,22 +294,16 @@ class CloudLoginPages:
             return _html(pages.message_page(
                 "Ошибка OAuth", "Начните подключение заново."
             ), 503)
-        self._trace("oauth_redirect_issued", flow)
-        # Old vendor key has been replaced in the DB transaction, and is no
-        # longer needed. Failed vendor revoke must be audited for remediation.
-        if saved.previous_api_key is not None:
-            try:
-                await self.signin.revoke_key(saved.previous_api_key.reveal())
-            except CloudSignInError:
-                with suppress(Exception):
-                    await self.store.audit(
-                        "old_vendor_key_revocation_failed",
-                        company_id=account.company_id,
-                        user_id=int(saved.account_id),
-                    )
-        return RedirectResponse(
+        # Retired vendor keys are already queued atomically with save_account.
+        # No network calls to YouGile may delay the OAuth callback response.
+        if saved.revoke_queued:
+            self._trace("old_key_revoke_enqueued", flow)
+        response = RedirectResponse(
             destination, status_code=302, headers={"Cache-Control": "no-store"},
         )
+        self._trace("oauth_redirect_issued", flow)
+        self._trace("redirect_response_ready", flow)
+        return response
 
 
 def make_cloud_http_app(
