@@ -23,6 +23,7 @@ class CloudSignInTests(unittest.IsolatedAsyncioTestCase):
         self.company_returned = "company-A"
         self.fail_login = False
         self.fail_profile = False
+        self.revoke_missing = False
 
         def handler(req):
             self.sent.append(req)
@@ -56,7 +57,7 @@ class CloudSignInTests(unittest.IsolatedAsyncioTestCase):
                     "realName": "Test User", "isAdmin": True,
                 })
             if req.method == "DELETE" and path.startswith("/api-v2/auth/keys/"):
-                return httpx.Response(200)
+                return httpx.Response(404 if self.revoke_missing else 200)
             raise AssertionError("Unrecognized mock request: " + str(req.url))
 
         self.signin = CloudYouGileSignIn(
@@ -117,6 +118,12 @@ class CloudSignInTests(unittest.IsolatedAsyncioTestCase):
                 "person@example.test", "secret-password",
                 selected_company_id="company-A",
             )
+        self.assertTrue(any(req.method == "DELETE" for req in self.sent))
+
+    async def test_revoke_missing_key_is_idempotent_for_timeout_replay(self):
+        # A previous delete can succeed before the worker ack is persisted.
+        self.revoke_missing = True
+        await self.signin.revoke_key("already-revoked-key")
         self.assertTrue(any(req.method == "DELETE" for req in self.sent))
 
     def test_global_api_key_rejected_for_signin(self):
