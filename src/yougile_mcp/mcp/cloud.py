@@ -17,7 +17,6 @@ from contextlib import asynccontextmanager
 from dataclasses import dataclass, replace
 from typing import Any, Protocol
 
-import httpx
 from mcp.server import Server, ServerRequestContext
 from mcp.types import (
     CallToolRequestParams,
@@ -87,7 +86,7 @@ class CloudTenantSessions:
         resolve_actor: CloudActorResolver,
         accounts: CloudAccountRepository,
         registry: ToolRegistry | None = None,
-        transport: httpx.AsyncBaseTransport | None = None,
+        transport: Any = None,
     ):
         if settings.company_id is not None or settings.has_api_key:
             raise ValueError("Hosted bridge cannot use the process-wide YouGile key")

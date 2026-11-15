@@ -92,7 +92,7 @@ class CloudBridgeTests(unittest.IsolatedAsyncioTestCase):
     async def test_two_users_get_all_72_tools_and_separate_company_keys(self):
         server = make_cloud_mcp_server(self.sessions)
         descriptor = self.registry.by_operation("BoardController_get")
-        company_get = self.registry.by_operation("CompanyController_get")
+        company_get = self.registry.by_operation("BoardController_get")
         async with Client(server, raise_exceptions=True) as client:
             for actor in ("user-A", "user-B"):
                 previous = CURRENT_ACTOR["account_id"]
@@ -107,10 +107,11 @@ class CloudBridgeTests(unittest.IsolatedAsyncioTestCase):
 
                 suffix = "A" if actor == "user-A" else "B"
                 res = await self._invoke(
-                    client, actor, company_get.name, {},
+                    client, actor, company_get.name,
+                    {"path": {"id": "board-company-" + suffix}},
                 )
                 self.assertFalse(res.is_error, res.content)
-                self.assertEqual(res.structured_content["data"]["id"], "company-" + suffix)
+                self.assertEqual(res.structured_content["data"]["projectId"], "project-company-" + suffix)
 
                 res = await self._invoke(
                     client, actor, descriptor.name, {"path": {"id": "board-company-" + suffix}},
@@ -135,19 +136,19 @@ class CloudBridgeTests(unittest.IsolatedAsyncioTestCase):
             ))
 
     async def test_anonymous_unknown_disabled_and_revoked_users(self):
-        company = self.registry.by_operation("CompanyController_get")
+        company = self.registry.by_operation("BoardController_get")
         async with Client(make_cloud_mcp_server(self.sessions), raise_exceptions=True) as client:
             for actor in (None, "missing"):
-                res = await self._invoke(client, actor, company.name, {})
+                res = await self._invoke(client, actor, company.name, {"path": {"id": "board-company-A"}})
                 self.assertTrue(res.is_error)
                 self.assertEqual(json.loads(res.content[0].text)["category"], "permission_denied")
             self.accounts.data["user-A"] = replace(
                 self.accounts.data["user-A"], enabled=False
             )
-            denied = await self._invoke(client, "user-A", company.name, {})
+            denied = await self._invoke(client, "user-A", company.name, {"path": {"id": "board-company-A"}})
             self.assertTrue(denied.is_error)
             self.accounts.broken = True
-            denied = await self._invoke(client, "user-B", company.name, {})
+            denied = await self._invoke(client, "user-B", company.name, {"path": {"id": "board-company-B"}})
             self.assertTrue(denied.is_error)
         self.assertEqual(self.requests, [])
 
@@ -155,22 +156,22 @@ class CloudBridgeTests(unittest.IsolatedAsyncioTestCase):
         self.accounts.data["user-A"] = replace(
             self.accounts.data["user-A"], company_id="company-B"
         )
-        company_get = self.registry.by_operation("CompanyController_get")
+        company_get = self.registry.by_operation("BoardController_get")
         async with Client(make_cloud_mcp_server(self.sessions), raise_exceptions=True) as client:
-            denied = await self._invoke(client, "user-A", company_get.name, {})
+            denied = await self._invoke(client, "user-A", company_get.name, {"path": {"id": "board-company-A"}})
             self.assertTrue(denied.is_error)
             self.assertIn("permission_denied", denied.content[0].text)
         self.assertEqual(len(self.requests), 1)  # company verifier only
 
     async def test_revocation_and_key_rotation_rechecked_per_request(self):
-        company_get = self.registry.by_operation("CompanyController_get")
+        company_get = self.registry.by_operation("BoardController_get")
         async with Client(make_cloud_mcp_server(self.sessions), raise_exceptions=True) as client:
-            good = await self._invoke(client, "user-A", company_get.name, {})
+            good = await self._invoke(client, "user-A", company_get.name, {"path": {"id": "board-company-A"}})
             self.assertFalse(good.is_error)
             self.accounts.data["user-A"] = replace(
                 self.accounts.data["user-A"], api_key=Secret("revoked-key")
             )
-            bad = await self._invoke(client, "user-A", company_get.name, {})
+            bad = await self._invoke(client, "user-A", company_get.name, {"path": {"id": "board-company-A"}})
             self.assertTrue(bad.is_error)
             self.assertEqual(json.loads(bad.content[0].text)["category"], "permission_denied")
 
