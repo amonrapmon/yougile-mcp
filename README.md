@@ -1,18 +1,22 @@
 # YouGile MCP
 
-**Open-source · AGPL-3.0-only · self-hosted (in development)**
+**Open-source · AGPL-3.0-only · self-hosted (pre-release)**
 
-A planned remote MCP server for YouGile with complete API coverage,
-agent-friendly tools, per-agent permissions, and Docker/Traefik deployment.
+A YouGile MCP server exposing all 72 official REST v2 operations as
+agent-friendly direct tools. Local authenticated stdio and a private
+OAuth-protected Streamable HTTP server are implemented. The hosted shell
+reuses Indalo's YouGile login, company selection and administration UI.
 
 Project: https://linear.app/amonrapmon/project/yougile-mcp-2e18d5b92b45
 
-> Status: **foundation only**. There are no working YouGile API tools or
-> MCP network transport yet. Do not deploy as a public server.
+> **Not yet a public release.** The cloud server binds to a loopback
+> address. Real ChatGPT/Codex interoperability, HTTPS/Traefik deployment,
+> rate-limit hardening and vendor live checks are release gates. Do not
+> publish its port directly to the internet.
 
 ## Functional baseline
 
-The intended surface is the 75 tool names registered by
+The historical inspiration was the 75 tool names registered by
 https://github.com/justrussian/yougile-mcp/pull/5 (commit
 6a1c79c3917320a23654681333741d0580c29ba1). No implementation code from
 that unlicensed PR has been imported. The pinned official OpenAPI 3.0.0
@@ -132,8 +136,45 @@ Docker:
 - docker run --rm yougile-mcp:foundation
 - docker compose --profile verify run --rm config-check
 
-No ports are exposed. The "serve" command deliberately refuses startup until
-authenticated transport is implemented.
+No Docker ports are exposed. The `serve` command runs authenticated local
+stdio with an explicit private identity file; `cloud-serve` runs the OAuth
+HTTP shell only on a private loopback address. Neither command
+constitutes approval for public exposure.
+
+## Hosted cloud and Indalo admin (pre-release)
+
+Use the optional cloud dependencies (`uv sync --locked --extra cloud`) and
+configure real PostgreSQL and Valkey services on private interfaces.
+The `cloud-serve` command requires `MCP_TRANSPORT=http`,
+`MCP_AUTH_MODE=required`, `MCP_HOST=127.0.0.1`, an HTTPS
+`MCP_PUBLIC_URL`, `CLOUD_DATABASE_URL`, `CLOUD_VALKEY_URL`,
+`CLOUD_JWT_SECRET` and `CLOUD_ENCRYPTION_KEYS` (Fernet).
+Never commit any of those secrets.
+
+Indalo-derived pages are mounted inside the OAuth shell:
+
+- `/admin/login`: a YouGile company administrator signs in, chooses
+  a company if necessary, and opens `/admin`.
+- `/admin` and `/admin/users/{id}`: actual connected staff list,
+  vendor-role-verified actions to disconnect, ban or unban. Staff not
+  previously connected can be preemptively blocked.
+- `/admin/settings`: true company state and Full Access explanation.
+  Upstream role/project/workflow forms are intentionally **not** displayed
+  without their original policy engine; do not assume they work.
+- `/host`: a separate multi-company operator console, enabled **only**
+  with an explicit `CLOUD_HOST_ADMIN_SUBJECTS` allowlist of exact
+  `companyId:yougileUserId` values. Host access is not inherited from
+  being an administrator of a YouGile company.
+- `/mcp`: authenticated Streamable HTTP with all 72 direct tool descriptors.
+
+Company blocks and sessions are stored in PostgreSQL and Valkey. Revoking
+access removes refresh tokens and prevents further per-company MCP calls.
+After disabling and re-enabling a company, pre-existing access tokens and
+admin sessions remain invalid.
+
+See `docs/verification/gen-231-indalo-company-admin.md` and
+`docs/verification/gen-231-indalo-host-control.md`. Public HTTPS/Traefik
+deployment and genuine vendor/client E2E have **not** yet been completed.
 
 ## Environment
 

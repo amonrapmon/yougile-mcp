@@ -163,3 +163,19 @@ paid access and tickets bot are not ported to the Full Access MVP. Those
 controls cannot truthfully be displayed until the matching enforcement
 logic is implemented. A separate host-operator control plane is required
 for cross-company hosting and must not reuse company-admin authority.
+
+## Multi-company host operator controls (GEN-231, stacked PR #27)
+
+Reuses the table/cards/navigation visual patterns of Indalo's
+`admin_pages.py` (source and copyright in the section above). Our
+`cloud/host_admin.py` is a separate operator control plane. Rights
+require an exact verified `companyId:yougileUserId` pair explicitly
+configured via `CLOUD_HOST_ADMIN_SUBJECTS`. Being an administrator in
+some YouGile company **does not** provide host-operator rights.
+
+With a valid operator session the existing Indalo layout displays
+all hosted companies, connected users, block entries and actual
+enable/disable/block/unblock/disconnect actions. We do not copy
+Indalo's subscription/billing, Keycloak, or tenancy role settings.
+A database access epoch prevents previously minted access JWTs and
+admin sessions from becoming valid again after company re-enable.

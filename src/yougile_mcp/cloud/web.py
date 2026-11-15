@@ -34,6 +34,7 @@ from ..config import Secret, Settings
 from ..mcp.cloud import CloudTenantSessions, VerifiedCloudActor, make_cloud_mcp_server
 from . import pages, redirects
 from .admin import CloudCompanyAdmin
+from .host_admin import CloudHostAdmin
 from .crypto import CloudCipher, hash_token
 from .oauth import CloudOAuthProvider
 from .persistence import PostgresCloudStore
@@ -295,6 +296,7 @@ def make_cloud_http_app(
     signin: CloudYouGileSignIn, store: PostgresCloudStore,
     state: ValkeyCloudState, cipher: CloudCipher, csrf_secret: str,
     yougile_transport: Any = None,
+    host_admin_subjects: tuple[str, ...] = (),
 ):
     """Mount OAuth, safe forms and auth-required /mcp in a single SDK ASGI app.
 
@@ -313,6 +315,7 @@ def make_cloud_http_app(
     company_admin = CloudCompanyAdmin(
         settings=settings, signin=signin, store=store, state=state,
         cipher=cipher, csrf_secret=csrf_secret, transport=yougile_transport,
+        host_admin_subjects=host_admin_subjects,
     )
 
     async def actor(_context):
@@ -356,6 +359,7 @@ def make_cloud_http_app(
             Route("/signin", pages_handler.submit, methods=["POST"]),
             Route("/signin/company", pages_handler.choose_company, methods=["POST"]),
             *company_admin.routes(),
+            *(CloudHostAdmin(company_admin).routes() if host_admin_subjects else []),
         ],
     )
     app.add_middleware(RequestBodyLimitMiddleware, max_body_size=4 * 1024 * 1024)

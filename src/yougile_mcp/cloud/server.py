@@ -61,10 +61,25 @@ async def cloud_serve(
                         values.get("CLOUD_OAUTH_REDIRECT_ORIGINS", ""),
                     ),
                 )
+                raw_host = values.get("CLOUD_HOST_ADMIN_SUBJECTS", "")
+                host_subjects = tuple(
+                    s.strip() for s in raw_host.split(",") if s.strip()
+                )
+                for subject in host_subjects:
+                    company, delimiter, vendor_user = subject.partition(":")
+                    if (
+                        not delimiter or not company or not vendor_user
+                        or ":" in vendor_user or any(c.isspace() for c in subject)
+                    ):
+                        raise ConfigError(
+                            "CLOUD_HOST_ADMIN_SUBJECTS must contain exact "
+                            "companyId:yougileUserId pairs"
+                        )
                 app = make_cloud_http_app(
                     settings=settings, provider=oauth, store=store,
                     state=state, cipher=cipher, csrf_secret=jwt_secret,
                     signin=CloudYouGileSignIn(settings),
+                    host_admin_subjects=host_subjects,
                 )
                 import uvicorn
 

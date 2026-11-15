@@ -70,6 +70,7 @@ class CloudCompanyAdmin:
         self, *, settings: Settings, signin: CloudYouGileSignIn,
         store: PostgresCloudStore, state: ValkeyCloudState,
         cipher: CloudCipher, csrf_secret: str, transport: Any = None,
+        host_admin_subjects: tuple[str, ...] = (),
     ):
         if not csrf_secret or len(csrf_secret) < 32 or not settings.public_url:
             raise ValueError("Secure company administration requires HTTPS and CSRF secret")
@@ -80,6 +81,7 @@ class CloudCompanyAdmin:
         self.cipher = cipher
         self.transport = transport
         self.origin = settings.public_url.rstrip("/")
+        self.host_admin_subjects = frozenset(host_admin_subjects)
         self._csrf_key = hmac.new(
             csrf_secret.encode("utf-8"), b"yougile-cloud/admin-csrf-v1", hashlib.sha256
         ).digest()
@@ -167,8 +169,10 @@ class CloudCompanyAdmin:
             return None
         user = await self.store.get_user(account_id)
         account = await self.store.load(account_id)
+        epoch = await self.store.active_account_epoch(account_id)
         if (
             not user or not account or not user["enabled"]
+            or epoch is None or data.get("company_epoch") != epoch
             or not user["is_admin"] or account.company_id != company_id
             or user["company_id"] != company_id
         ):
@@ -177,6 +181,13 @@ class CloudCompanyAdmin:
             session_token=token, company_id=company_id, account_id=account_id,
             vendor_user_id=user["yougile_user_id"],
             name=user["name"] or user["email"] or user["yougile_user_id"],
+        )
+
+    def is_host(self, session: AdminSession) -> bool:
+        """Host rights require an explicit exact, vendor-verified identity."""
+        return (
+            f"{session.company_id}:{session.vendor_user_id}"
+            in self.host_admin_subjects
         )
 
     async def _invalidate(self, session: AdminSession) -> None:
@@ -276,6 +287,7 @@ class CloudCompanyAdmin:
             company_id=session.company_id, company_name=company["name"],
             enabled=company["enabled"], admin_name=session.name,
             csrf=self._csrf("session", session.session_token),
+            host_operator=self.is_host(session),
             member_count=len(people),
             connected_count=sum(p.connected for p in people),
             blocked_count=sum(p.blocked for p in people),
@@ -402,11 +414,17 @@ class CloudCompanyAdmin:
                 "Подключение отклонено",
                 "Компания или пользователь недоступны, либо хранилище не отвечает.", 403,
             )
+        epoch = await self.store.active_account_epoch(saved.account_id)
+        if epoch is None:
+            return self._message("Доступ закрыт", "Компания недоступна.", 403)
         session_token = secrets.token_urlsafe(48)
         try:
             await self.state.put_json(
                 self.state.key("admin-session", hash_token(session_token)),
-                {"account_id": saved.account_id, "company_id": company.id},
+                {
+                    "account_id": saved.account_id, "company_id": company.id,
+                    "company_epoch": epoch,
+                },
                 ttl=_SESSION_TTL, once=True,
             )
         except Exception:
