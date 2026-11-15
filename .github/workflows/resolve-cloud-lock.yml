@@ -9,7 +9,6 @@ permissions:
 
 jobs:
   resolve:
-    if: startsWith(github.event.head_commit.message, 'feat(gen-231): add cloud persistence')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
