@@ -1,93 +1,108 @@
+**Русский** | [English](README.en.md)
+
 # YouGile MCP
 
-**An open-source Model Context Protocol server for YouGile.**
+**MCP-сервер с открытым исходным кодом для подключения AI-агентов к YouGile.**
 
-Connect MCP-compatible AI clients to your YouGile workspace with direct access to the official REST API v2 through authenticated local or remote transports.
+Предоставляет AI-клиентам доступ к возможностям YouGile REST API v2 через единый набор MCP-инструментов. Поддерживает локальное подключение по `stdio` и серверное подключение по `Streamable HTTP` с авторизацией OAuth.
 
-**Status:** pre-release · **License:** [AGPL-3.0-only](LICENSE) · **Runtime:** Python 3.11+ · **API catalog:** 72 official REST v2 operations
+[Возможности](#возможности) · [Подключение](#подключение-ai-клиентов) · [Быстрый старт](#быстрый-старт-для-разработчиков) · [Архитектура](#архитектура-и-безопасность) · [Документация](#документация)
 
-> **Not yet a public hosted service.** Local authenticated stdio and the private OAuth-backed Streamable HTTP shell are implemented. Public HTTPS deployment, actual AI-client interoperability and selected live/vendor checks are still release gates. There is no published production endpoint to paste into an AI client.
+**Статус:** подготовка к публичному выпуску, проверки продолжаются  
+**Лицензия:** [AGPL-3.0-only](LICENSE) · **Python:** 3.11+ · **API:** 72 операции YouGile REST v2
 
-## Overview
+> **О готовности:** зарегистрированы 72 прямых MCP-инструмента и реализованы оба транспорта, однако не все операции доступны при текущих политиках безопасности. Развёртывание публичного HTTPS-сервера и проверки совместимости с конкретными AI-клиентами ещё не завершены. Готового публичного адреса подключения пока нет.
 
-YouGile MCP exposes API-backed tools for reading and changing YouGile data within a selected company. Both transports share the same OpenAPI-driven tool registry, validated API client, authorization checks and structured errors. Client configurations are provided for popular AI agents, but live interoperability is not yet certified.
+## Возможности
 
-## Functionality
+YouGile MCP использует официальный контракт REST API v2. Все обращения проходят через общий API-клиент с проверкой входных и выходных данных, ограничением запросов и централизованной обработкой ошибок.
 
-| Area | Direct REST v2 coverage |
+| Раздел | Что доступно через прямые API-инструменты |
 | --- | --- |
-| **Projects and workspace** | Projects, boards, columns, organizational structure |
-| **Tasks** | Task search, reading and mutations, task-related metadata |
-| **Users and access** | Users, roles, departments, account and company operations |
-| **Communication** | Group chats and messages |
-| **Files** | Multipart upload through the API client, with additional MCP input limits |
-| **CRM** | Contact and other available CRM endpoints |
-| **Integrations** | Webhook management and supported API operations |
-| **Administration** | Company user sessions, disconnect/block controls and a separate host operator panel |
+| **Проекты и доски** | Получение и изменение проектов, досок, колонок и структуры рабочего пространства |
+| **Задачи** | Поиск, просмотр, создание и изменение задач, работа со связанными данными |
+| **Пользователи и команды** | Пользователи, роли, отделы, данные о компании |
+| **Общение** | Групповые чаты и сообщения |
+| **Файлы** | Загрузка файлов с валидацией типа и размера |
+| **CRM** | Поддерживаемые API-операции для работы с CRM-данными |
+| **Интеграции** | Вебхуки и связанные операции |
+| **Администрирование MCP** | Подключения сотрудников, отзыв доступа, блокировки и отдельная панель администратора хостинга |
 
-The server registers **72 direct tool descriptors** from the official OpenAPI catalog; this is API parity, **not** 72 high-level AI workflows. Access depends on the authenticated YouGile account and server policy. Approval-gated/destructive or credential-dependent operations may reject calls when the required server-side provider is not present. The direct tool layer currently should not be described as a completed smart task/bulk-operation framework.
+**72 операции API ≠ 72 готовых высокоуровневых сценария.** Сейчас сервер предоставляет прямые инструменты, соответствующие операциям REST API v2. Отдельные составные инструменты для агентов, автоматические рабочие сценарии и сложные массовые действия относятся к следующему этапу разработки.
 
-For implementation details, see [Architecture](docs/ARCHITECTURE.md), [API provenance](docs/PROVENANCE.md) and [live verification](docs/verification/gen-229-live-e2e.md).
+Доступность конкретной операции зависит от полномочий пользователя, настроек сервера и механизмов подтверждения. Действия, для которых требуется неподключённый серверный обработчик подтверждений или секретов, блокируются.
 
-## Connection options
+Подробности: [архитектура](docs/ARCHITECTURE.md), [происхождение API-контракта](docs/PROVENANCE.md), [результаты live-проверок](docs/verification/gen-229-live-e2e.md).
 
-| Mode | Typical client | Authentication | Status |
-| --- | --- | --- | --- |
-| **Remote MCP** | ChatGPT, Codex, Claude, Cursor, VS Code | OAuth sign-in, personal YouGile account | Private-loopback implementation; public deployment / client E2E pending |
-| **Local MCP** | Locally running coding agents | Per-agent identity file plus company-scoped API key | Implemented, requires trusted manual provisioning |
+## Подключение AI-клиентов
 
-**Installation and setup guides:**
+Сервер поддерживает два способа подключения:
 
-- [ChatGPT](docs/clients/chatgpt.md)
-- [Codex CLI / IDE](docs/clients/codex.md)
-- [Claude Code](docs/clients/claude-code.md)
-- [Claude web / Desktop](docs/clients/claude.md)
-- [Cursor](docs/clients/cursor.md)
-- [VS Code / GitHub Copilot](docs/clients/vscode.md)
-- [Local stdio installation](docs/clients/local-stdio.md)
+| Режим | Для кого | Авторизация |
+| --- | --- | --- |
+| **Удалённый MCP** (`Streamable HTTP`) | ChatGPT, Codex, Claude, Cursor, VS Code | OAuth-вход через личную учётную запись YouGile |
+| **Локальный MCP** (`stdio`) | Локально запускаемые AI-агенты | API-ключ компании и защищённый файл идентичности агента |
 
-See the [client compatibility and prerequisites index](docs/clients/README.md) before connecting. Example remote addresses are placeholders, not public YouGile MCP hosting URLs.
+### Инструкции по клиентам
 
-## Local developer quick start
+| AI-клиент | Подключение |
+| --- | --- |
+| ChatGPT | [Инструкция](docs/clients/chatgpt.md) |
+| Codex CLI и IDE | [Инструкция](docs/clients/codex.md) |
+| Claude Code | [Инструкция](docs/clients/claude-code.md) |
+| Claude Web / Desktop | [Инструкция](docs/clients/claude.md) |
+| Cursor | [Инструкция](docs/clients/cursor.md) |
+| VS Code / GitHub Copilot | [Инструкция](docs/clients/vscode.md) |
+| Любой локальный MCP-клиент с поддержкой stdio | [Локальная установка](docs/clients/local-stdio.md) |
 
-Requirements: Python 3.11+ and [uv](https://docs.astral.sh/uv/).
+Перед подключением ознакомьтесь с [требованиями и ограничениями](docs/clients/README.md). Инструкции описывают конфигурацию клиентов, но **не заменяют проверку совместимости** с работающим HTTPS-сервером.
 
-~~~sh
+## Быстрый старт для разработчиков
+
+Требуются Python 3.11+ и [uv](https://docs.astral.sh/uv/).
+
+```bash
 git clone https://github.com/amonrapmon/yougile-mcp.git
 cd yougile-mcp
 uv sync --locked --all-extras
 uv run --locked yougile-mcp doctor
 uv run --locked python scripts/check_catalog.py
 uv run --locked python -m unittest discover -s tests -v
-~~~
+```
 
-The `doctor` command validates configuration **offline**, without connecting to YouGile. To actually launch local MCP, provision a private agent identity and credentials, then start `yougile-mcp serve` according to the [stdio guide](docs/clients/local-stdio.md). Do not place real API keys in committed configuration or documentation.
+Команда `doctor` проверяет локальную конфигурацию **без сетевых запросов к YouGile**. Для запуска рабочего локального MCP дополнительно нужны API-ключ, ID компании и файл идентичности: [пошаговая установка stdio](docs/clients/local-stdio.md).
 
-The Docker image and `compose.yaml` currently provide an offline verification scaffold, **not** a deployable public MCP endpoint.
+Текущие `Dockerfile` и `compose.yaml` предназначены для проверки конфигурации и **не разворачивают публичный MCP-сервер**.
 
-## Architecture and access
+## Архитектура и безопасность
 
-- One schema-validated YouGile API v2 client backs both transports.
-- Direct MCP tools use per-operation policy, actor/company checks and sanitized errors.
-- Remote OAuth uses individual YouGile sign-in, company selection, encrypted persistence in PostgreSQL and ephemeral state in Valkey.
-- The hosted UI provides company-level administration and a separate allowlisted host-operator area.
-- Cloud access is currently **Full Access within the signed-in user's own YouGile permissions**, not granular per-project OAuth scopes. Sensitive operations lacking a configured approval/secret provider fail closed.
-- Public remote traffic must pass through a separately reviewed HTTPS reverse proxy; the current cloud process binds to loopback.
+- **Единый API-клиент:** все MCP-инструменты используют один контракт YouGile REST API v2 и его валидацию.
+- **Контроль доступа:** при вызове инструмента проверяются пользователь, компания, разрешения и принадлежность ресурсов.
+- **Локальные агенты:** каждый экземпляр stdio получает отдельную заранее настроенную идентичность.
+- **Удалённый доступ:** OAuth, индивидуальная авторизация в YouGile, выбор компании и хранение серверных данных в PostgreSQL и Valkey.
+- **Управление доступом:** администратор компании управляет сотрудниками своей компании; оператор хостинга имеет отдельные явно назначаемые полномочия.
+- **Защита операций:** действия с дополнительными требованиями к подтверждению или обработке секретов по умолчанию недоступны без соответствующих серверных компонентов.
 
-Read the [architecture and release boundaries](docs/ARCHITECTURE.md) and the [administration verification notes](docs/verification/gen-231-indalo-company-admin.md).
+В облачном режиме действует **Full Access в пределах прав вошедшего пользователя YouGile**. Гибкая настройка отдельных OAuth-разрешений на уровне проектов пока не реализована.
 
-## Documentation
+Серверный HTTP-процесс слушает только loopback-интерфейс. Для общедоступного подключения требуется отдельно проверенное HTTPS-развёртывание через доверенный reverse proxy.
 
-| Topic | Reference |
+[Подробная архитектура](docs/ARCHITECTURE.md) · [Проверки панели администратора](docs/verification/gen-231-indalo-company-admin.md)
+
+## Документация
+
+| Документ | Содержание |
 | --- | --- |
-| Client connection | [AI client installation guides](docs/clients/README.md) |
-| Architecture | [Architecture](docs/ARCHITECTURE.md) |
-| Live API validation | [GEN-229 verification](docs/verification/gen-229-live-e2e.md) |
-| API provenance and legal attribution | [Provenance](docs/PROVENANCE.md) |
-| Engineering roadmap | [Roadmap](docs/ROADMAP.md) |
-| Agent development rules | [AGENTS.md](AGENTS.md) and [contracts](docs/contracts/README.md) |
-| Contributions | [Contributing](CONTRIBUTING.md) |
+| [Подключение AI-клиентов](docs/clients/README.md) | Установка, конфигурация, типовые ошибки |
+| [Архитектура](docs/ARCHITECTURE.md) | Компоненты, потоки данных, ограничения |
+| [Проверка API](docs/verification/gen-229-live-e2e.md) | Результаты тестирования операций |
+| [Происхождение кода и API](docs/PROVENANCE.md) | Источники, лицензии, совместимость |
+| [План развития](docs/ROADMAP.md) | Текущие задачи и условия выпуска |
+| [Правила разработки](AGENTS.md) | Требования для контрибьюторов и AI-агентов |
+| [Contributing](CONTRIBUTING.md) | Процесс разработки и проверок |
 
-## Development and licensing
+## Разработка и лицензия
 
-Contributions must follow [CONTRIBUTING.md](CONTRIBUTING.md) and the repository's [AGENTS.md](AGENTS.md). Original code is released under **GNU AGPL-3.0-only**. Adapted Indalo components retain their required notices and attribution. A license on this project does **not** authorize copying unlicensed third-party implementation code; see [PROVENANCE.md](docs/PROVENANCE.md). The redistribution status of the pinned vendor OpenAPI document remains a release review item.
+Исходный код проекта распространяется на условиях **GNU AGPL-3.0-only**. Используемые компоненты Indalo сопровождаются соответствующими уведомлениями об авторстве. Лицензия этого проекта не распространяется автоматически на сторонние реализации без разрешения правообладателей. Дополнительная информация приведена в [PROVENANCE.md](docs/PROVENANCE.md).
+
+Перед внесением изменений ознакомьтесь с [CONTRIBUTING.md](CONTRIBUTING.md) и [AGENTS.md](AGENTS.md).
