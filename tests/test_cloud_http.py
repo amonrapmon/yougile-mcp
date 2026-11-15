@@ -179,6 +179,21 @@ class CloudHTTPTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(token.status_code, 200, token.text)
         return token.json(), code
 
+    async def test_public_landing_copy_script_and_csp(self):
+        landing = await self.http.get("/")
+        self.assertEqual(landing.status_code, 200)
+        self.assertIn("YouGile MCP by Amonrapmon", landing.text)
+        self.assertIn(RESOURCE, landing.text)
+        self.assertIn('<script src="/assets/landing.js" defer></script>', landing.text)
+        csp = landing.headers["content-security-policy"]
+        self.assertIn("script-src 'self'", csp)
+        self.assertNotIn("'unsafe-inline'", csp.split("script-src ", 1)[1].split(";", 1)[0])
+        script = await self.http.get("/assets/landing.js")
+        self.assertEqual(script.status_code, 200)
+        self.assertIn("javascript", script.headers["content-type"])
+        self.assertEqual(script.headers["x-content-type-options"], "nosniff")
+        self.assertIn("navigator.clipboard.writeText", script.text)
+
     async def test_no_anonymous_mcp_and_metadata(self):
         for path in ("/.well-known/oauth-authorization-server", "/.well-known/oauth-protected-resource/mcp"):
             result = await self.http.get(path)

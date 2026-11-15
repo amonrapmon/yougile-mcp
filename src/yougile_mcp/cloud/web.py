@@ -52,7 +52,7 @@ _SCOPE = "yougile.full"
 
 _SECURITY = {
     "Content-Security-Policy": (
-        "default-src 'none'; style-src 'unsafe-inline'; img-src https://avatars.githubusercontent.com; form-action 'self'; "
+        "default-src 'none'; style-src 'unsafe-inline'; script-src 'self'; img-src https://avatars.githubusercontent.com; form-action 'self'; "
         "frame-ancestors 'none'; base-uri 'none'"
     ),
     "X-Frame-Options": "DENY",
@@ -144,6 +144,14 @@ class CloudLoginPages:
 
     async def home(self, request: Request) -> Response:
         return _html(pages.home_page(self.provider.mcp_url))
+
+    async def landing_script(self, request: Request) -> Response:
+        # Static, public copy handler. OAuth forms never load JavaScript.
+        return Response(
+            pages.LANDING_COPY_JS,
+            media_type="application/javascript",
+            headers={"Cache-Control": "no-store", "X-Content-Type-Options": "nosniff"},
+        )
 
     async def health(self, request: Request) -> Response:
         # Liveness, not database status or deployment secrets.
@@ -345,6 +353,7 @@ def make_cloud_http_app(
         ),
         custom_starlette_routes=[
             Route("/", pages_handler.home, methods=["GET"]),
+            Route("/assets/landing.js", pages_handler.landing_script, methods=["GET"]),
             Route("/healthz", pages_handler.health, methods=["GET"]),
             Route("/signin", pages_handler.show, methods=["GET"]),
             Route("/signin", pages_handler.submit, methods=["POST"]),

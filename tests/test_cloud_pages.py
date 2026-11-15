@@ -33,8 +33,22 @@ class CloudPageTests(unittest.TestCase):
         self.assertIn('AGPL-3.0', html)
         self.assertNotIn('основа Indalo', html)
         self.assertNotIn('indalo-tech/yougile-mcp-cloud', html)
-        self.assertNotIn('<script', html.lower())
-        self.assertIn('aria-label="Скопируйте адрес подключения"', html)
+        self.assertNotIn('<script>alert(1)', html.lower())
+        self.assertIn('aria-label="Скопировать адрес MCP-сервера"', html)
+        self.assertIn('class="landing-copy"', html)
+        self.assertIn('id="copy-status"', html)
+        self.assertIn('<script src="/assets/landing.js" defer></script>', html)
+        self.assertEqual(html.count('class="landing-step"'), 4)
+        self.assertIn('04/', html)
+        self.assertIn('Откиньтесь в кресле', html)
+        self.assertIn('на стероидах.', html)
+        self.assertIn('by Amonrapmon', html)
+        self.assertIn('Claude Code', html)
+        self.assertIn('Harness', html)
+        self.assertNotIn('landing-protocol', html)
+        self.assertNotIn('landing-endpoint-tag', html)
+        self.assertLess(html.index('Адрес MCP-сервера'), html.index('class="landing-endpoint"'))
+        self.assertIn('navigator.clipboard.writeText', pages.LANDING_COPY_JS)
 
     def test_landing_escapes_untrusted_endpoint(self):
         injected = 'https://example.test/?a=<script>alert(1)</script>&x="'
@@ -42,6 +56,18 @@ class CloudPageTests(unittest.TestCase):
         self.assertNotIn(injected, html)
         self.assertIn('&lt;script&gt;', html)
         self.assertIn('&amp;x=&quot;', html)
+
+    def test_other_pages_do_not_load_landing_javascript(self):
+        for html in (
+            pages.login_page(
+                action='/signin', hidden={'flow': 'flow-id'},
+                heading='Вход', lead='Вход в YouGile',
+            ),
+            pages.company_page(action='/signin/company', hidden={},
+                               companies=[('a', 'A')]),
+            pages.message_page('Ошибка', 'Нет доступа'),
+        ):
+            self.assertNotIn('/assets/landing.js', html)
 
     def test_company_choice_escapes_id_and_title(self):
         html = pages.company_page(
