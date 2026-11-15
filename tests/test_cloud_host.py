@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import unittest
+
 import test_cloud_admin as company_tests
 
 from yougile_mcp.cloud.yougile_signin import ProvisionedYouGileAccount
@@ -25,6 +27,14 @@ class HostHTTPTests(company_tests.AdminHTTPTests):
 
     async def test_host_only_explicit_actor_access(self):
         await self._other_company()
+        await self.store.save_account(
+            ProvisionedYouGileAccount(
+                company_id="company-A", user_id="admin-vendor",
+                email="admin@example.test", name="Admin",
+                is_admin=True, api_key=Secret("key-company-A"),
+            ),
+            company_name="Alpha",
+        )
         self.signin.multiple = True
         await self.login(company="company-B")
         forbidden = await self.http.get("/host")
@@ -123,3 +133,13 @@ class HostHTTPTests(company_tests.AdminHTTPTests):
         self.admin_rights = False
         result = await self.http.get("/host")
         self.assertEqual(result.status_code, 403)
+
+
+def load_tests(loader, standard_tests, pattern):
+    # Parent admin suite runs in test_cloud_admin. Avoid inheriting/rerunning
+    # its generic regression tests here: load only this subclass's own tests.
+    return unittest.TestSuite(
+        HostHTTPTests(name)
+        for name in vars(HostHTTPTests)
+        if name.startswith("test_")
+    )
