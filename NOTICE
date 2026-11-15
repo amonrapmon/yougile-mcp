@@ -24,3 +24,12 @@ Cloud UI reuse (GEN-231):
 - Adapted files: src/yougile_mcp/cloud/pages.py and redirects.py.
 - Changes: module paths, source/attribution links; no UI redesign.
 - The OAuth, DB, sign-in and admin modules have NOT yet been copied.
+
+Hosted persistence adaptation, GEN-231 #23:
+- Source: https://github.com/indalo-tech/yougile-mcp-cloud
+- Pinned upstream commit ea88a0d5c5c055262cba9cf9741fd51828481ba5,
+  copyright (c) Indalo, AGPL-3.0-only.
+- Adapted ideas and code from crypto.py, db.py, kv.py and 001_init.sql.
+- Modules: cloud/crypto.py, cloud/persistence.py, cloud/valkey.py,
+  cloud/migrations/001_cloud.sql.
+- Removed subscription and billing fields; different storage schema.
