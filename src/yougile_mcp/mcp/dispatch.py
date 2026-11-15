@@ -14,7 +14,7 @@ import json
 import threading
 import time
 from dataclasses import dataclass
-from typing import Any, Callable, Mapping, Protocol
+from typing import Any, Awaitable, Callable, Mapping, Protocol
 
 from jsonschema import Draft202012Validator, ValidationError
 
@@ -64,6 +64,7 @@ class SecretResolver(Protocol):
 
 
 AuditSink = Callable[[Mapping[str, str]], None]
+CompanyVerifier = Callable[[InvocationPrincipal], Awaitable[bool]]
 
 
 def _payload_fingerprint(
@@ -119,6 +120,7 @@ class ToolDispatcher:
         company_id: str,
         registry: ToolRegistry | None = None,
         project_resolver: ResourceResolver | None = None,
+        company_verifier: CompanyVerifier | None = None,
         secret_resolver: SecretResolver | None = None,
         approvals: OneTimeApprovals | None = None,
         audit: AuditSink | None = None,
@@ -129,6 +131,7 @@ class ToolDispatcher:
         self.company_id = company_id
         self.registry = registry if registry is not None else build_registry()
         self.project_resolver = project_resolver
+        self.company_verifier = company_verifier
         self.secret_resolver = secret_resolver
         self.approvals = approvals
         self.audit = audit
@@ -172,14 +175,6 @@ class ToolDispatcher:
             raise ToolDispatchError("permission_denied")
         if tool.scope not in principal.scopes:
             raise ToolDispatchError("permission_denied")
-        if tool.resource_scope == "company" and not principal.company_wide:
-            raise ToolDispatchError("permission_denied")
-        if tool.resource_scope == "project":
-            if self.project_resolver is None:
-                raise ToolDispatchError("permission_denied")
-            project_id = await self.project_resolver(principal, tool, arguments or {})
-            if not project_id or project_id not in principal.allowed_projects:
-                raise ToolDispatchError("permission_denied")
         if not isinstance(arguments, Mapping):
             raise ToolDispatchError("invalid_input")
         supplied = dict(arguments)
@@ -189,6 +184,16 @@ class ToolDispatcher:
             raise ToolDispatchError("invalid_input") from None
         if _has_sensitive_fields(supplied):
             raise ToolDispatchError("invalid_input")
+        if tool.resource_scope == "company" and not principal.company_wide:
+            raise ToolDispatchError("permission_denied")
+        if self.company_verifier is not None and not await self.company_verifier(principal):
+            raise ToolDispatchError("permission_denied")
+        if tool.resource_scope == "project":
+            if self.project_resolver is None:
+                raise ToolDispatchError("permission_denied")
+            project_id = await self.project_resolver(principal, tool, supplied)
+            if not project_id or project_id not in principal.allowed_projects:
+                raise ToolDispatchError("permission_denied")
         body = supplied.get("body")
         elevated_delete = isinstance(body, dict) and "deleted" in body
         if elevated_delete and "yougile." + tool.domain + ".destructive" not in principal.scopes:
