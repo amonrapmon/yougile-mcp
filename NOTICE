@@ -38,3 +38,9 @@ Cloud OAuth adaptation, GEN-231 #24:
 - OAuth provider flow derives from indalo-tech/yougile-mcp-cloud/oauth.py,
   pinned upstream ea88a0d5c5c055262cba9cf9741fd51828481ba5.
 - Copyright (c) Indalo; AGPL-3.0-only. Ported to official MCP SDK v2.
+
+HTTP form and sign-in flow adaptation, GEN-231 #25:
+- Adapted from indalo-tech/yougile-mcp-cloud/web.py (© Indalo,
+  AGPL-3.0-only, pinned ea88a0d5c5c055262cba9cf9741fd51828481ba5).
+- Our src/yougile_mcp/cloud/web.py mounts SDK-native OAuth/HTTP while
+  preserving security headers, CSRF patterns and encrypted company choice.

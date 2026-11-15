@@ -20,12 +20,24 @@ def main(argv: list[str] | None = None) -> int:
     commands = parser.add_subparsers(dest="command", required=True)
     commands.add_parser("doctor", help="Validate config without contacting YouGile")
     commands.add_parser("serve", help="Run authenticated local stdio MCP only")
+    commands.add_parser("cloud-serve", help="Run OAuth-backed cloud MCP on private loopback")
     args = parser.parse_args(argv)
 
     try:
         config = Settings.from_env()
     except ConfigError as exc:
         parser.exit(2, f"Invalid configuration: {exc}\n")
+
+    if args.command == "cloud-serve":
+        from .cloud.server import cloud_serve
+
+        try:
+            asyncio.run(cloud_serve(config))
+        except (ConfigError, ValueError) as exc:
+            parser.exit(2, f"Cloud startup rejected: {exc}\n")
+        except KeyboardInterrupt:
+            return 130
+        return 0
 
     if args.command == "serve":
         # A local child process inherits one protected identity from its

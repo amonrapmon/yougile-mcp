@@ -98,7 +98,7 @@ class CloudOAuthProvider:
             raise AuthorizeError(
                 error="invalid_target", error_description="Unknown MCP resource",
             )
-        requested = list(params.scopes or [])
+        requested = list(params.scopes or [_SCOPE])
         if any(scope != _SCOPE for scope in requested):
             raise AuthorizeError(
                 error="invalid_scope", error_description="Unsupported OAuth scope",
