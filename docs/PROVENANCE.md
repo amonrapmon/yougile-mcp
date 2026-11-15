@@ -111,3 +111,18 @@ The HTML source link now identifies our repository and explicitly credits
 Indalo. Other upstream cloud code, especially the OAuth issuer and company
 persistence, is NOT imported yet. The pages are not exposed through HTTP;
 the OAuth integration and middleware must be completed first.
+
+## Hosted cloud persistence adaptation (GEN-231, PR #23)
+
+Source: https://github.com/indalo-tech/yougile-mcp-cloud at
+`ea88a0d5c5c055262cba9cf9741fd51828481ba5` (2026-10-29),
+Copyright (c) Indalo, license AGPL-3.0-only. Adapted persistence design,
+Fernet encryption and Redis/Valkey atomic operations from upstream
+`src/yougile_cloud/{crypto,db,kv}.py` and `migrations/001_init.sql`.
+
+This repo's independent cloud modules are `cloud/crypto.py`,
+`cloud/persistence.py`, `cloud/valkey.py`, and
+`cloud/migrations/001_cloud.sql`. Excluded subscriptions, trials,
+paid plans, tickets bot and unrelated admin UI. This migration introduces
+separate `cloud_*` tables; it is not a drop-in migration of Indalo's
+existing database. PostgreSQL/Redis dependencies are optional extras.
