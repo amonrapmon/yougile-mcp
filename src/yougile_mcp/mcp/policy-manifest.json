@@ -55,7 +55,7 @@
       "domain": "chats",
       "access": "read",
       "risk": "read",
-      "resource_scope": "project",
+      "resource_scope": "company",
       "approval": false
     },
     "ChatMessageController_search": {
@@ -69,21 +69,21 @@
       "domain": "chats",
       "access": "write",
       "risk": "write",
-      "resource_scope": "project",
+      "resource_scope": "company",
       "approval": false
     },
     "ChatMessageController_typing": {
       "domain": "chats",
       "access": "write",
       "risk": "write",
-      "resource_scope": "project",
+      "resource_scope": "company",
       "approval": false
     },
     "ChatMessageController_update": {
       "domain": "chats",
       "access": "write",
       "risk": "write",
-      "resource_scope": "project",
+      "resource_scope": "company",
       "approval": false
     },
     "ColumnController_create": {
@@ -188,7 +188,7 @@
       "domain": "chats",
       "access": "read",
       "risk": "read",
-      "resource_scope": "project",
+      "resource_scope": "company",
       "approval": false
     },
     "GroupChatController_search": {
@@ -202,7 +202,7 @@
       "domain": "chats",
       "access": "write",
       "risk": "write",
-      "resource_scope": "project",
+      "resource_scope": "company",
       "approval": false
     },
     "ProjectController_create": {
@@ -272,14 +272,14 @@
       "domain": "stickers",
       "access": "write",
       "risk": "write",
-      "resource_scope": "project",
+      "resource_scope": "company",
       "approval": false
     },
     "SprintStickerController_getSticker": {
       "domain": "stickers",
       "access": "read",
       "risk": "read",
-      "resource_scope": "project",
+      "resource_scope": "company",
       "approval": false
     },
     "SprintStickerController_search": {
@@ -293,42 +293,42 @@
       "domain": "stickers",
       "access": "write",
       "risk": "write",
-      "resource_scope": "project",
+      "resource_scope": "company",
       "approval": false
     },
     "SprintStickerStateController_create": {
       "domain": "stickers",
       "access": "write",
       "risk": "write",
-      "resource_scope": "project",
+      "resource_scope": "company",
       "approval": false
     },
     "SprintStickerStateController_get": {
       "domain": "stickers",
       "access": "read",
       "risk": "read",
-      "resource_scope": "project",
+      "resource_scope": "company",
       "approval": false
     },
     "SprintStickerStateController_update": {
       "domain": "stickers",
       "access": "write",
       "risk": "write",
-      "resource_scope": "project",
+      "resource_scope": "company",
       "approval": false
     },
     "StringStickerController_create": {
       "domain": "stickers",
       "access": "write",
       "risk": "write",
-      "resource_scope": "project",
+      "resource_scope": "company",
       "approval": false
     },
     "StringStickerController_get": {
       "domain": "stickers",
       "access": "read",
       "risk": "read",
-      "resource_scope": "project",
+      "resource_scope": "company",
       "approval": false
     },
     "StringStickerController_search": {
@@ -342,28 +342,28 @@
       "domain": "stickers",
       "access": "write",
       "risk": "write",
-      "resource_scope": "project",
+      "resource_scope": "company",
       "approval": false
     },
     "StringStickerStateController_create": {
       "domain": "stickers",
       "access": "write",
       "risk": "write",
-      "resource_scope": "project",
+      "resource_scope": "company",
       "approval": false
     },
     "StringStickerStateController_get": {
       "domain": "stickers",
       "access": "read",
       "risk": "read",
-      "resource_scope": "project",
+      "resource_scope": "company",
       "approval": false
     },
     "StringStickerStateController_update": {
       "domain": "stickers",
       "access": "write",
       "risk": "write",
-      "resource_scope": "project",
+      "resource_scope": "company",
       "approval": false
     },
     "TaskController_create": {
