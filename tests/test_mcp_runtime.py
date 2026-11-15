@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import unittest
 from typing import Any
 
@@ -105,6 +106,64 @@ class OfficialMCPIntegrationTests(unittest.IsolatedAsyncioTestCase):
                 self.assertTrue(result.is_error)
                 self.assertIn("permission_denied", result.content[0].text)
                 self.assertEqual(seen, [])
+
+
+    async def test_protocol_negative_error_categories(self) -> None:
+        cfg = Settings.from_env({"YOUGILE_API_KEY": SECRET, "YOUGILE_COMPANY_ID": COMPANY})
+        registry = build_registry()
+        task = registry.by_operation("TaskController_create")
+        async def principal(_: Any):
+            return _principal()
+        for status, category in (
+            (400, "vendor_validation"), (401, "authentication_failed"),
+            (403, "permission_denied"), (404, "not_found"),
+            (429, "rate_limited"), (500, "upstream_failure"),
+        ):
+            with self.subTest(status=status):
+                requests = []
+                def handler(request: httpx.Request) -> httpx.Response:
+                    requests.append(request)
+                    return httpx.Response(status, json={"message": "SECRET " + SECRET})
+                async with YouGileClient(
+                    cfg, transport=httpx.MockTransport(handler), limiter=_NoWaitLimiter(),
+                ) as api:
+                    dispatcher = ToolDispatcher(api, company_id=COMPANY, project_resolver=_project)
+                    async with Client(
+                        make_mcp_server(dispatcher, resolve_principal=principal),
+                        raise_exceptions=True,
+                    ) as sdk:
+                        result = await sdk.call_tool(task.name, _arguments(task.operation_id))
+                        self.assertTrue(result.is_error)
+                        self.assertEqual(json.loads(result.content[0].text)["category"], category)
+                        self.assertNotIn(SECRET, result.content[0].text)
+                        self.assertEqual(len(requests), 1)
+
+    async def test_protocol_invalid_input_admin_approval_and_unknown_tool(self) -> None:
+        cfg = Settings.from_env({"YOUGILE_API_KEY": SECRET, "YOUGILE_COMPANY_ID": COMPANY})
+        calls = []
+        async def principal(_: Any):
+            return _principal()
+        async with YouGileClient(
+            cfg, transport=httpx.MockTransport(lambda request: calls.append(request)),
+            limiter=_NoWaitLimiter(),
+        ) as api:
+            dispatcher = ToolDispatcher(api, company_id=COMPANY, project_resolver=_project)
+            registry = build_registry()
+            async with Client(
+                make_mcp_server(dispatcher, resolve_principal=principal),
+                raise_exceptions=True,
+            ) as sdk:
+                for name, args, category in (
+                    (registry.by_operation("TaskController_create").name, {"wrong": True}, "invalid_input"),
+                    (registry.by_operation("CompanyController_update").name,
+                     {"body": {"title": "changed"}}, "approval_required"),
+                    ("yg_v2_unknown_name", {}, "unknown_tool"),
+                ):
+                    with self.subTest(category=category):
+                        result = await sdk.call_tool(name, args)
+                        self.assertTrue(result.is_error)
+                        self.assertEqual(json.loads(result.content[0].text)["category"], category)
+            self.assertEqual(calls, [])
 
 
 def _route_matches(template: str, concrete: str) -> bool:
