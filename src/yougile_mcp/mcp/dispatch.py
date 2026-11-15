@@ -192,7 +192,9 @@ class ToolDispatcher:
             if self.project_resolver is None:
                 raise ToolDispatchError("permission_denied")
             project_id = await self.project_resolver(principal, tool, supplied)
-            if not project_id or project_id not in principal.allowed_projects:
+            if not project_id or (
+                not principal.company_wide and project_id not in principal.allowed_projects
+            ):
                 raise ToolDispatchError("permission_denied")
         body = supplied.get("body")
         elevated_delete = isinstance(body, dict) and "deleted" in body

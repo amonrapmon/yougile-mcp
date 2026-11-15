@@ -78,7 +78,9 @@ class ProjectOwnershipResolver:
         self, principal: InvocationPrincipal, descriptor: ToolDescriptor,
         arguments: Mapping[str, Any],
     ) -> str:
-        if principal.company_id != self.company_id or not principal.allowed_projects:
+        if principal.company_id != self.company_id or (
+            not principal.company_wide and not principal.allowed_projects
+        ):
             return ""
         path = arguments.get("path")
         body = arguments.get("body")
@@ -92,10 +94,15 @@ class ProjectOwnershipResolver:
             return ""
         try:
             if family == "Project":
-                source = _identifier(path.get("id"))
+                # A new top-level project has no parent project to resolve.
+                # Only the full-company principal may create one.
+                source = (
+                    self.company_id if action == "create" and principal.company_wide
+                    else _identifier(path.get("id"))
+                )
                 destinations = set()
             elif family == "ProjectRoles":
-                source = _identifier(path.get("projectId"))
+                source = _identifier(path.get("projectId") or body.get("projectId"))
                 destinations = set()
             elif family == "Board":
                 source = await self._board_project(path["id"]) if "id" in path else (
@@ -121,7 +128,10 @@ class ProjectOwnershipResolver:
             else:
                 return ""
             all_projects = {source, *destinations}
-            if not source or not all_projects.issubset(principal.allowed_projects):
+            if not source or (
+                not principal.company_wide
+                and not all_projects.issubset(principal.allowed_projects)
+            ):
                 return ""
             return source
         except (ApiError, KeyError, TypeError, ValueError):
