@@ -63,7 +63,7 @@ MCP_STDIO_IDENTITY_FILE=/absolute/private/path/yougile-agent.json
 /absolute/path/to/yougile-mcp/.venv/bin/yougile-mcp serve
 ```
 
-В Windows используйте исполняемый файл `.venv\\Scripts\\yougile-mcp.exe`. MCP-клиент должен управлять стандартными потоками ввода/вывода процесса. Нельзя выводить отладочные сообщения в stdout вместо ответов протокола.
+В Windows используйте исполняемый файл `.venv\Scripts\yougile-mcp.exe`. MCP-клиент должен управлять стандартными потоками ввода/вывода процесса. Нельзя выводить отладочные сообщения в stdout вместо ответов протокола.
 
 Примеры конфигурации: [Codex](codex.md), [Claude Code](claude-code.md), [Cursor](cursor.md), [VS Code](vscode.md).
 
