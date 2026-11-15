@@ -71,6 +71,24 @@ def _html(text: str, status: int = 200) -> HTMLResponse:
     return HTMLResponse(text, status_code=status, headers=_SECURITY)
 
 
+# Browsers apply form-action to *every* redirect after a form POST. OAuth
+# callbacks leave this origin (ChatGPT, Claude, native clients) and may pass
+# through another trusted client origin. Restricting the login forms to 'self'
+# therefore blocks the navigation AFTER our valid HTTP 302 response.
+# Keep the stricter CSP for non-OAuth pages; POST endpoints still enforce
+# pinned Host/Origin, HMAC CSRF and one-time auth flows server-side.
+_OAUTH_FORM_SECURITY = {
+    **_SECURITY,
+    "Content-Security-Policy": _SECURITY["Content-Security-Policy"].replace(
+        "form-action 'self'; ", ""
+    ),
+}
+
+
+def _oauth_form_html(text: str, status: int = 200) -> HTMLResponse:
+    return HTMLResponse(text, status_code=status, headers=_OAUTH_FORM_SECURITY)
+
+
 class CloudLoginPages:
     """HTTP forms are never an authorization source without an OAuth flow."""
 
@@ -135,7 +153,7 @@ class CloudLoginPages:
         self, flow: str, authreq: dict, *, error: str | None = None,
         login: str = "", status: int = 200,
     ) -> HTMLResponse:
-        return _html(
+        return _oauth_form_html(
             pages.login_page(
                 action="/signin",
                 hidden={"flow": flow, "csrf": self._csrf("signin", flow)},
@@ -217,7 +235,7 @@ class CloudLoginPages:
             self.cipher.encrypt(Secret(temporary)), ttl=_CRED_TTL,
         )
         self._trace("company_choice_rendered", flow)
-        return _html(pages.company_page(
+        return _oauth_form_html(pages.company_page(
             action="/signin/company",
             hidden={"flow": flow, "csrf": self._csrf("company", flow)},
             companies=[(c.id, c.name) for c in companies],
