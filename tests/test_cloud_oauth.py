@@ -28,7 +28,7 @@ class CloudOAuthProviderTests(unittest.IsolatedAsyncioTestCase):
         await self.db.migrate()
         async with self.db.pool.connection() as conn:
             await conn.execute(
-                "TRUNCATE cloud_refresh_tokens,cloud_oauth_clients,cloud_users,"
+                "TRUNCATE cloud_vendor_key_revocations, cloud_refresh_tokens,cloud_oauth_clients,cloud_users,"
                 "cloud_companies,cloud_audit_log RESTART IDENTITY CASCADE"
             )
         self.kv = await ValkeyCloudState.connect(
