@@ -19,9 +19,13 @@ that unlicensed PR has been imported. The pinned official OpenAPI 3.0.0
 document describes 72 YouGile REST API v2 operations. The previous 70-operation
 snapshot had no removals and lacked two operations added by the official source;
 five operations remain outside the PR #5 inventory. All 72 operations now have
-per-operation MockTransport coverage; none is marked `live_verified`. Five
-operations also have separately recorded owner-run curl observations. The
-company PUT was deliberately not sent to a live company. See catalog/ and
+per-operation MockTransport coverage. The catalog keeps this mock status
+separate from live-client evidence; the GEN-229 report records 65 PASS, 1 FAIL,
+4 BLOCKED, 2 SKIPPED and 0 NOT RUN across the 72 operations. Five operations
+also have separately recorded owner-run curl observations. A no-op
+`CompanyController_update` request returned HTTP 200 against the disposable
+test company and left the title unchanged. See catalog/, the
+[GEN-229 live report](docs/verification/gen-229-live-e2e.md), and
 docs/PROVENANCE.md.
 
 An importable asynchronous API client currently covers mock-tested read
@@ -29,14 +33,14 @@ operations for users, projects and roles, departments, boards, columns, tasks,
 stickers, group chats, chat messages and CRM lookup. It also covers create,
 update and delete operations across those resources, API-key creation, user
 status and chat typing, company listing/detail/update, webhook create/update/
-search, multipart file upload and column creation. Company update remains
-mock-only; it has not been sent to a live company.
+search, multipart file upload and column creation.
 Company listing sends credentials in its documented request body without a
 bearer API key. The generic `request(operation_id, path=..., query=...,
 body=...)` entry point validates JSON requests and responses against the pinned
 OpenAPI contract. The upload method sends immutable bytes as multipart field
-`file` through that same client. A hash-pinned compatibility overlay adapts the
-six vendor-schema mismatches without changing the official snapshot.
+`file` through that same client. A hash-pinned compatibility overlay adapts
+confirmed live response differences without changing the official snapshot;
+the verification report describes the observed differences.
 
 ## API client slice
 

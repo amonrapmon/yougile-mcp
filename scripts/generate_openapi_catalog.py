@@ -143,40 +143,148 @@ CURL_OBSERVED_OPERATION_IDS = {
     "WebhookController_search",
     "FileController_uploadFile",
 }
-COMPATIBILITY_OVERLAY_OPERATION_IDS = {
+SDK_PASS_OPERATION_IDS = {
+    "BoardController_get",
     "BoardController_search",
+    "ChatMessageController_get",
+    "ChatMessageController_search",
+    "ChatMessageController_sendMessage",
+    "ChatMessageController_typing",
+    "ChatMessageController_update",
+    "ColumnController_get",
+    "ColumnController_search",
+    "CompanyController_get",
+    "CompanyController_update",
+    "DepartmentController_get",
+    "DepartmentController_search",
+    "FileController_uploadFile",
+    "GroupChatController_get",
+    "GroupChatController_search",
+    "GroupChatController_update",
+    "CrmContactPersonsController_create",
+    "BoardController_create",
+    "BoardController_update",
+    "ColumnController_create",
+    "ColumnController_update",
+    "DepartmentController_create",
+    "DepartmentController_update",
+    "ProjectController_create",
+    "ProjectController_update",
+    "ProjectRolesController_create",
+    "ProjectRolesController_delete",
+    "ProjectRolesController_get",
+    "ProjectRolesController_update",
+    "SprintStickerController_create",
+    "SprintStickerController_getSticker",
+    "SprintStickerController_update",
+    "SprintStickerStateController_create",
+    "SprintStickerStateController_get",
+    "SprintStickerStateController_update",
+    "StringStickerController_create",
+    "StringStickerController_get",
+    "StringStickerController_update",
+    "StringStickerStateController_create",
+    "StringStickerStateController_get",
+    "StringStickerStateController_update",
+    "TaskController_create",
+    "TaskController_update",
+    "WebhookController_create",
+    "WebhookController_put",
     "ProjectController_search",
+    "ProjectRolesController_search",
+    "SprintStickerController_search",
+    "StringStickerController_search",
+    "TaskController_getChatSubscribers",
+    "TaskController_getLog",
+    "TaskController_search",
+    "TaskController_searchReversed",
+    "ProjectController_get",
+    "UserController_get",
+    "UserController_getMe",
+    "UserController_search",
+    "WebhookController_search",
+    "TaskController_get",
+}
+SDK_MISMATCH_OPERATION_IDS: set[str] = set()
+SDK_EXPECTED_ERROR_OPERATION_IDS = {"CrmExternalIdController_findContactByExternalId"}
+SDK_VALIDATION_ERROR_OPERATION_IDS = {
+    "GroupChatController_create",
+    "UserController_create",
+}
+COMPATIBILITY_OVERLAY_OPERATION_IDS = {
+    "BoardController_get",
+    "BoardController_search",
+    "ChatMessageController_get",
+    "ChatMessageController_search",
+    "ChatMessageController_typing",
     "TaskController_search",
     "CompanyController_get",
     "CompanyController_update",
+    "CrmExternalIdController_findContactByExternalId",
+    "GroupChatController_search",
+    "GroupChatController_get",
+    "ProjectController_get",
+    "ProjectController_search",
+    "ProjectRolesController_delete",
+    "TaskController_get",
     "WebhookController_create",
     "WebhookController_put",
     "WebhookController_search",
     "FileController_uploadFile",
 }
 COMPATIBILITY_NOTES = {
+    "BoardController_get": (
+        "GEN-229 first live SDK GET returned deleted=null; the narrow BoardDto "
+        "overlay was followed by a successful SDK GET. Invalid types remain rejected."
+    ),
     "BoardController_search": (
-        "Owner-observed live SDK GET: HTTP 200 list response with deleted=null. "
-        "Overlay permits nullable deleted only in BoardListDtoBase; repeat "
-        "SDK verification after the fix before declaring the call live-verified."
+        "GEN-229 repeated the live SDK GET successfully after the list DTO overlay "
+        "for deleted=null; invalid non-boolean values remain rejected."
+    ),
+    "ChatMessageController_get": (
+        "GEN-229 live message detail omits textHtml and editTimestamp; the overlay "
+        "makes only those fields optional and validates them when present."
+    ),
+    "ChatMessageController_search": (
+        "GEN-229 live message list omits textHtml and editTimestamp; the overlay "
+        "makes only those fields optional and validates them when present."
+    ),
+    "ChatMessageController_sendMessage": (
+        "GEN-229 sent a synthetic message to the single-member CRM_TEST project chat; "
+        "the message was soft-deleted after exercising read/update operations."
+    ),
+    "ChatMessageController_typing": (
+        "GEN-229 live typing returned HTTP 201 with the ChatTypingDto documented "
+        "for HTTP 200; the overlay validates both statuses against that DTO."
+    ),
+    "ChatMessageController_update": (
+        "GEN-229 soft-deleted only the synthetic message created for the live test."
     ),
     "ProjectController_search": (
-        "Owner-observed live SDK GET: HTTP 200 list response with deleted=null. "
-        "Overlay permits nullable deleted only in ProjectListDtoBase; repeat "
-        "SDK verification after the fix before declaring the call live-verified."
+        "GEN-229 repeated the live SDK GET successfully after the list DTO overlay "
+        "for deleted=null; invalid non-boolean values remain rejected."
     ),
     "TaskController_search": (
-        "Owner-observed live SDK GET: HTTP 200 list response with deleted=null. "
-        "Overlay permits nullable deleted only in TaskListDtoBase; repeat "
-        "SDK verification after the fix before declaring the call live-verified."
+        "GEN-229 repeated the live SDK GET successfully after the list DTO overlay "
+        "for deleted=null; invalid non-boolean values remain rejected."
     ),
     "CompanyController_get": (
-        "Overlay uses the curl-observed no-ID current-company route and permits "
-        "deleted=null; evidence is manual curl, not Python-client live verification."
+        "The no-ID current-company route and deleted=null compatibility were "
+        "confirmed by both owner-supplied curl evidence and GEN-229 SDK GET."
     ),
     "CompanyController_update": (
-        "Mock-only PUT uses the canonical current-company route and pinned "
-        "UpdateCompanyDto; no live company update was performed."
+        "Live no-op PUT on the authenticated test company returned HTTP 200; "
+        "the original title remained unchanged."
+    ),
+    "CrmContactPersonsController_create": (
+        "GEN-229 created a synthetic contact in CRM_TEST with HTTP 201. The 72-operation "
+        "inventory has no contact-delete operation, so the contact remains as a fixture."
+    ),
+    "CrmExternalIdController_findContactByExternalId": (
+        "A live lookup for a synthetic absent external ID returned HTTP 404; "
+        "the overlay records this response while the pinned snapshot lists only 200. "
+        "The API exposes no operation or CreateContactPersonDto field to assign the "
+        "provider/chatId mapping required for a positive lookup."
     ),
     "WebhookController_create": (
         "Overlay keeps filter name as a string and accepts string or string-array "
@@ -196,6 +304,41 @@ COMPATIBILITY_NOTES = {
     "FileController_uploadFile": (
         "Overlay removes the malformed multipart ref and accepts the curl-observed "
         "201 FileUploadDto; size and MIME limits are configurable client policy."
+    ),
+    "GroupChatController_search": (
+        "GEN-229 first live SDK GET returned deleted=null in list items; the "
+        "narrow GroupChatListDtoBase overlay was followed by a successful SDK GET."
+    ),
+    "GroupChatController_get": (
+        "GEN-229 follow-up SDK GET found deleted=null after the group-chat list "
+        "overlay; the narrow GroupChatDto overlay was followed by a successful GET. "
+        "Invalid values remain rejected."
+    ),
+    "GroupChatController_create": (
+        "GEN-229 four live API POST attempts returned HTTP 400 after local schema "
+        "validation; safe diagnostics found no machine error code. The separate "
+        "UI-created CRM_TEST chat does not verify this operation."
+    ),
+    "GroupChatController_update": (
+        "GEN-229 no-op title update on the single-member CRM_TEST project chat "
+        "returned HTTP 200."
+    ),
+    "ProjectController_get": (
+        "GEN-229 first live SDK GET returned deleted=null; the narrow ProjectDto "
+        "overlay was followed by a successful SDK GET. Invalid types remain rejected."
+    ),
+    "ProjectRolesController_delete": (
+        "GEN-229 live DELETE returned ProjectRoleDto with only id; the operation-only "
+        "overlay requires id and validates any other present fields."
+    ),
+    "TaskController_get": (
+        "GEN-229 first live SDK GET returned deleted=null; the narrow TaskDto "
+        "overlay was followed by a successful SDK GET. Invalid types remain rejected."
+    ),
+    "UserController_create": (
+        "Two synthetic test-user creates were rejected with HTTP 400; the SDK "
+        "sanitizes the response body, so the server validation reason is unknown. "
+        "Dependent user and chat writes were not attempted."
     ),
 }
 
@@ -271,11 +414,7 @@ def build_catalog(spec: dict[str, Any], source: dict[str, Any]) -> dict[str, Any
                     "auth": {"schemes": auth_schemes},
                     "effect": operation_effect(operation_id, method),
                     "status": "mock_tested" if operation_id in MOCK_TESTS else "discovered",
-                    "live_evidence": (
-                        "curl_observed"
-                        if operation_id in CURL_OBSERVED_OPERATION_IDS
-                        else "not_tested"
-                    ),
+                    "live_evidence": _live_evidence(operation_id),
                     "compatibility_overlay": {
                         "version": COMPATIBILITY_OVERLAY_VERSION,
                         "source_sha256": COMPATIBILITY_OVERLAY_SOURCE_SHA256,
@@ -327,6 +466,20 @@ def _note(operation_id: str) -> str | None:
             "need an approved client policy."
         )
     return "Not yet covered by a MockTransport contract."
+
+
+def _live_evidence(operation_id: str) -> str:
+    if operation_id in SDK_MISMATCH_OPERATION_IDS:
+        return "live_mismatch_via_client"
+    if operation_id in SDK_EXPECTED_ERROR_OPERATION_IDS:
+        return "live_expected_error_via_client"
+    if operation_id in SDK_VALIDATION_ERROR_OPERATION_IDS:
+        return "live_validation_error_via_client"
+    if operation_id in SDK_PASS_OPERATION_IDS:
+        return "live_verified_via_client"
+    if operation_id in CURL_OBSERVED_OPERATION_IDS:
+        return "curl_observed"
+    return "not_tested"
 
 
 def main() -> int:

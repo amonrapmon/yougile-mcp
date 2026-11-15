@@ -29,6 +29,7 @@ from .errors import (
     PaginationLimitError,
     PermissionDeniedError,
     RateLimitError,
+    RequestBudgetError,
     RequestTimeoutError,
     UnsupportedOperationError,
     UncertainWriteError,
@@ -193,11 +194,16 @@ class YouGileClient:
         limiter: CompanyRateLimiter | None = None,
         sleep: Any = asyncio.sleep,
         timeout: float = 10.0,
+        max_requests: int | None = None,
         max_upload_bytes: int = _DEFAULT_MAX_UPLOAD_BYTES,
         allowed_upload_content_types: Collection[str] = _DEFAULT_UPLOAD_CONTENT_TYPES,
     ) -> None:
         if isinstance(max_upload_bytes, bool) or not isinstance(max_upload_bytes, int) or max_upload_bytes < 1:
             raise ValueError("max_upload_bytes must be a positive integer")
+        if max_requests is not None and (
+            isinstance(max_requests, bool) or not isinstance(max_requests, int) or max_requests < 1
+        ):
+            raise ValueError("max_requests must be a positive integer")
         try:
             upload_content_types = frozenset(item.strip().lower() for item in allowed_upload_content_types)
         except (AttributeError, TypeError):
@@ -210,6 +216,9 @@ class YouGileClient:
         self._sleep = sleep
         self._max_upload_bytes = max_upload_bytes
         self._allowed_upload_content_types = upload_content_types
+        self._max_requests = max_requests
+        self._requests_sent = 0
+        self._request_count_lock = threading.Lock()
         self._http = httpx.AsyncClient(
             base_url=settings.yougile_base_url,
             timeout=timeout,
@@ -226,6 +235,17 @@ class YouGileClient:
 
     async def aclose(self) -> None:
         await self._http.aclose()
+
+    @property
+    def requests_sent(self) -> int:
+        with self._request_count_lock:
+            return self._requests_sent
+
+    def _reserve_request(self) -> None:
+        with self._request_count_lock:
+            if self._max_requests is not None and self._requests_sent >= self._max_requests:
+                raise RequestBudgetError()
+            self._requests_sent += 1
 
     async def request(
         self,
@@ -443,6 +463,7 @@ class YouGileClient:
     ) -> ApiResponse[Any]:
         attempt = 0
         while True:
+            self._reserve_request()
             await self._limiter.acquire()
             try:
                 async with self._http.stream(
@@ -481,7 +502,7 @@ class YouGileClient:
                 raise error from None
 
             if not 200 <= response.status_code < 300:
-                raise _http_error(response.status_code)
+                raise _http_error(response)
             return _decode_response(operation, response)
 
     def _validate_parameters(
@@ -606,16 +627,82 @@ def _retry_after(value: str | None) -> float | None:
             return None
 
 
-def _http_error(status_code: int) -> ApiError:
+def _http_error(response: httpx.Response) -> ApiError:
+    status_code = response.status_code
+    try:
+        body = response.json()
+    except ValueError:
+        body = None
+    upstream_code = _safe_upstream_code(body)
+    upstream_reason = _safe_upstream_reason(body) if status_code in {400, 422} else None
     if status_code == 401:
-        return AuthenticationError(status_code=status_code)
-    if status_code == 403:
-        return PermissionDeniedError(status_code=status_code)
-    if status_code == 404:
-        return NotFoundError(status_code=status_code)
-    if status_code in {400, 422}:
-        return VendorValidationError(status_code=status_code)
-    return UpstreamError(status_code=status_code)
+        error = AuthenticationError(status_code=status_code)
+    elif status_code == 403:
+        error = PermissionDeniedError(status_code=status_code)
+    elif status_code == 404:
+        error = NotFoundError(status_code=status_code)
+    elif status_code in {400, 422}:
+        error = VendorValidationError(status_code=status_code)
+    else:
+        error = UpstreamError(status_code=status_code)
+    error.upstream_code = upstream_code
+    error.upstream_reason = upstream_reason
+    return error
+
+
+def _safe_upstream_code(body: Any, *, depth: int = 0) -> str | None:
+    if depth >= 4:
+        return None
+    if isinstance(body, dict):
+        code = body.get("code")
+        if isinstance(code, str) and re.fullmatch(r"[A-Z][A-Z0-9_]{1,63}", code):
+            return code
+        for key in ("error", "errors", "details"):
+            found = _safe_upstream_code(body.get(key), depth=depth + 1)
+            if found is not None:
+                return found
+    elif isinstance(body, list):
+        for item in body[:5]:
+            found = _safe_upstream_code(item, depth=depth + 1)
+            if found is not None:
+                return found
+    return None
+
+
+def _safe_upstream_reason(body: Any) -> str | None:
+    messages: list[str] = []
+
+    def collect(value: Any, *, depth: int = 0) -> None:
+        if depth >= 4:
+            return
+        if isinstance(value, dict):
+            for key in ("message", "error", "detail", "errors", "details"):
+                item = value.get(key)
+                if isinstance(item, str):
+                    messages.append(item[:512])
+                elif isinstance(item, (dict, list)):
+                    collect(item, depth=depth + 1)
+        elif isinstance(value, list):
+            for item in value[:5]:
+                if isinstance(item, str):
+                    messages.append(item[:512])
+                else:
+                    collect(item, depth=depth + 1)
+        elif isinstance(value, str):
+            messages.append(value[:512])
+
+    collect(body)
+    if not messages:
+        return None
+    message = " ".join(messages).casefold()
+    rejected = r"invalid|incorrect|unknown|missing|required|must|cannot|failed|error|недопуст|некоррект|не найден|не указан|обязат|ошиб|должен"
+    if re.search(r"role|roles|роль|роли", message) and re.search(rejected, message):
+        return "role_configuration_rejected"
+    if re.search(r"user|users|member|participant|пользователь|участник|сотрудник", message) and re.search(rejected, message):
+        return "chat_member_rejected"
+    if re.search(r"at least|too few|minimum|two users|двух|минимум|меньше", message):
+        return "chat_participant_count_rejected"
+    return "validation_message_unclassified"
 
 
 def _decode_response(operation: Operation, response: httpx.Response) -> ApiResponse[Any]:
