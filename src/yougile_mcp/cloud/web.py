@@ -33,6 +33,7 @@ from starlette.routing import Route
 from ..config import Secret, Settings
 from ..mcp.cloud import CloudTenantSessions, VerifiedCloudActor, make_cloud_mcp_server
 from . import pages, redirects
+from .admin import CloudCompanyAdmin
 from .crypto import CloudCipher, hash_token
 from .oauth import CloudOAuthProvider
 from .persistence import PostgresCloudStore
@@ -309,6 +310,10 @@ def make_cloud_http_app(
         provider=provider, signin=signin, state=state,
         store=store, cipher=cipher, csrf_secret=csrf_secret,
     )
+    company_admin = CloudCompanyAdmin(
+        settings=settings, signin=signin, store=store, state=state,
+        cipher=cipher, csrf_secret=csrf_secret, transport=yougile_transport,
+    )
 
     async def actor(_context):
         token = get_access_token()  # populated by official SDK Bearer middleware
@@ -350,6 +355,7 @@ def make_cloud_http_app(
             Route("/signin", pages_handler.show, methods=["GET"]),
             Route("/signin", pages_handler.submit, methods=["POST"]),
             Route("/signin/company", pages_handler.choose_company, methods=["POST"]),
+            *company_admin.routes(),
         ],
     )
     app.add_middleware(RequestBodyLimitMiddleware, max_body_size=4 * 1024 * 1024)
