@@ -21,8 +21,8 @@ class GovernanceTests(unittest.TestCase):
         records = module.load_records()
         self.assertEqual(len(records), 12)
         self.assertEqual({r.id for r in records}, {f"YC-{i:03d}" for i in range(1, 13)})
-        self.assertEqual(sum(r.authority == "current" for r in records), 6)
-        self.assertEqual(sum(r.authority == "draft" for r in records), 6)
+        self.assertEqual(sum(r.authority == "current" for r in records), 7)
+        self.assertEqual(sum(r.authority == "draft" for r in records), 5)
 
     def test_scoped_routing(self):
         records = module.load_records()
@@ -39,7 +39,7 @@ class GovernanceTests(unittest.TestCase):
         )
         self.assertIn("YC-002", {r.id for r in current_mcp})
         self.assertIn("YC-011", {r.id for r in current_mcp})
-        self.assertIn("YC-012", {r.id for r in draft_mcp})
+        self.assertIn("YC-012", {r.id for r in current_mcp})
         current, _ = module.applicable(records, "docs/contracts/YC-005-governance.md")
         self.assertEqual({r.id for r in current}, {"YC-005"})
 
