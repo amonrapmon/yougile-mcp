@@ -20,6 +20,7 @@ _ERROR_CATEGORIES = (
     "invalid_input", "permission_denied", "authentication_failed", "not_found",
     "rate_limited", "request_budget_exhausted", "timeout", "uncertain_write",
     "vendor_validation", "upstream_failure", "result_too_large",
+    "approval_required", "credentials_unavailable",
 )
 _CREDENTIAL_OPS = frozenset({
     "getCompanies", "AuthKeyController_create", "AuthKeyController_search",
@@ -193,7 +194,8 @@ def build_registry() -> ToolRegistry:
         operation = available[operation_id]
         policy = policies[operation_id]
         required_fields = {"domain", "access", "risk", "resource_scope", "approval"}
-        if not set(policy).issuperset(required_fields) or set(policy) - (required_fields | {"safe_direct_body_fields"}):
+        optional_fields = {"safe_direct_body_fields"}
+        if not required_fields.issubset(policy) or set(policy) - (required_fields | optional_fields):
             raise ValueError("Incomplete or unexpected policy for " + operation_id)
         if policy["access"] not in {"read", "write", "destructive", "admin"}:
             raise ValueError("Invalid access policy for " + operation_id)
