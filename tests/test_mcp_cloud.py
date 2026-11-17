@@ -52,6 +52,15 @@ def responses(req):
         return httpx.Response(401, json={"message": "untrusted key"})
     if req.url.path.startswith("/api-v2/companies"):
         return httpx.Response(200, json={"id": company, "title": "Test", "timestamp": 42})
+    if req.url.path == "/api-v2/users/me":
+        return httpx.Response(200, json={
+            "id": "vendor-" + company,
+            "email": "synthetic@example.invalid",
+            "realName": "Synthetic User",
+            "status": "online",
+            "lastActivity": 42,
+            "isAdmin": company == "company-A",
+        })
     if req.method == "POST" and req.url.path == "/api-v2/projects":
         return httpx.Response(201, json={"id": "project-new-" + company})
     if req.url.path.startswith("/api-v2/boards/"):
@@ -71,10 +80,27 @@ class CloudBridgeTests(unittest.IsolatedAsyncioTestCase):
 
         def handler(request):
             self.requests.append(request)
+            # Mutable project state verifies that self-join is not reusable to
+            # modify membership after a successful first assignment.
+            prefix = "/api-v2/projects/"
+            if request.url.path.startswith(prefix):
+                project_id = request.url.path.removeprefix(prefix)
+                if project_id not in self.project_members:
+                    return httpx.Response(404, json={"message": "not found"})
+                if request.method == "GET":
+                    return httpx.Response(200, json={
+                        "id": project_id, "title": "Empty",
+                        "timestamp": 42, "users": self.project_members[project_id],
+                        "departments": {},
+                    })
+                if request.method == "PUT":
+                    self.project_members[project_id].update(json.loads(request.content)["users"])
+                    return httpx.Response(200, json={"id": project_id})
             return responses(request)
 
         self.cfg = Settings.from_env({})
         self.registry = build_registry()
+        self.project_members = {"project-empty-company-A": {}}
         self.sessions = CloudTenantSessions(
             self.cfg,
             resolve_actor=resolve_actor,
@@ -149,6 +175,81 @@ class CloudBridgeTests(unittest.IsolatedAsyncioTestCase):
             {req.headers.get("authorization") for req in posts},
             {"Bearer api-key-A", "Bearer api-key-B"},
         )
+
+    async def test_verified_self_membership_unblocks_empty_project_only(self):
+        tool = self.registry.by_operation("ProjectController_update")
+        project_id = "project-empty-company-A"
+        payload = {
+            "path": {"id": project_id},
+            "body": {"users": {"vendor-company-A": "admin"}},
+        }
+        async with Client(make_cloud_mcp_server(self.sessions), raise_exceptions=True) as client:
+            created = await self._invoke(client, "user-A", tool.name, payload)
+            self.assertFalse(created.is_error, created.content)
+            self.assertEqual(self.project_members[project_id], {"vendor-company-A": "admin"})
+
+            # The very same request must no longer be exempt after assignment.
+            repeat = await self._invoke(client, "user-A", tool.name, payload)
+            self.assertTrue(repeat.is_error)
+            self.assertEqual(
+                json.loads(repeat.content[0].text)["category"], "approval_required",
+            )
+
+            for body in (
+                {"users": {"vendor-company-A": "worker"}},
+                {"users": {"other-user": "admin"}},
+                {"users": {"vendor-company-A": "admin", "other-user": "observer"}},
+                {"title": "changed", "users": {"vendor-company-A": "admin"}},
+                {"deleted": True, "users": {"vendor-company-A": "admin"}},
+            ):
+                with self.subTest(body=body):
+                    denied = await self._invoke(client, "user-A", tool.name, {
+                        "path": {"id": project_id}, "body": body,
+                    })
+                    self.assertTrue(denied.is_error)
+                    self.assertIn(
+                        json.loads(denied.content[0].text)["category"],
+                        ("approval_required", "permission_denied"),
+                    )
+
+            # Company B is a different vendor identity and is not a company admin.
+            denied = await self._invoke(client, "user-B", tool.name, payload)
+            self.assertTrue(denied.is_error)
+            self.assertEqual(
+                json.loads(denied.content[0].text)["category"], "approval_required",
+            )
+
+        puts = [r for r in self.requests if r.method == "PUT"]
+        self.assertEqual(len(puts), 1)
+        self.assertEqual(puts[0].headers.get("authorization"), "Bearer api-key-A")
+
+    async def test_project_create_with_verified_self_admin_is_direct(self):
+        tool = self.registry.by_operation("ProjectController_create")
+        async with Client(make_cloud_mcp_server(self.sessions), raise_exceptions=True) as client:
+            allowed = await self._invoke(client, "user-A", tool.name, {
+                "body": {
+                    "title": "Заявки", "idempotencyKey": "self-owner-1",
+                    "users": {"vendor-company-A": "admin"},
+                },
+            })
+            self.assertFalse(allowed.is_error, allowed.content)
+            for actor, members in (
+                ("user-A", {"unverified": "admin"}),
+                ("user-A", {"vendor-company-A": "worker"}),
+                ("user-A", {"vendor-company-A": "admin", "other": "worker"}),
+                ("user-B", {"vendor-company-B": "admin"}),
+            ):
+                with self.subTest(actor=actor, members=members):
+                    blocked = await self._invoke(client, actor, tool.name, {
+                        "body": {"title": "Blocked", "users": members},
+                    })
+                    self.assertTrue(blocked.is_error)
+                    self.assertEqual(
+                        json.loads(blocked.content[0].text)["category"], "approval_required",
+                    )
+        posts = [r for r in self.requests if r.method == "POST"]
+        self.assertEqual(len(posts), 1)
+        self.assertEqual(posts[0].headers.get("authorization"), "Bearer api-key-A")
 
     async def test_cross_company_board_denied_with_own_user_key(self):
         board = self.registry.by_operation("BoardController_get")
