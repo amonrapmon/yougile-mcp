@@ -210,7 +210,8 @@
       "access": "admin",
       "risk": "administrative",
       "resource_scope": "company",
-      "approval": true
+      "approval": true,
+      "safe_direct_body_fields": ["title", "idempotencyKey"]
     },
     "ProjectController_get": {
       "domain": "projects",
