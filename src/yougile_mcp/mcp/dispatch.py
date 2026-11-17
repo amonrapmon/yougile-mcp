@@ -254,7 +254,7 @@ def _is_safe_direct_write(tool: ToolDescriptor, args: Mapping[str, Any]) -> bool
     """Only a reviewed title-only project creation can skip server approval.
 
     The ordinary scope/company checks still run first, and the vendor verifies
-    the user\u0027s authority to create a project. Any permissions/membership fields
+    the caller's authority to create a project. Any permissions/membership fields
     (even empty ones) keep the operation behind a trusted approval provider.
     """
     if not tool.safe_direct_body_fields or set(args) != {"body"}:
