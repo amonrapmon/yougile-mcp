@@ -1,6 +1,6 @@
 ---
 id: YC-012
-authority: draft
+authority: current
 owner: maintainer
 applies_to: ["src/yougile_mcp/mcp/**", "tests/test_mcp_*.py", "docs/ARCHITECTURE.md"]
 superseded_by: null
@@ -15,8 +15,9 @@ YouGile project visible by assigning only themselves as its first
 project administrator, without introducing a general privilege-management
 bypass. Also allow creating a project with that single self-assignment.
 
-This proposal supplements current YC-011. It is a **DRAFT** for owner review:
-it does not authorize other users, inherited teams, or elevated roles.
+This maintainer-approved exception supplements current YC-011. It does not
+authorize other users, inherited teams, or elevated roles. The contract is
+approved independently of deployment and live verification.
 
 ## Invariants
 
