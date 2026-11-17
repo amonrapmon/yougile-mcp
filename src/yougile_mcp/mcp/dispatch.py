@@ -200,7 +200,10 @@ class ToolDispatcher:
         elevated_delete = isinstance(body, dict) and "deleted" in body
         if elevated_delete and "yougile." + tool.domain + ".destructive" not in principal.scopes:
             raise ToolDispatchError("permission_denied")
-        if tool.requires_approval or elevated_delete:
+        needs_approval = elevated_delete or (
+            tool.requires_approval and not _is_safe_direct_write(tool, supplied)
+        )
+        if needs_approval:
             if self.approvals is None or not self.approvals.consume(principal, tool, supplied):
                 raise ToolDispatchError("approval_required")
         path = supplied.get("path")
@@ -245,6 +248,24 @@ class ToolDispatcher:
         if len(serialized.encode("utf-8")) > _MAX_OUTPUT_BYTES:
             raise ToolDispatchError("result_too_large")
         return result
+
+
+def _is_safe_direct_write(tool: ToolDescriptor, args: Mapping[str, Any]) -> bool:
+    """Only a reviewed title-only project creation can skip server approval.
+
+    The ordinary scope/company checks still run first, and the vendor verifies
+    the caller's authority to create a project. Any permissions/membership fields
+    (even empty ones) keep the operation behind a trusted approval provider.
+    """
+    if not tool.safe_direct_body_fields or set(args) != {"body"}:
+        return False
+    body = args.get("body")
+    return bool(
+        isinstance(body, dict)
+        and isinstance(body.get("title"), str)
+        and body["title"].strip()
+        and set(body).issubset(tool.safe_direct_body_fields)
+    )
 
 
 def _has_sensitive_fields(value: Any) -> bool:

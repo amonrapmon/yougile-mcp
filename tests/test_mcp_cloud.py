@@ -52,6 +52,8 @@ def responses(req):
         return httpx.Response(401, json={"message": "untrusted key"})
     if req.url.path.startswith("/api-v2/companies"):
         return httpx.Response(200, json={"id": company, "title": "Test", "timestamp": 42})
+    if req.method == "POST" and req.url.path == "/api-v2/projects":
+        return httpx.Response(201, json={"id": "project-new-" + company})
     if req.url.path.startswith("/api-v2/boards/"):
         board_id = req.url.path.rsplit("/", 1)[-1]
         if board_id != "board-" + company:
@@ -120,6 +122,33 @@ class CloudBridgeTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(res.structured_content["data"]["projectId"], "project-company-" + suffix)
         self.assertTrue(any(req.headers.get("authorization") == "Bearer api-key-A" for req in self.requests))
         self.assertTrue(any(req.headers.get("authorization") == "Bearer api-key-B" for req in self.requests))
+
+    async def test_title_only_project_create_works_in_cloud_without_approval_provider(self):
+        tool = self.registry.by_operation("ProjectController_create")
+        async with Client(make_cloud_mcp_server(self.sessions), raise_exceptions=True) as client:
+            for actor, expected in (("user-A", "company-A"), ("user-B", "company-B")):
+                with self.subTest(actor=actor):
+                    result = await self._invoke(
+                        client, actor, tool.name,
+                        {"body": {"title": "Заявки", "idempotencyKey": "safe-" + actor}},
+                    )
+                    self.assertFalse(result.is_error, result.content)
+                    self.assertEqual(result.structured_content["data"]["id"], "project-new-" + expected)
+                    for field in ("users", "departments"):
+                        denied = await self._invoke(
+                            client, actor, tool.name,
+                            {"body": {"title": "Заявки", field: {}}},
+                        )
+                        self.assertTrue(denied.is_error)
+                        self.assertEqual(
+                            json.loads(denied.content[0].text)["category"], "approval_required",
+                        )
+        posts = [req for req in self.requests if req.method == "POST"]
+        self.assertEqual(len(posts), 2)
+        self.assertEqual(
+            {req.headers.get("authorization") for req in posts},
+            {"Bearer api-key-A", "Bearer api-key-B"},
+        )
 
     async def test_cross_company_board_denied_with_own_user_key(self):
         board = self.registry.by_operation("BoardController_get")

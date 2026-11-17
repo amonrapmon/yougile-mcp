@@ -134,6 +134,16 @@ class FactoryTests(unittest.TestCase):
                 if descriptor.credentials:
                     self.assertNotIn("body", descriptor.input_schema["properties"])
 
+    def test_safe_direct_exception_is_explicit_and_unique(self):
+        safe = {
+            d.operation_id: d.safe_direct_body_fields
+            for d in build_registry().list() if d.safe_direct_body_fields
+        }
+        self.assertEqual(safe, {
+            "ProjectController_create": frozenset({"title", "idempotencyKey"}),
+        })
+        self.assertTrue(build_registry().by_operation("ProjectController_create").requires_approval)
+
     def test_nullable_and_references_are_preserved(self):
         board = build_registry().by_operation("BoardController_get")
         self.assertIn("$defs", board.output_schema)
@@ -199,6 +209,68 @@ class DispatcherTests(unittest.IsolatedAsyncioTestCase):
                 coverage.append(descriptor.operation_id)
         self.assertEqual(len(coverage), 72)
         self.assertEqual(set(coverage), set(operations()))
+
+    async def test_title_only_project_create_is_safe_direct(self):
+        registry = build_registry()
+        tool = registry.by_operation("ProjectController_create")
+        sent: list[httpx.Request] = []
+
+        def handler(request: httpx.Request) -> httpx.Response:
+            sent.append(request)
+            return httpx.Response(201, json={"id": "new-project"})
+
+        settings = Settings.from_env({
+            "YOUGILE_API_KEY": SECRET, "YOUGILE_COMPANY_ID": COMPANY,
+        })
+        async with YouGileClient(
+            settings, transport=httpx.MockTransport(handler),
+        ) as client:
+            dispatcher = ToolDispatcher(client, company_id=COMPANY, registry=registry)
+            direct = {"body": {"title": "Заявки", "idempotencyKey": "project-1"}}
+            created = await dispatcher.call(tool.name, direct, _principal())
+            self.assertEqual(created["data"]["id"], "new-project")
+            self.assertEqual(len(sent), 1)
+            self.assertEqual(sent[0].method, "POST")
+            self.assertEqual(json.loads(sent[0].content), direct["body"])
+
+            # Passing even an empty membership/department field is privileged.
+            for body in (
+                {"title": "Заявки", "users": {}},
+                {"title": "Заявки", "departments": {}},
+                {"title": "Заявки", "users": {"user-1": "admin"}},
+                {"title": "   "},
+            ):
+                with self.subTest(body=body):
+                    with self.assertRaises(ToolDispatchError) as denied:
+                        await dispatcher.call(tool.name, {"body": body}, _principal())
+                    self.assertEqual(denied.exception.category, "approval_required")
+            self.assertEqual(len(sent), 1)
+
+            for principal in (
+                None,
+                _principal(company="another-company"),
+                _principal(wide=False),
+                _principal(scopes=frozenset()),
+            ):
+                with self.subTest(principal=principal):
+                    with self.assertRaises(ToolDispatchError) as denied:
+                        await dispatcher.call(tool.name, direct, principal)
+                    self.assertEqual(denied.exception.category, "permission_denied")
+            self.assertEqual(len(sent), 1)
+
+            # Elevated payloads still work with a separately trusted grant.
+            approvals = OneTimeApprovals()
+            protected = {"body": {"title": "Заявки", "users": {"user-1": "admin"}}}
+            approvals.grant(_principal(), tool, protected)
+            approved_dispatcher = ToolDispatcher(
+                client, company_id=COMPANY, registry=registry, approvals=approvals,
+            )
+            await approved_dispatcher.call(tool.name, protected, _principal())
+            self.assertEqual(len(sent), 2)
+            with self.assertRaises(ToolDispatchError) as replay:
+                await approved_dispatcher.call(tool.name, protected, _principal())
+            self.assertEqual(replay.exception.category, "approval_required")
+            self.assertEqual(len(sent), 2)
 
     async def test_cross_company_and_project_denied_before_http(self):
         calls = []
