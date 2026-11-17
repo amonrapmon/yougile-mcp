@@ -1,6 +1,6 @@
 ---
 id: YC-011
-authority: draft
+authority: current
 owner: maintainer
 applies_to: ["src/yougile_mcp/mcp/**", "tests/test_mcp_*.py", "docs/ARCHITECTURE.md"]
 superseded_by: null
@@ -15,9 +15,9 @@ to create an ordinary project without a second MCP-server approval **only**
 when the payload cannot change project memberships or permissions.
 Keep all other administrative and destructive actions fail-closed.
 
-This record is a DRAFT for maintainer review before the behavior becomes a
-published security contract. The implementation in GEN-271 is a proposed change,
-not evidence of approval or live deployment.
+This record is approved by the maintainer as part of GEN-271 for the narrowly
+specified policy exception. Approval of the contract does not imply successful
+live deployment or approval of a general-purpose bypass.
 
 ## Invariants
 
