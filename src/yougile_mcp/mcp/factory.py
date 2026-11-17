@@ -59,6 +59,7 @@ class ToolDescriptor:
     multipart: bool
     redacted_result: bool
     pagination: str | None
+    safe_direct_body_fields: frozenset[str] = frozenset()
     errors: tuple[str, ...] = _ERROR_CATEGORIES
 
     @property
@@ -191,14 +192,26 @@ def build_registry() -> ToolRegistry:
     for operation_id in sorted(available):
         operation = available[operation_id]
         policy = policies[operation_id]
-        if not set(policy).issuperset({"domain", "access", "risk", "resource_scope", "approval"}):
-            raise ValueError("Incomplete policy for " + operation_id)
+        required_fields = {"domain", "access", "risk", "resource_scope", "approval"}
+        if not set(policy).issuperset(required_fields) or set(policy) - (required_fields | {"safe_direct_body_fields"}):
+            raise ValueError("Incomplete or unexpected policy for " + operation_id)
         if policy["access"] not in {"read", "write", "destructive", "admin"}:
             raise ValueError("Invalid access policy for " + operation_id)
         if policy["resource_scope"] not in {"company", "project"}:
             raise ValueError("Invalid resource boundary for " + operation_id)
         if policy["access"] in {"destructive", "admin"} and not policy["approval"]:
             raise ValueError("Unsafe policy for " + operation_id)
+        safe_fields = policy.get("safe_direct_body_fields", [])
+        # Reviewed, field-level exception to the normal administrative approval.
+        # Do not let a manifest edit silently exempt another privileged action.
+        if safe_fields and not (
+            operation_id == "ProjectController_create"
+            and safe_fields == ["title", "idempotencyKey"]
+            and policy["access"] == "admin"
+            and policy["resource_scope"] == "company"
+            and policy["approval"] is True
+        ):
+            raise ValueError("Unreviewed safe direct policy for " + operation_id)
         credentials = operation_id in _CREDENTIAL_OPS
         multipart = operation_id == "FileController_uploadFile"
         redacted = operation_id in _SECRET_RESPONSE_OPS
@@ -219,7 +232,8 @@ def build_registry() -> ToolRegistry:
             domain=policy["domain"], access=policy["access"], risk=policy["risk"],
             scope="yougile." + policy["domain"] + "." + policy["access"],
             resource_scope=policy["resource_scope"],
-            requires_approval=policy["approval"], credentials=credentials,
+            requires_approval=policy["approval"],
+            safe_direct_body_fields=frozenset(safe_fields), credentials=credentials,
             multipart=multipart, redacted_result=redacted,
             pagination=(
                 "cursor" if {"limit", "before"}.issubset(
