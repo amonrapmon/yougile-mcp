@@ -204,7 +204,15 @@ class ToolDispatcher:
             tool.requires_approval and not _is_safe_direct_write(tool, supplied)
         )
         if needs_approval:
-            if self.approvals is None or not self.approvals.consume(principal, tool, supplied):
+            trusted_grant = (
+                self.approvals is not None
+                and self.approvals.consume(principal, tool, supplied)
+            )
+            if not trusted_grant and (
+                elevated_delete or not await self._can_self_administer_empty_project(
+                    tool, supplied, principal,
+                )
+            ):
                 raise ToolDispatchError("approval_required")
         path = supplied.get("path")
         query = supplied.get("query")
@@ -248,6 +256,78 @@ class ToolDispatcher:
         if len(serialized.encode("utf-8")) > _MAX_OUTPUT_BYTES:
             raise ToolDispatchError("result_too_large")
         return result
+
+
+    async def _can_self_administer_empty_project(
+        self,
+        tool: ToolDescriptor,
+        arguments: Mapping[str, Any],
+        principal: InvocationPrincipal,
+    ) -> bool:
+        """Narrow permission to join the authenticated admin's own project.
+
+        Never trust an MCP-supplied user ID as proof of identity. Only the
+        company-bound YouGile key's /users/me endpoint establishes the actor.
+        Existing project membership or departments cannot be changed this way.
+        """
+        op = tool.operation_id
+        if op not in {"ProjectController_create", "ProjectController_update"}:
+            return False
+        if not principal.company_wide or self.company_verifier is None:
+            return False
+        body = arguments.get("body")
+        if not isinstance(body, dict):
+            return False
+        fields = set(body)
+        if op == "ProjectController_create":
+            if (
+                set(arguments) != {"body"}
+                or not fields.issubset({"title", "idempotencyKey", "users"})
+                or not isinstance(body.get("title"), str)
+                or not body["title"].strip()
+            ):
+                return False
+        else:
+            if set(arguments) != {"path", "body"} or fields != {"users"}:
+                return False
+            path = arguments.get("path")
+            if not isinstance(path, dict) or not isinstance(path.get("id"), str):
+                return False
+
+        members = body.get("users")
+        if not isinstance(members, dict) or len(members) != 1:
+            return False
+        try:
+            verified = await self.client.request("UserController_getMe")
+        except ApiError:
+            return False
+        actor = verified.data
+        if (
+            not isinstance(actor, Mapping)
+            or actor.get("isAdmin") is not True
+            or actor.get("messengerOnly") is True
+            or not isinstance(actor.get("id"), str)
+            or members != {actor["id"]: "admin"}
+        ):
+            return False
+        if op == "ProjectController_update":
+            project_id = arguments["path"]["id"]
+            try:
+                project = await self.client.request(
+                    "ProjectController_get", path={"id": project_id},
+                )
+            except ApiError:
+                return False
+            data = project.data
+            if (
+                not isinstance(data, Mapping)
+                or data.get("id") != project_id
+                or data.get("deleted") is True
+                or data.get("users") not in (None, {})
+                or data.get("departments") not in (None, {})
+            ):
+                return False
+        return True
 
 
 def _is_safe_direct_write(tool: ToolDescriptor, args: Mapping[str, Any]) -> bool:
